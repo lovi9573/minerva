@@ -12,6 +12,7 @@ class DeviceManager {
   ~DeviceManager();
   uint64_t CreateCpuDevice();
   uint64_t CreateGpuDevice(int gid);
+  uint64_t CreateMpiDevice(int rank, int gid);
   int GetGpuDeviceCount();
   Device* GetDevice(uint64_t id);
   void FreeData(uint64_t id);

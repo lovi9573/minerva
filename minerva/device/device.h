@@ -15,11 +15,15 @@
 
 namespace minerva {
 
+/*
+ * Base class for a device
+ */
 class Device {
  public:
   enum class MemType {
     kCpu,
-    kGpu
+    kGpu,
+    kMpi,
   };
   Device() = delete;
   DISALLOW_COPY_AND_ASSIGN(Device);
@@ -33,7 +37,13 @@ class Device {
   virtual MemType GetMemType() const = 0;
 
  protected:
+  /*
+   * Set of local data uids
+   */
   ConcurrentUnorderedSet<uint64_t> local_data_;
+  /*
+   * Set of cached remote data uids
+   */
   ConcurrentUnorderedSet<uint64_t> remote_data_;
   uint64_t device_id_;
   std::unique_ptr<DataStore> data_store_;
@@ -75,6 +85,25 @@ class GpuDevice : public ThreadedDevice {
   void Barrier(int) override;
   void DoCopyRemoteData(float*, float*, size_t, int) override;
   void DoExecute(const DataList&, const DataList&, PhysicalOp&, int) override;
+};
+#endif
+
+#ifdef HAS_MPI
+class MpiDevice : public ThreadedDevice {
+ public:
+  MpiDevice(uint64_t device_id, DeviceListener*, int rank, int gpu_id);
+  DISALLOW_COPY_AND_ASSIGN(MpiDevice);
+  ~MpiDevice();
+  MemType GetMemType() const override;
+  std::string Name() const override;
+
+ private:
+  static size_t constexpr kParallelism = 4;
+  int _rank;
+  int _gpu_id;
+  void DoCopyRemoteData(float*, float*, size_t, int) override;
+  void DoExecute(const DataList&, const DataList&, PhysicalOp&, int) override;
+  void DoExecute(Task& task, int thrid);
 };
 #endif
 

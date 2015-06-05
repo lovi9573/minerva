@@ -15,6 +15,9 @@ DeviceManager::DeviceManager() {
 #ifdef HAS_CUDA
   GetGpuDeviceCount();  // initialize driver, ensure correct `atexit` order
 #endif
+#ifdef HAS_MPI
+  GetMpiDeviceCount();
+#endif
 }
 
 DeviceManager::~DeviceManager() {
@@ -41,6 +44,18 @@ uint64_t DeviceManager::CreateGpuDevice(int gid) {
 #endif
 }
 
+uint64_t DeviceManager::CreateMpiDevice(int rank, int gid) {
+#ifdef HAS_MPI
+  auto id = GenerateDeviceId();
+  Device* d = new MpiDevice(id, listener_, rank, gid);
+  CHECK(device_storage_.emplace(id, d).second);
+  return id;
+#else
+  common::FatalError("please recompile with macro HAS_MPI");
+#endif
+}
+
+
 int DeviceManager::GetGpuDeviceCount() {
 #ifdef HAS_CUDA
   int ret;
@@ -50,6 +65,17 @@ int DeviceManager::GetGpuDeviceCount() {
   common::FatalError("please recompile with macro HAS_CUDA");
 #endif
 }
+
+int DeviceManager::GetMpiDeviceCount() {
+#ifdef HAS_MPI
+  int ret;
+  //TODO: 2 How many MPI nodes are there?
+  return ret;
+#else
+  common::FatalError("please recompile with macro HAS_MPI");
+#endif
+}
+
 
 Device* DeviceManager::GetDevice(uint64_t id) {
   return device_storage_.at(id);

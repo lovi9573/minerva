@@ -12,7 +12,8 @@ enum class ImplType {
   kNA = 0,
   kBasic,
   kMkl,
-  kCuda
+  kCuda,
+  kMpi
 };
 
 inline std::ostream& operator<<(std::ostream& os, ImplType t) {
@@ -31,6 +32,10 @@ struct Context {
   cudaStream_t stream;
   cublasHandle_t cublas_handle;
   cudnnHandle_t cudnn_handle;
+#endif
+#ifdef HAS_MPI
+  int rank;
+  int gpu_id;
 #endif
   virtual ~Context() {
   };

@@ -54,3 +54,11 @@ configure.in
 
 # data files
 *.mat
+
+#eclipse
+.project
+.cproject
+.pydevproject
+
+.tags
+cscope.out

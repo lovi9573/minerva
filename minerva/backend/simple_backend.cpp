@@ -44,7 +44,7 @@ std::vector<BackendChunk*> SimpleBackend::Create(const std::vector<BackendChunk*
     task->outputs.emplace_back(o->data(), 0);
   }
   task->op = PhysicalOp{fn, current_device_id};
-  task->id = 0;
+  task->id = MinervaSystem::Instance().GenerateTaskId();
   DLOG(INFO) << "executing task name=" << fn->Name() << " to device #" << current_device_id;
   // wait for finish
 //  unique_lock<mutex> ul(finish_mutex_);

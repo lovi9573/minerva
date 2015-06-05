@@ -67,56 +67,92 @@ void ThreadedDevice::FreeDataIfExist(uint64_t data_id) {
 
 void ThreadedDevice::Execute(Task* task, int thrid) {
   PreExecute();
-#ifndef NDEBUG
-  WallTimer memory_timer;
-  memory_timer.Start();
+  //TODO: defer the ptr collection in the case of MPI call.
+  if (GetMemType() == MemType::kMpi){
+#ifdef HAS_MPI
+	  auto& op = task->op;
+	  CHECK(op.compute_fn);
+	  if(!FLAGS_no_execute) {
+		#ifndef NDEBUG
+			Barrier(thrid);
+			WallTimer calculate_timer;
+			calculate_timer.Start();
+		#endif
+			DLOG(INFO) << Name() << " execute mpi task #" << task->id << ": " << op.compute_fn->Name();
+			//TODO: 0 task has unique data_id's in it BUT how will workers be able to get the data?
+			/*TODO: 1 The data local to this MPI node should be sent here instead of just the task.
+			 *The message will be a combination of Task for peer data and DataShards for local data.
+			 *This might a moot point for this embodiment of Minerva because I don't believe that any ops require more than one shard.
+			 */
+			DoExecute(task, thrid);
+			DLOG(INFO) << Name() << " finished execute mpi task #" << task->id << ": " << op.compute_fn->Name();
+		#ifndef NDEBUG
+			calculate_timer.Stop();
+			MinervaSystem::Instance().profiler().RecordTime(TimerType::kCalculation, op.compute_fn->Name(), calculate_timer);
+		#endif
+	  }
+#else
+	  NO_MPI
 #endif
-  DataList input_shards;
-  for (auto& i : task->inputs) {
-    auto& input_data = i.physical_data;
-    if (input_data.device_id == device_id_) {  // Input is local
-      DLOG(INFO) << Name() << " input task data #" << i.id << " is local";
-      CHECK_EQ(local_data_.Count(input_data.data_id), 1);
-    } else {
-      lock_guard<mutex> lck(copy_locks_[input_data.data_id]);
-      if (!remote_data_.Count(input_data.data_id)) {  // Input is remote and not copied
-        DLOG(INFO) << Name() << " input task data #" << i.id << " is remote and not copied";
-        size_t size = input_data.size.Prod() * sizeof(float);
-        auto ptr = data_store_->CreateData(input_data.data_id, size);
-        DoCopyRemoteData(ptr, MinervaSystem::Instance().GetPtr(input_data.device_id, input_data.data_id).second, size, thrid);
-        CHECK(remote_data_.Insert(input_data.data_id));
-      }
-    }
-    input_shards.emplace_back(data_store_->GetData(input_data.data_id), input_data.size);
-  }
-  DataList output_shards;
-  for (auto& i : task->outputs) {
-    size_t size = i.physical_data.size.Prod() * sizeof(float);
-    DLOG(INFO) << Name() << " create output for task data #" << i.id;
-    auto ptr = data_store_->CreateData(i.physical_data.data_id, size);
-    CHECK(local_data_.Insert(i.physical_data.data_id));
-    output_shards.emplace_back(ptr, i.physical_data.size);
-  }
-  auto& op = task->op;
-  CHECK(op.compute_fn);
-  if(!FLAGS_no_execute) {
-#ifndef NDEBUG
-    Barrier(thrid);
-    memory_timer.Stop();
-    MinervaSystem::Instance().profiler().RecordTime(TimerType::kMemory, op.compute_fn->Name(), memory_timer);
-    WallTimer calculate_timer;
-    calculate_timer.Start();
-#endif
-    DLOG(INFO) << Name() << " execute task #" << task->id << ": " << op.compute_fn->Name();
-    DoExecute(input_shards, output_shards, op, thrid);
-    DLOG(INFO) << Name() << " finished execute task #" << task->id << ": " << op.compute_fn->Name();
-#ifndef NDEBUG
-    calculate_timer.Stop();
-    MinervaSystem::Instance().profiler().RecordTime(TimerType::kCalculation, op.compute_fn->Name(), calculate_timer);
-#endif
-  }
+  }else{
+	#ifndef NDEBUG
+	  WallTimer memory_timer;
+	  memory_timer.Start();
+	#endif
+	  /*
+	   * Gather input data pointers
+	   */
+	  DataList input_shards;
+	  for (auto& i : task->inputs) {
+		auto& input_data = i.physical_data;
+		if (input_data.device_id == device_id_) {  // Input is local
+		  DLOG(INFO) << Name() << " input task data #" << i.id << " is local";
+		  CHECK_EQ(local_data_.Count(input_data.data_id), 1);
+		} else {
+		  lock_guard<mutex> lck(copy_locks_[input_data.data_id]);
+		  if (!remote_data_.Count(input_data.data_id)) {  // Input is remote and not copied
+			DLOG(INFO) << Name() << " input task data #" << i.id << " is remote and not copied";
+			size_t size = input_data.size.Prod() * sizeof(float);
+			auto ptr = data_store_->CreateData(input_data.data_id, size);
+			DoCopyRemoteData(ptr, MinervaSystem::Instance().GetPtr(input_data.device_id, input_data.data_id).second, size, thrid);
+			CHECK(remote_data_.Insert(input_data.data_id));
+		  }
+		}
+		//A list of (pointer , Scale) tuples.
+		input_shards.emplace_back(data_store_->GetData(input_data.data_id), input_data.size);
+	  }
+	  /*
+	   * Create output data pointers
+	   */
+	  DataList output_shards;
+	  for (auto& i : task->outputs) {
+		size_t size = i.physical_data.size.Prod() * sizeof(float);
+		DLOG(INFO) << Name() << " create output for task data #" << i.id;
+		auto ptr = data_store_->CreateData(i.physical_data.data_id, size);
+		CHECK(local_data_.Insert(i.physical_data.data_id));
+		output_shards.emplace_back(ptr, i.physical_data.size);
+	  }
+	  auto& op = task->op;
+	  CHECK(op.compute_fn);
+	  if(!FLAGS_no_execute) {
+	#ifndef NDEBUG
+		Barrier(thrid);
+		memory_timer.Stop();
+		MinervaSystem::Instance().profiler().RecordTime(TimerType::kMemory, op.compute_fn->Name(), memory_timer);
+		WallTimer calculate_timer;
+		calculate_timer.Start();
+	#endif
+		DLOG(INFO) << Name() << " execute task #" << task->id << ": " << op.compute_fn->Name();
+		DoExecute(input_shards, output_shards, op, thrid);
+		DLOG(INFO) << Name() << " finished execute task #" << task->id << ": " << op.compute_fn->Name();
+	#ifndef NDEBUG
+		calculate_timer.Stop();
+		MinervaSystem::Instance().profiler().RecordTime(TimerType::kCalculation, op.compute_fn->Name(), calculate_timer);
+	#endif
+	  }
+  }//end kCpu || kGpu
   listener_->OnOperationComplete(task);
-}
+} // end Execute
 
 void ThreadedDevice::PreExecute() {
 }
@@ -215,6 +251,60 @@ void GpuDevice::DoExecute(const DataList& in, const DataList& out, PhysicalOp& o
   ctx.cudnn_handle = impl_->cudnn_handle[thrid];
   op.compute_fn->Execute(in, out, ctx);
   CUDA_CALL_MSG(op.compute_fn->Name(), cudaStreamSynchronize(impl_->stream[thrid]));
+}
+
+#endif
+
+#ifdef HAS_MPI
+MpiDevice::MpiDevice(uint64_t device_id, DeviceListener*, int rank, int gpu_id) : ThreadedDevice(device_id, l, kParallelism) , _rank(rank), _gpu_id(gpu_id){
+	auto allocator = [](size_t len) -> void* {
+	    void* ret = malloc(len);
+	    return ret;
+	  };
+	  auto deallocator = [](void* ptr) {
+	    free(ptr);
+	  };
+	  data_store_ = common::MakeUnique<DataStore>(allocator, deallocator);
+}
+
+MpiDevice::~MpiDevice(){
+	pool_.WaitForAllFinished();
+}
+
+Device::MemType MpiDevice::GetMemType() const {
+	return MemType::kMpi;
+}
+
+string MpiDevice::Name() const {
+	return common::FString("Mpi Compute Node rank #%d",rank);
+}
+
+/*
+ * @param dst  The write pointer. Local to this device
+ * @param src  The read pointer. Remote data.
+ */
+void MpiDevice::DoCopyRemoteData(float* dst, float* src, size_t size, int) {
+	//TODO: 1 Copy data !
+	// Determine data owner
+	// Determine dst owner
+	// Select copy method.
+}
+
+void MpiDevice::DoExecute(const DataList& in, const DataList& out, PhysicalOp& op, int thrid) {
+	Context ctx;
+	ctx.impl_type = ImplType::kMpi;
+	ctx.rank = _rank;
+	ctx.gpu_id = _gpu_id;
+	//TODO: 1 Dispatch serialized op (code?), with datalists to _rank set to run on gpu _gpu_id;  Wait for response.
+}
+
+void DoExecute(Task& task, int thrid){
+	Context ctx;
+	ctx.impl_type = ImplType::kMpi;
+	ctx.rank = _rank;
+	ctx.gpu_id = _gpu_id;
+
+	task.op.compute_fn->Execute(task, ctx);
 }
 
 #endif

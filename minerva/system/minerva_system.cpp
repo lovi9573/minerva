@@ -18,6 +18,7 @@ using namespace std;
 
 namespace minerva {
 
+//TODO: 1 multiway memcopy!
 void MinervaSystem::UniversalMemcpy(
     pair<Device::MemType, float*> to,
     pair<Device::MemType, float*> from,
@@ -26,14 +27,21 @@ void MinervaSystem::UniversalMemcpy(
   CUDA_CALL(cudaMemcpy(to.second, from.second, size, cudaMemcpyDefault));
 #else
   CHECK_EQ(static_cast<int>(to.first), static_cast<int>(Device::MemType::kCpu));
-  CHECK_EQ(static_cast<int>(from.first),
-      static_cast<int>(Device::MemType::kCpu));
+  CHECK_EQ(static_cast<int>(from.first), static_cast<int>(Device::MemType::kCpu));
   memcpy(to.second, from.second, size);
 #endif
 }
 
 int const MinervaSystem::has_cuda_ =
 #ifdef HAS_CUDA
+1
+#else
+0
+#endif
+;
+
+int const MinervaSystem::has_mpi_ =
+#ifdef HAS_MPI
 1
 #else
 0
@@ -48,12 +56,19 @@ MinervaSystem::~MinervaSystem() {
   //google::ShutdownGoogleLogging(); //XXX comment out since we switch to dmlc/logging
 }
 
+//TODO: 1 Translate symbolic mpi ptr ids to local data ptr.
 pair<Device::MemType, float*> MinervaSystem::GetPtr(uint64_t device_id, uint64_t data_id) {
   return device_manager_->GetDevice(device_id)->GetPtr(data_id);
 }
 
+//TODO: 1 disable for worker nodes
 uint64_t MinervaSystem::GenerateDataId() {
   return data_id_counter_++;
+}
+
+//TODO: 1 disable for worker nodes
+uint64_t MinervaSystem::GenerateDataId() {
+  return task_id_counter_++;
 }
 
 uint64_t MinervaSystem::CreateCpuDevice() {
@@ -62,6 +77,10 @@ uint64_t MinervaSystem::CreateCpuDevice() {
 uint64_t MinervaSystem::CreateGpuDevice(int id) {
   return MinervaSystem::Instance().device_manager().CreateGpuDevice(id);
 }
+uint64_t MinervaSystem::CreateMpiDevice(int rank, int id) {
+  return MinervaSystem::Instance().device_manager().CreateMpiDevice(rank,id);
+}
+
 void MinervaSystem::SetDevice(uint64_t id) {
   current_device_id_ = id;
 }

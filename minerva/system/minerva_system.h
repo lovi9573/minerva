@@ -17,6 +17,7 @@ class MinervaSystem :
  public:
   static void UniversalMemcpy(std::pair<Device::MemType, float*>, std::pair<Device::MemType, float*>, size_t);
   static int const has_cuda_;
+  static int const has_mpi_;
   MinervaSystem() = delete;
   DISALLOW_COPY_AND_ASSIGN(MinervaSystem);
   ~MinervaSystem();
@@ -38,10 +39,12 @@ class MinervaSystem :
   }
   std::pair<Device::MemType, float*> GetPtr(uint64_t, uint64_t);
   uint64_t GenerateDataId();
+  uint64_t GenerateTaskId();
 
   // device
   uint64_t CreateCpuDevice();
   uint64_t CreateGpuDevice(int);
+  uint64_t CreateMpiDevice(int, int);
   void SetDevice(uint64_t );
   uint64_t current_device_id() const { return current_device_id_; }
   // system
@@ -54,7 +57,9 @@ class MinervaSystem :
   ExecutionProfiler* profiler_;
   DeviceManager* device_manager_;
   std::atomic<uint64_t> data_id_counter_;
+  std::atomic<uint64_t> task_id_counter_;
   uint64_t current_device_id_;
+
 };
 
 }  // end of namespace minerva
