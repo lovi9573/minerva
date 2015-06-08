@@ -10,6 +10,9 @@ namespace minerva {
 
 class DeviceManager;
 
+/*
+ * Synchronizes local device tasks and creates data descriptors.
+ */
 class SimpleBackend : public Backend, public DeviceListener {
  public:
   SimpleBackend(DeviceManager& dm);
@@ -22,7 +25,6 @@ class SimpleBackend : public Backend, public DeviceListener {
 
  private:
   DeviceManager& device_manager_;
-
   std::mutex finish_mutex_;
   std::atomic<bool> finished_flag_;
   std::condition_variable finish_cond_;

@@ -35,6 +35,10 @@ class Device {
   virtual std::string GetMemUsage() const;
   virtual std::string Name() const = 0;
   virtual MemType GetMemType() const = 0;
+#ifdef HAS_MPI
+  Device(int rank, uint64_t device_id, DeviceListener* l);
+  int rank();
+#endif
 
  protected:
   /*
@@ -46,6 +50,9 @@ class Device {
    */
   ConcurrentUnorderedSet<uint64_t> remote_data_;
   uint64_t device_id_;
+#ifdef HAS_MPI
+  int _rank;
+#endif
   std::unique_ptr<DataStore> data_store_;
   DeviceListener* listener_;
 };
@@ -54,6 +61,9 @@ class ThreadedDevice : public Device {
  public:
   ThreadedDevice() = delete;
   ThreadedDevice(uint64_t device_id, DeviceListener*, size_t parallelism);
+#ifdef HAS_MPI
+  ThreadedDevice(int rank, uint64_t device_id, DeviceListener*, size_t parallelism);
+#endif
   DISALLOW_COPY_AND_ASSIGN(ThreadedDevice);
   ~ThreadedDevice() = default;
   void PushTask(Task*) override;
@@ -73,6 +83,9 @@ class ThreadedDevice : public Device {
 class GpuDevice : public ThreadedDevice {
  public:
   GpuDevice(uint64_t device_id, DeviceListener*, int gpu_id);
+#ifdef HAS_MPI
+  GpuDevice(int rank, uint64_t device_id, DeviceListener*, int gpu_id);
+#endif
   DISALLOW_COPY_AND_ASSIGN(GpuDevice);
   ~GpuDevice();
   MemType GetMemType() const override;
@@ -91,7 +104,7 @@ class GpuDevice : public ThreadedDevice {
 #ifdef HAS_MPI
 class MpiDevice : public ThreadedDevice {
  public:
-  MpiDevice(uint64_t device_id, DeviceListener*, int rank, int gpu_id);
+  MpiDevice( int rank, uint64_t device_id, DeviceListener*, int gpu_id);
   DISALLOW_COPY_AND_ASSIGN(MpiDevice);
   ~MpiDevice();
   MemType GetMemType() const override;
@@ -99,7 +112,6 @@ class MpiDevice : public ThreadedDevice {
 
  private:
   static size_t constexpr kParallelism = 4;
-  int _rank;
   int _gpu_id;
   void DoCopyRemoteData(float*, float*, size_t, int) override;
   void DoExecute(const DataList&, const DataList&, PhysicalOp&, int) override;
@@ -110,6 +122,9 @@ class MpiDevice : public ThreadedDevice {
 class CpuDevice : public ThreadedDevice {
  public:
   CpuDevice(uint64_t device_id, DeviceListener*);
+#ifdef HAS_MPI
+  CpuDevice(int rank, uint64_t device_id, DeviceListener*);
+#endif
   DISALLOW_COPY_AND_ASSIGN(CpuDevice);
   ~CpuDevice();
   MemType GetMemType() const override;

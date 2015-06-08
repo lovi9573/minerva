@@ -32,6 +32,15 @@ namespace minerva {
 Device::Device(uint64_t device_id, DeviceListener* l) : device_id_(device_id), data_store_{unique_ptr<DataStore>(nullptr)}, listener_(l) {
 }
 
+#ifdef HAS_MPI
+Device::Device(int rank, uint64_t device_id, DeviceListener* l) : _rank(rank), device_id_(device_id), data_store_{unique_ptr<DataStore>(nullptr)}, listener_(l) {
+}
+
+int Device::rank(){
+	return _rank;
+}
+#endif
+
 pair<Device::MemType, float*> Device::GetPtr(uint64_t data_id) {
   return make_pair(GetMemType(), data_store_->GetData(data_id));
 }
@@ -306,6 +315,8 @@ void DoExecute(Task& task, int thrid){
 
 	task.op.compute_fn->Execute(task, ctx);
 }
+
+
 
 #endif
 

@@ -30,8 +30,8 @@ void MPI::MPI_init(){
 	offsets_data[1] = offsetof(MpiTaskData, owner_rank);
 #else
 	//TODO: 10 typedef unsigned long long int	uint64_t;
-
 #endif
+
 	MPI_Type_create_struct(2, blocklengths_data, offsets_data, types_data, &MpiTaskData);
 	MPI_Type_commit(&mpi_car_type);
 

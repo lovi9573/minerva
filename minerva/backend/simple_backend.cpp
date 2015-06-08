@@ -25,6 +25,8 @@ SimpleBackend::SimpleBackend(DeviceManager& dm): device_manager_(dm) {
   device_manager_.RegisterListener(this);
 }
 
+
+
 std::vector<BackendChunk*> SimpleBackend::Create(const std::vector<BackendChunk*>& input,
     const std::vector<Scale>& result_sizes, std::shared_ptr<ComputeFn> fn) {
   auto current_device_id = MinervaSystem::Instance().current_device_id();

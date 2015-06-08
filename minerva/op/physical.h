@@ -10,6 +10,11 @@ struct PhysicalData {
   PhysicalData(const Scale& s, uint64_t d, uint64_t id) : size(s), device_id(d), data_id(id) {
   }
   Scale size;
+#ifdef HAS_MPI
+  PhysicalData(const Scale& s, int r, uint64_t d, uint64_t id) : rank(r), size(s), device_id(d), data_id(id) {
+  }
+  int rank;
+#endif
   uint64_t device_id;
   uint64_t data_id;
   int extern_rc = 0;

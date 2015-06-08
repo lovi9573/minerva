@@ -89,8 +89,29 @@ void MinervaSystem::WaitForAll() {
 }
 
 MinervaSystem::MinervaSystem(int* argc, char*** argv)
-  : data_id_counter_(0), current_device_id_(0) {
+  : data_id_counter_(0), task_id_counter_(0), current_device_id_(0) {
   gflags::ParseCommandLineFlags(argc, argv, true);
+#ifndef HAS_PS
+  // glog is initialized in PS::main, and also here, so we will hit a
+  // double-initalize error when compiling with PS
+  if (!FLAGS_no_init_glog) {
+    //google::InitGoogleLogging((*argv)[0]); // XXX comment out since we switch to dmlc/logging
+  }
+#endif
+  physical_dag_ = new PhysicalDag();
+  profiler_ = new ExecutionProfiler();
+  device_manager_ = new DeviceManager();
+  if (FLAGS_use_dag) {
+    LOG(INFO) << "dag engine enabled";
+    backend_ = new DagScheduler(physical_dag_, device_manager_);
+  } else {
+    LOG(INFO) << "dag engine disabled";
+    backend_ = new SimpleBackend(*device_manager_);
+  }
+}
+
+MinervaSystem::MinervaSystem(bool worker)
+  :worker_(worker), data_id_counter_(0), task_id_counter_(0), current_device_id_(0) {
 #ifndef HAS_PS
   // glog is initialized in PS::main, and also here, so we will hit a
   // double-initalize error when compiling with PS

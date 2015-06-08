@@ -27,6 +27,7 @@ struct task_data_descriptor{
 	int device_id;
 };
 
+//TODO: 1 Life will be much easier if the closure type and the closure data come together.
 struct task_descriptor{
 	uint64_t task_id;
 	int worker_rank;
