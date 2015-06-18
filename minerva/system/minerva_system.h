@@ -1,14 +1,23 @@
 #pragma once
 #include <atomic>
 #include <memory>
+
+
 #include "common/singleton.h"
 #include "dag/physical_dag.h"
 #include "backend/backend.h"
 #include "device/device_manager.h"
 #include "device/device.h"
 #include "profiler/execution_profiler.h"
+#ifdef HAS_MPI
+#include "mpi/mpi_handler.h"
+#include "mpi/mpi_server.h"
+#endif
+
 
 namespace minerva {
+
+
 
 class MinervaSystem :
   public common::EverlastingSingleton<MinervaSystem> {
@@ -37,29 +46,29 @@ class MinervaSystem :
   DeviceManager& device_manager() {
     return *device_manager_;
   }
+  MpiServer& mpi_server(){
+	  return *mpiserver_;
+  }
   std::pair<Device::MemType, float*> GetPtr(uint64_t, uint64_t);
   uint64_t GenerateDataId();
   uint64_t GenerateTaskId();
 #ifdef HAS_MPI
-  // device
-  uint64_t CreateCpuDevice(int);
-  uint64_t CreateGpuDevice(int, int);
-  uint64_t CreateMpiDevice(int, int, int);
+  // device master
+  uint64_t CreateMpiDevice(int, int);
+#endif //end HAS_MPI
 
-#else
   // device
   uint64_t CreateCpuDevice();
   uint64_t CreateGpuDevice(int);
-  uint64_t CreateMpiDevice(int, int);
-#endif //end HAS_MPI
+
   void SetDevice(uint64_t );
   uint64_t current_device_id() const { return current_device_id_; }
   // system
   void WaitForAll();
+  int rank();
 
  private:
   MinervaSystem(int*, char***);
-  MinervaSystem(bool worker);
   PhysicalDag* physical_dag_;
   Backend* backend_;
   ExecutionProfiler* profiler_;
@@ -67,13 +76,15 @@ class MinervaSystem :
   std::atomic<uint64_t> data_id_counter_;
   std::atomic<uint64_t> task_id_counter_;
   uint64_t current_device_id_;
+  int _rank;
+  bool worker;
 #ifdef HAS_MPI
-  bool _worker;
-  bool _distributed;
+  MpiHandler* mpihandler_;
+  MpiServer* mpiserver_;
 #endif
-
-
 };
+
+
 
 }  // end of namespace minerva
 

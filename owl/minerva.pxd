@@ -5,17 +5,22 @@ from libcpp.vector cimport vector
 cdef extern from './minerva_utils.h' namespace 'libowl':
   uint64_t CreateCpuDevice() except +
   uint64_t CreateGpuDevice(int) except +
+  uint64_t CreateMpiDevice(int, int) except +
   int GetGpuDeviceCount() except +
+  int GetMpiNodeCount() except +
+  int GetMpiDeviceCount(int) except +
   void WaitForAll() except +
   void SetDevice(uint64_t) except +
   Scale ToScale(vector[int]*) except +
   vector[int] OfScale(const Scale&) except +
   NArray FromNumpy(const float*, const Scale&) except +
   void ToNumpy(float*, const NArray&) except +
+  int rank() except +
 
 cdef extern from '../minerva/minerva.h' namespace 'minerva::MinervaSystem':
   void Initialize(int*, char***) except +
   int has_cuda_
+  int has_mpi_
 
 cdef extern from '../minerva/minerva.h' namespace 'minerva::Elewise':
   NArray Mult(const NArray&, const NArray&) except +

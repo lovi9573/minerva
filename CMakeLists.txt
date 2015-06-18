@@ -47,6 +47,7 @@ option(BUILD_TESTS       "build all unittests"                   OFF)
 option(BUILD_CPU_ONLY    "build cpu-only version"                OFF)
 option(BUILD_WITH_PS     "build with parameter server support"   OFF)
 option(BUILD_WITH_BLAS   "build with BLAS library for CPU"       OFF)
+option(BUILD_WITH_MPI    "build with MPI distributed support"    OFF)
 
 message(STATUS "cmake generator: ${CMAKE_GENERATOR}")
 message(STATUS "cmake build tool: ${CMAKE_BUILD_TOOL}")
@@ -68,6 +69,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${GENERAL_FLAGS_RELEASE} -std=c++11 -DNDEBUG")
 ############################################# find packages
 set(CORE_DEPS "")
 
+find_package(MPI REQUIRED)
 find_package(Threads REQUIRED)
 set(CORE_DEPS ${CORE_DEPS} ${CMAKE_THREAD_LIBS_INIT})
 
@@ -101,6 +103,12 @@ include_directories(SYSTEM ${THIRD_INCLUDE_PATH})
 set(CORE_DEPS ${CORE_DEPS} ${THIRD_LIBS})
 ############################################# macros
 
+if(BUILD_WITH_MPI AND MPI_CXX_FOUND)
+  add_definitions(-DHAS_MPI)
+  include_directories(SYSTEM ${MPI_CXX_INCLUDE_PATH})
+  #target_link_libraries(Minerva ${MPI_CXX_LIBRARIES})
+endif()
+
 if(BUILD_WITH_PS)
   add_definitions(-DHAS_PS)
 endif()
@@ -116,6 +124,8 @@ message(STATUS "build unit tests                    -- ${BUILD_TESTS}")
 message(STATUS "build cpu-only version              -- ${BUILD_CPU_ONLY}")
 message(STATUS "build with parameter server support -- ${BUILD_WITH_PS}")
 message(STATUS "build with BLAS library for CPU     -- ${BUILD_WITH_BLAS}")
+message(STATUS "build with MPI support              -- ${BUILD_WITH_MPI}")
+message(STATUS "MPI libraries found.                -- ${MPI_CXX_FOUND}")
 
 add_subdirectory(minerva)
 

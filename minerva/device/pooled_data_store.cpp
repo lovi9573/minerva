@@ -4,7 +4,7 @@ using namespace std;
 
 namespace minerva {
 
-PooledDataStore::PooledDataStore( function<void*(size_t)> a, function<void(void*)> d) : DataStore(a, d), threshold_(threshold) {
+PooledDataStore::PooledDataStore(size_t threshold,  function<void*(size_t)> a, function<void(void*)> d) : DataStore(a, d), threshold_(threshold) {
 }
 
 PooledDataStore::~PooledDataStore() {

@@ -25,9 +25,18 @@ def create_cpu_device():
 def create_gpu_device(i):
     return m.CreateGpuDevice(i)
 
+def create_mpi_device(r, i):
+    return m.CreateMpiDevice(r, i)
+
 def get_gpu_device_count():
     return m.GetGpuDeviceCount()
 
+def get_mpi_node_count():
+    return m.GetMpiNodeCount()
+
+def get_mpi_device_count(r):
+    return m.GetMpiDeviceCount(r)
+    
 def wait_for_all():
     m.WaitForAll()
 
@@ -47,6 +56,12 @@ def initialize():
 
 def has_cuda():
     return m.has_cuda_
+
+def has_mpi():
+    return m.has_mpi_
+
+def rank():
+    return m.rank()
 
 cdef class NArray(object):
     cdef m.NArray* _d

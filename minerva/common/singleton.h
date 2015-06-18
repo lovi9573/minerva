@@ -2,6 +2,7 @@
 #include <memory>
 #include <cstdlib>
 #include <dmlc/logging.h>
+#include <stdio.h>
 
 namespace minerva {
 namespace common {
@@ -16,6 +17,7 @@ class EverlastingSingleton {
   static void Initialize(int* argc, char*** argv) {
     CHECK(!data_) << "already initialized";
     data_.reset(new T(argc, argv));
+	printf( "MinervaSystem Instance created\n");
     atexit(Finalize);
   }
   static bool IsAlive() {

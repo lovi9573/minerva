@@ -1,13 +1,20 @@
 #pragma once
 #include "op/physical.h"
-#include "op/physical_fn.h"
 #include "op/closure.h"
 #include "op/impl/bundle.h"
 #include <sstream>
 #include <vector>
 #include <dmlc/logging.h>
+#include "physical_fn.h"
 
 namespace minerva {
+
+#define SERIALIZABLE_OVERRIDE \
+	    int GetSerializedSize() const ; \
+	    int Serialize(char*) const ; \
+		static std::shared_ptr<ComputeFn> DeSerialize(char*, int*);
+
+
 
 // Data generate functions
 
@@ -16,6 +23,7 @@ class ArrayLoaderOp : public PhyDataGenFnWithClosure<ArrayLoaderClosure> {
   std::string Name() const {
     return ":array loader";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class RandnOp : public PhyDataGenFnWithClosure<RandnClosure> {
@@ -23,6 +31,7 @@ class RandnOp : public PhyDataGenFnWithClosure<RandnClosure> {
   std::string Name() const {
     return ":normal";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class RandBernoulliOp : public PhyDataGenFnWithClosure<RandBernoulliClosure> {
@@ -30,6 +39,7 @@ class RandBernoulliOp : public PhyDataGenFnWithClosure<RandBernoulliClosure> {
   std::string Name() const {
     return ":bernoulli";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class FillOp : public PhyDataGenFnWithClosure<FillClosure> {
@@ -39,6 +49,7 @@ class FillOp : public PhyDataGenFnWithClosure<FillClosure> {
     ss << ":const=" << closure.val;
     return ss.str();
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 // Compute functions
@@ -47,6 +58,7 @@ public:
   std::string Name() const {
     return std::string(":sync with ps on layer") + closure.layer_name;
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class MatMultOp : public ComputeFnWithClosure<MatMultClosure> {
@@ -54,6 +66,7 @@ class MatMultOp : public ComputeFnWithClosure<MatMultClosure> {
   std::string Name() const {
     return "*";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class TransOp : public ComputeFnWithClosure<TransposeClosure> {
@@ -61,6 +74,7 @@ class TransOp : public ComputeFnWithClosure<TransposeClosure> {
   std::string Name() const {
     return "trans";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class ReductionOp : public ComputeFnWithClosure<ReductionClosure> {
@@ -74,6 +88,7 @@ class ReductionOp : public ComputeFnWithClosure<ReductionClosure> {
    }
    return "reduction N/A";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class MaxIndexOp : public ComputeFnWithClosure<MaxIndexClosure> {
@@ -81,6 +96,7 @@ class MaxIndexOp : public ComputeFnWithClosure<MaxIndexClosure> {
   std::string Name() const {
     return "max index";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class ReshapeOp : public ComputeFnWithClosure<ReshapeClosure> {
@@ -88,6 +104,7 @@ class ReshapeOp : public ComputeFnWithClosure<ReshapeClosure> {
   std::string Name() const {
     return "reshape";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class ElewiseOp : public ComputeFnWithClosure<ElewiseClosure> {
@@ -100,6 +117,7 @@ class ElewiseOp : public ComputeFnWithClosure<ElewiseClosure> {
     };
     return "NA";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class ArithmeticOp : public ComputeFnWithClosure<ArithmeticClosure> {
@@ -113,6 +131,7 @@ class ArithmeticOp : public ComputeFnWithClosure<ArithmeticClosure> {
     };
     return "NA";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class ArithmeticConstOp : public ComputeFnWithClosure<ArithmeticConstClosure> {
@@ -133,6 +152,7 @@ class ArithmeticConstOp : public ComputeFnWithClosure<ArithmeticConstClosure> {
     }
     return ss.str();
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class NormArithmeticOp : public ComputeFnWithClosure<NormArithmeticClosure> {
@@ -156,6 +176,7 @@ class NormArithmeticOp : public ComputeFnWithClosure<NormArithmeticClosure> {
     ss << " norm";
     return ss.str();
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class SigmoidForwardOp : public ComputeFnWithClosure<SigmoidForwardClosure> {
@@ -163,6 +184,7 @@ class SigmoidForwardOp : public ComputeFnWithClosure<SigmoidForwardClosure> {
   std::string Name() const {
     return "sigmoid forward";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class SigmoidBackwardOp : public ComputeFnWithClosure<SigmoidBackwardClosure> {
@@ -170,6 +192,7 @@ class SigmoidBackwardOp : public ComputeFnWithClosure<SigmoidBackwardClosure> {
   std::string Name() const {
     return "sigmoid backward";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class ReluForwardOp : public ComputeFnWithClosure<ReluForwardClosure> {
@@ -177,6 +200,7 @@ class ReluForwardOp : public ComputeFnWithClosure<ReluForwardClosure> {
   std::string Name() const {
     return "relu forward";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class ReluBackwardOp : public ComputeFnWithClosure<ReluBackwardClosure> {
@@ -184,6 +208,7 @@ class ReluBackwardOp : public ComputeFnWithClosure<ReluBackwardClosure> {
   std::string Name() const {
     return "relu backward";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class TanhForwardOp : public ComputeFnWithClosure<TanhForwardClosure> {
@@ -191,6 +216,7 @@ class TanhForwardOp : public ComputeFnWithClosure<TanhForwardClosure> {
   std::string Name() const {
     return "tanh forward";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class TanhBackwardOp : public ComputeFnWithClosure<TanhBackwardClosure> {
@@ -198,6 +224,7 @@ class TanhBackwardOp : public ComputeFnWithClosure<TanhBackwardClosure> {
   std::string Name() const {
     return "tanh backward";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class ConvForwardOp : public ComputeFnWithClosure<ConvForwardClosure> {
@@ -209,6 +236,7 @@ class ConvForwardOp : public ComputeFnWithClosure<ConvForwardClosure> {
     ss << " conv ff";
     return ss.str();
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class ConvBackwardDataOp : public ComputeFnWithClosure<ConvBackwardDataClosure> {
@@ -220,6 +248,7 @@ class ConvBackwardDataOp : public ComputeFnWithClosure<ConvBackwardDataClosure> 
     ss << " conv bp data";
     return ss.str();
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class ConvBackwardFilterOp : public ComputeFnWithClosure<ConvBackwardFilterClosure> {
@@ -231,6 +260,7 @@ class ConvBackwardFilterOp : public ComputeFnWithClosure<ConvBackwardFilterClosu
     ss << " conv bp filter";
     return ss.str();
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class ConvBackwardBiasOp : public ComputeFnWithClosure<ConvBackwardBiasClosure> {
@@ -238,6 +268,7 @@ class ConvBackwardBiasOp : public ComputeFnWithClosure<ConvBackwardBiasClosure> 
   std::string Name() const {
     return "conv bp bias";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class SoftmaxForwardOp : public ComputeFnWithClosure<SoftmaxForwardClosure> {
@@ -251,6 +282,7 @@ class SoftmaxForwardOp : public ComputeFnWithClosure<SoftmaxForwardClosure> {
     }
     return "unknown softmax ff";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class SoftmaxBackwardOp : public ComputeFnWithClosure<SoftmaxBackwardClosure> {
@@ -264,6 +296,7 @@ class SoftmaxBackwardOp : public ComputeFnWithClosure<SoftmaxBackwardClosure> {
     }
     return "unknown softmax bp";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class ActivationForwardOp : public ComputeFnWithClosure<ActivationForwardClosure> {
@@ -279,6 +312,7 @@ class ActivationForwardOp : public ComputeFnWithClosure<ActivationForwardClosure
     }
     return "unknown activation ff";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class ActivationBackwardOp : public ComputeFnWithClosure<ActivationBackwardClosure> {
@@ -294,6 +328,7 @@ class ActivationBackwardOp : public ComputeFnWithClosure<ActivationBackwardClosu
     }
     return "unknown activation bp";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class PoolingForwardOp : public ComputeFnWithClosure<PoolingForwardClosure> {
@@ -312,6 +347,7 @@ class PoolingForwardOp : public ComputeFnWithClosure<PoolingForwardClosure> {
     ss << " stride:" << closure.stride_horizontal << "*" << closure.stride_vertical;
     return ss.str();
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class PoolingBackwardOp : public ComputeFnWithClosure<PoolingBackwardClosure> {
@@ -330,6 +366,7 @@ class PoolingBackwardOp : public ComputeFnWithClosure<PoolingBackwardClosure> {
     ss << " stride:" << closure.stride_horizontal << "*" << closure.stride_vertical;
     return ss.str();
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class LRNForwardOp : public ComputeFnWithClosure<LRNForwardClosure> {
@@ -337,6 +374,7 @@ class LRNForwardOp : public ComputeFnWithClosure<LRNForwardClosure> {
   std::string Name() const {
     return "LRN Forward";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class LRNBackwardOp : public ComputeFnWithClosure<LRNBackwardClosure> {
@@ -344,6 +382,7 @@ class LRNBackwardOp : public ComputeFnWithClosure<LRNBackwardClosure> {
   std::string Name() const {
     return "LRN Backward";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class ConcatOp : public ComputeFnWithClosure<ConcatClosure> {
@@ -351,6 +390,7 @@ class ConcatOp : public ComputeFnWithClosure<ConcatClosure> {
   std::string Name() const {
     return "Concat";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class SliceOp : public ComputeFnWithClosure<SliceClosure> {
@@ -358,6 +398,7 @@ class SliceOp : public ComputeFnWithClosure<SliceClosure> {
   std::string Name() const {
     return "Slice";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class IndexOp : public ComputeFnWithClosure<IndexClosure> {
@@ -365,6 +406,7 @@ class IndexOp : public ComputeFnWithClosure<IndexClosure> {
   std::string Name() const {
     return "Index";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 class SelectOp : public ComputeFnWithClosure<SelectClosure> {
@@ -372,6 +414,7 @@ class SelectOp : public ComputeFnWithClosure<SelectClosure> {
   std::string Name() const {
     return "Select";
   }
+  SERIALIZABLE_OVERRIDE
 };
 
 }  // namespace minerva

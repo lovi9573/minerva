@@ -83,6 +83,31 @@ Scale::~Scale() = default;
 Scale::Scale(vector<int> other) : vec_(move(other)) {
 }
 
+int Scale::GetSerializedSize() const {
+	  return sizeof(size_t)+sizeof(int)*NumDims();
+}
+
+int Scale::Serialize(char* buffer) const {
+	int offset = 0;
+	*buffer = NumDims();
+	offset += sizeof(size_t);
+	for( auto d : vec_){
+		*(buffer+offset) = d;
+		offset += sizeof(int);
+	}
+	return offset;
+}
+
+Scale& Scale::DeSerialize(char* buffer, int* offset){
+	std::vector<int> vec;
+	size_t n  = *((size_t*)(buffer+*offset));
+	for (size_t i = 0; i < n; i++){
+		vec.emplace_back(*((int*)(buffer+*offset)));
+		*offset += sizeof(int);
+	}
+	return *(new Scale(vec));
+}
+
 bool Scale::IncrOne(const Scale& max) {
   for (size_t i = 0; i < NumDims(); ++i) {
     if (vec_[i] + 1 < max[i]) {

@@ -1,0 +1,39 @@
+
+#ifndef MPI_MPI_SERVER_H_
+#define MPI_MPI_SERVER_H_
+
+
+#include <cstring>
+#include <cstddef>
+#include "op/closure.h"
+#include "device/task.h"
+#include "op/context.h"
+#include "mpi/mpi_common.h"
+
+namespace minerva {
+
+#ifdef HAS_MPI
+
+
+
+class MpiServer{
+public:
+	void init();
+	int rank();
+	int GetMpiNodeCount();
+	int GetMpiDeviceCount(int rank);
+	void CreateMpiDevice(int rank, int id, uint64_t);
+	void MPI_Send_task(const Task& task,const Context& ctx );
+	void MPI_Send_task_data(const float* ptr, size_t size);
+private:
+	int _rank;
+};
+
+
+#endif
+
+
+
+} // end namespace minerva
+
+#endif /* MPI_MPI_SERVER_H_ */

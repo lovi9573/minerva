@@ -1,8 +1,8 @@
 #pragma once
 #include "op/impl/basic.h"
 #include "op/impl/cuda.h"
+#include "op/impl/mpi_impl.h"
 #include "op/impl/impl.h"
-#include "op/impl/mpi.h"
 #include <dmlc/logging.h>
 
 namespace minerva {

@@ -9,8 +9,7 @@ class FnBundle {
 #ifdef HAS_CUDA
 #ifdef HAS_MPI
 
-//TODO: Fill in install for CUDA & MPI
-//TODO: Embed the closure type as an enum val in the closure itself.
+
 #define INSTALL_COMPUTE_FN(closure_name, basic_fn, mkl_fn, cuda_fn, mpi_fn) \
   template<> class FnBundle<closure_name> {\
    public:\
@@ -23,12 +22,15 @@ class FnBundle {
       }\
     }\
 	\
-	static void Call(const Task* task, closure_name& c, const Context& context) {\
+	static void Call(const Task& task, closure_name& c, const Context& context) {\
 	  switch (context.impl_type) {\
 		case ImplType::kMpi: mpi_fn(task,c,context); break; \
 		default: NO_IMPL(task, c, context); break;\
 	  }\
 	}\
+	static int GetSerializedSize(){ \
+		return closure_name.GetSerializedSize(); \
+	} \
   };
 
 #define INSTALL_DATAGEN_FN(closure_name, basic_fn, mkl_fn, cuda_fn, mpi_fn) \
@@ -43,7 +45,7 @@ class FnBundle {
       }\
     }\
 	\
-	static void Call(const Task* task, closure_name& c, const Context& context) {\
+	static void Call(const Task& task, closure_name& c, const Context& context) {\
 	  switch (context.impl_type) {\
 		case ImplType::kMpi: mpi_fn(task,c,context); break; \
 		default: NO_IMPL(task, c, context); break;\
@@ -96,7 +98,7 @@ class FnBundle {
       }\
     }\
 	\
-	static void Call(const Task* task, closure_name& c, const Context& context) {\
+	static void Call(const Task& task, closure_name& c, const Context& context) {\
 	  switch (context.impl_type) {\
 		case ImplType::kMpi: mpi_fn(task,c,context); break; \
 		default: NO_IMPL(task, c, context); break;\
@@ -115,7 +117,7 @@ class FnBundle {
       }\
     }\
 	\
-	static void Call(const Task* task, closure_name& c, const Context& context) {\
+	static void Call(const Task& task, closure_name& c, const Context& context) {\
 	  switch (context.impl_type) {\
 		case ImplType::kMpi: mpi_fn(task,c,context); break; \
 		default: NO_IMPL(task, c, context); break;\
@@ -150,6 +152,7 @@ class FnBundle {
       }\
     }\
   };
+
 #endif //end ?MPI?
 #endif //end ?CUDA?
 

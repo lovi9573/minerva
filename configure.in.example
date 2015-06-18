@@ -16,7 +16,7 @@ CUDA_ROOT=
 CUDNN_ROOT=
 
 # build type: (Release | Debug | RelWithDebInfo)
-BUILD_TYPE=Release
+BUILD_TYPE=Debug
 
 # whether building python binding (cython needed)
 BUILD_OWL=0
@@ -36,3 +36,6 @@ BUILD_CPU_ONLY=0
 # whether build with blas support on cpu
 BUILD_WITH_BLAS=0
 BLAS_ROOT=
+
+# whether build with mpi support.
+BUILD_WITH_MPI=0

@@ -3,10 +3,11 @@
 #include <utility>
 #include <mutex>
 #include <memory>
+
+#include "../op/physical_fn.h"
 #include "device/task.h"
 #include "device/data_store.h"
 #include "device/device_listener.h"
-#include "op/physical_fn.h"
 #include "common/common.h"
 #include "common/thread_pool.h"
 #include "common/concurrent_blocking_queue.h"
@@ -60,7 +61,7 @@ class Device {
 class ThreadedDevice : public Device {
  public:
   ThreadedDevice() = delete;
-  ThreadedDevice(uint64_t device_id, DeviceListener*, size_t parallelism);
+  ThreadedDevice(uint64_t device_id, DeviceListener* l, size_t parallelism);
 #ifdef HAS_MPI
   ThreadedDevice(int rank, uint64_t device_id, DeviceListener*, size_t parallelism);
 #endif
@@ -75,6 +76,7 @@ class ThreadedDevice : public Device {
   virtual void Barrier(int);
   virtual void DoCopyRemoteData(float*, float*, size_t, int) = 0;
   virtual void DoExecute(const DataList&, const DataList&, PhysicalOp&, int) = 0;
+  virtual void DoExecute(Task* task, int thrid) = 0;
   ConcurrentUnorderedMap<uint64_t, std::mutex> copy_locks_;
   ThreadPool pool_;
 };
@@ -98,6 +100,7 @@ class GpuDevice : public ThreadedDevice {
   void Barrier(int) override;
   void DoCopyRemoteData(float*, float*, size_t, int) override;
   void DoExecute(const DataList&, const DataList&, PhysicalOp&, int) override;
+  void DoExecute(Task* task, int thrid) override;
 };
 #endif
 
@@ -113,9 +116,10 @@ class MpiDevice : public ThreadedDevice {
  private:
   static size_t constexpr kParallelism = 4;
   int _gpu_id;
+  int _rank;
   void DoCopyRemoteData(float*, float*, size_t, int) override;
   void DoExecute(const DataList&, const DataList&, PhysicalOp&, int) override;
-  void DoExecute(Task& task, int thrid);
+  void DoExecute(Task* task, int thrid) override;
 };
 #endif
 
@@ -134,6 +138,7 @@ class CpuDevice : public ThreadedDevice {
   static size_t constexpr kDefaultThreadNum = 4;
   void DoCopyRemoteData(float*, float*, size_t, int) override;
   void DoExecute(const DataList&, const DataList&, PhysicalOp&, int) override;
+  void DoExecute(Task* task, int thrid) override;
 };
 
 }  // namespace minerva

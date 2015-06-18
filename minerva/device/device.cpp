@@ -33,7 +33,7 @@ Device::Device(uint64_t device_id, DeviceListener* l) : device_id_(device_id), d
 }
 
 #ifdef HAS_MPI
-Device::Device(int rank, uint64_t device_id, DeviceListener* l) : _rank(rank), device_id_(device_id), data_store_{unique_ptr<DataStore>(nullptr)}, listener_(l) {
+Device::Device(int rank, uint64_t device_id, DeviceListener* l) : device_id_(device_id), _rank(rank), data_store_{unique_ptr<DataStore>(nullptr)}, listener_(l) {
 }
 
 int Device::rank(){
@@ -101,7 +101,7 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 		#endif
 	  }
 #else
-	  NO_MPI
+	  common::FatalError("please recompile with macro HAS_MPI");
 #endif
   }else{
 	#ifndef NDEBUG
@@ -262,10 +262,14 @@ void GpuDevice::DoExecute(const DataList& in, const DataList& out, PhysicalOp& o
   CUDA_CALL_MSG(op.compute_fn->Name(), cudaStreamSynchronize(impl_->stream[thrid]));
 }
 
+void GpuDevice::DoExecute(Task* task, int thrid){
+	Execute(task, thrid);
+}
+
 #endif
 
 #ifdef HAS_MPI
-MpiDevice::MpiDevice(uint64_t device_id, DeviceListener*, int rank, int gpu_id) : ThreadedDevice(device_id, l, kParallelism) , _rank(rank), _gpu_id(gpu_id){
+MpiDevice::MpiDevice(int rank, uint64_t device_id, DeviceListener* l, int gpu_id) : ThreadedDevice(device_id, l, kParallelism) , _gpu_id(gpu_id), _rank(rank){
 	auto allocator = [](size_t len) -> void* {
 	    void* ret = malloc(len);
 	    return ret;
@@ -285,7 +289,7 @@ Device::MemType MpiDevice::GetMemType() const {
 }
 
 string MpiDevice::Name() const {
-	return common::FString("Mpi Compute Node rank #%d",rank);
+	return common::FString("Mpi Compute Node rank #%d",_rank);
 }
 
 /*
@@ -307,13 +311,13 @@ void MpiDevice::DoExecute(const DataList& in, const DataList& out, PhysicalOp& o
 	//TODO: 1 Dispatch serialized op (code?), with datalists to _rank set to run on gpu _gpu_id;  Wait for response.
 }
 
-void DoExecute(Task& task, int thrid){
+void MpiDevice::DoExecute(Task* task, int thrid){
 	Context ctx;
 	ctx.impl_type = ImplType::kMpi;
 	ctx.rank = _rank;
 	ctx.gpu_id = _gpu_id;
 
-	task.op.compute_fn->Execute(task, ctx);
+	task->op.compute_fn->Execute(*task, ctx);
 }
 
 
@@ -355,6 +359,10 @@ void CpuDevice::DoExecute(const DataList& in, const DataList& out, PhysicalOp& o
   Context ctx;
   ctx.impl_type = ImplType::kBasic;
   op.compute_fn->Execute(in, out, ctx);
+}
+
+void CpuDevice::DoExecute(Task* task, int thrid){
+	Execute(task, thrid);
 }
 
 }  // namespace minerva

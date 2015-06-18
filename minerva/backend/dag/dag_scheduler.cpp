@@ -72,7 +72,7 @@ void DagScheduler::WaitForAll() {
    * This is really a design issue. Since we cannot keep synchronization of
    * states, we have to check for states explicitly.
    */
-  CHECK_EQ(target_, -1);
+  CHECK_EQ(target_, (uint64_t)-1);
   while (num_nodes_yet_to_finish_) {
     finish_cond_.wait(lck);
   }

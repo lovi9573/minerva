@@ -7,17 +7,37 @@ namespace libowl {
 
 uint64_t CreateCpuDevice() {
   auto&& ms = minerva::MinervaSystem::Instance();
-  return ms.device_manager().CreateCpuDevice();
+  return ms.CreateCpuDevice();
 }
 
 uint64_t CreateGpuDevice(int id) {
   auto&& ms = minerva::MinervaSystem::Instance();
-  return ms.device_manager().CreateGpuDevice(id);
+  return ms.CreateGpuDevice(id);
+}
+
+uint64_t CreateMpiDevice(int rank, int id) {
+  auto&& ms = minerva::MinervaSystem::Instance();
+  return ms.CreateMpiDevice(rank, id);
 }
 
 int GetGpuDeviceCount() {
   auto&& ms = minerva::MinervaSystem::Instance();
   return ms.device_manager().GetGpuDeviceCount();
+}
+
+int GetMpiNodeCount(){
+	auto&& ms = minerva::MinervaSystem::Instance();
+	return ms.device_manager().GetMpiNodeCount();
+}
+
+int GetMpiDeviceCount(int rank){
+	auto&& ms = minerva::MinervaSystem::Instance();
+	return ms.device_manager().GetMpiDeviceCount(rank);
+}
+
+int rank(){
+	auto&& ms = minerva::MinervaSystem::Instance();
+	return ms.rank();
 }
 
 void WaitForAll() {

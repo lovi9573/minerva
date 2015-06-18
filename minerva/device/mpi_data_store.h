@@ -9,7 +9,7 @@ namespace minerva {
  */
 class MpiDataStore final : public DataStore {
  public:
-  MpiDataStore(size_t threshold, std::function<void*(size_t)> a, std::function<void(void*)> d);
+  MpiDataStore(std::function<void*(size_t)> a, std::function<void(void*)> d);
   DISALLOW_COPY_AND_ASSIGN(MpiDataStore);
   virtual ~MpiDataStore();
   float* CreateData(uint64_t, size_t) override;

@@ -127,7 +127,7 @@ NArray& NArray::operator*=(const NArray& rhs) {
 }
 
 NArray Concat(const std::vector<NArray>& arrays, int catdim) {
-  CHECK_GT(arrays[0].Size().NumDims(), catdim) << "can't concat on non-sense dim";
+  CHECK_GT(arrays[0].Size().NumDims(), (size_t)catdim) << "can't concat on non-sense dim";
   CHECK_GT(arrays.size(), 1) << "Concat more than one narray";
   ConcatOp* op = new ConcatOp();
   op->closure = {catdim};
@@ -147,7 +147,7 @@ NArray Concat(const std::vector<NArray>& arrays, int catdim) {
 }
 
 NArray Slice(const NArray& src, int slice_dim, int st_off, int slice_count) {
-  CHECK_GT(src.Size().NumDims(), slice_dim) << "can't concat on non-sense dim";
+  CHECK_GT(src.Size().NumDims(), (size_t)slice_dim) << "can't concat on non-sense dim";
   std::vector<int> sizevec(src.Size().NumDims(), 0);
   for (size_t i = 0; i < sizevec.size(); i++) {
     if (i == (size_t)slice_dim) {

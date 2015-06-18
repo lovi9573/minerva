@@ -16,7 +16,7 @@ struct ConvInfo {
 };
 
 struct PoolingInfo {
-  enum class Algorithm {
+  enum class Algorithm : int {
     kMax,
     kAverage
   };
@@ -45,12 +45,12 @@ struct PoolingInfo {
   int pad_width;
 };
 
-enum class SoftmaxAlgorithm {
+enum class SoftmaxAlgorithm : int {
   kInstance,
   kChannel
 };
 
-enum class ActivationAlgorithm {
+enum class ActivationAlgorithm : int {
   kSigmoid,
   kRelu,
   kTanh

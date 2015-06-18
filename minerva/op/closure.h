@@ -3,6 +3,10 @@
 #include "common/scale.h"
 #include "narray/convolution_info.h"
 
+#ifdef HAS_MPI
+#include "mpi/mpi_common.h"
+#endif
+
 namespace minerva {
 
 
@@ -49,23 +53,24 @@ namespace minerva {
 #define SELECTCLOSURE 40
 
 
-enum class ArithmeticType {
+enum class ArithmeticType : int {
   kAdd = 0,
   kSub,
   kMult,
   kDiv,
 };
 
-enum class ElewiseType {
+enum class ElewiseType : int {
   kExp = 0,
   kLn,
   kNegative,
 };
 
-enum class ReductionType {
+enum class ReductionType : int {
   kSum = 0,
   kMax,
 };
+
 
 struct ArrayLoaderClosure {
   std::shared_ptr<float> data;
@@ -215,6 +220,7 @@ struct IndexClosure {
 struct SelectClosure {
   std::vector<int> indices;
 };
+
 
 }  // end of namespace minerva
 

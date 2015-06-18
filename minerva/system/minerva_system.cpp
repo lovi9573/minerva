@@ -10,6 +10,11 @@
 #include "backend/dag/dag_scheduler.h"
 #include "backend/simple_backend.h"
 #include "common/cuda_utils.h"
+#include <stdio.h>
+#ifdef HAS_MPI
+#include "mpi/mpi_handler.h"
+#include "mpi/mpi_server.h"
+#endif
 
 DEFINE_bool(use_dag, true, "Use dag engine");
 DEFINE_bool(no_init_glog, false, "Skip initializing Google Logging");
@@ -61,25 +66,42 @@ pair<Device::MemType, float*> MinervaSystem::GetPtr(uint64_t device_id, uint64_t
   return device_manager_->GetDevice(device_id)->GetPtr(data_id);
 }
 
-//TODO: 1 disable for worker nodes
 uint64_t MinervaSystem::GenerateDataId() {
   return data_id_counter_++;
 }
 
-//TODO: 1 disable for worker nodes
-uint64_t MinervaSystem::GenerateDataId() {
+uint64_t MinervaSystem::GenerateTaskId() {
   return task_id_counter_++;
 }
 
+
 uint64_t MinervaSystem::CreateCpuDevice() {
+	printf("cpu device creation in rank %d\n",_rank);
+	if (worker){
+		LOG(FATAL) << "Cannot create a unique device id on worker rank " << _rank;
+	}
   return MinervaSystem::Instance().device_manager().CreateCpuDevice();
 }
 uint64_t MinervaSystem::CreateGpuDevice(int id) {
+	if (worker){
+		LOG(FATAL) << "Cannot create a unique device id on worker rank";
+	}
   return MinervaSystem::Instance().device_manager().CreateGpuDevice(id);
 }
-uint64_t MinervaSystem::CreateMpiDevice(int rank, int id) {
-  return MinervaSystem::Instance().device_manager().CreateMpiDevice(rank,id);
+
+//TODO: 3 map these non-worker device functions into owl.
+#ifdef HAS_MPI
+
+uint64_t MinervaSystem::CreateMpiDevice(int rank, int id ) {
+	if (worker){
+		LOG(FATAL) << "Cannot create a unique device id on worker rank";
+	}
+	uint64_t device_id =  MinervaSystem::Instance().device_manager().CreateMpiDevice(rank,id);
+	mpiserver_->CreateMpiDevice(rank, id, device_id);
+	return device_id;
 }
+
+#endif //end HAS_MPI
 
 void MinervaSystem::SetDevice(uint64_t id) {
   current_device_id_ = id;
@@ -88,8 +110,16 @@ void MinervaSystem::WaitForAll() {
   backend_->WaitForAll();
 }
 
+int MinervaSystem::rank(){
+#ifdef HAS_MPI
+	return _rank;
+#else
+	return 0;
+#endif
+}
+
 MinervaSystem::MinervaSystem(int* argc, char*** argv)
-  : data_id_counter_(0), task_id_counter_(0), current_device_id_(0) {
+  : data_id_counter_(0), task_id_counter_(0), current_device_id_(0), worker(false) {
   gflags::ParseCommandLineFlags(argc, argv, true);
 #ifndef HAS_PS
   // glog is initialized in PS::main, and also here, so we will hit a
@@ -98,10 +128,25 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
     //google::InitGoogleLogging((*argv)[0]); // XXX comment out since we switch to dmlc/logging
   }
 #endif
+#ifdef HAS_MPI
+	::MPI::Init();
+	_rank = ::MPI::COMM_WORLD.Get_rank();
+	printf("===My rank: %d\n",_rank);
+	fflush(stdout);
+	if(_rank != 0){
+		worker = true;
+		mpihandler_ = new MpiHandler();
+	}
+	else{
+		worker = false;
+		mpiserver_ = new MpiServer();
+	}
+#endif
   physical_dag_ = new PhysicalDag();
   profiler_ = new ExecutionProfiler();
-  device_manager_ = new DeviceManager();
-  if (FLAGS_use_dag) {
+  printf("Worker: %u\n",worker);
+  device_manager_ = new DeviceManager(worker);
+  if (FLAGS_use_dag && !worker) {
     LOG(INFO) << "dag engine enabled";
     backend_ = new DagScheduler(physical_dag_, device_manager_);
   } else {
@@ -110,26 +155,8 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
   }
 }
 
-MinervaSystem::MinervaSystem(bool worker)
-  :worker_(worker), data_id_counter_(0), task_id_counter_(0), current_device_id_(0) {
-#ifndef HAS_PS
-  // glog is initialized in PS::main, and also here, so we will hit a
-  // double-initalize error when compiling with PS
-  if (!FLAGS_no_init_glog) {
-    //google::InitGoogleLogging((*argv)[0]); // XXX comment out since we switch to dmlc/logging
-  }
-#endif
-  physical_dag_ = new PhysicalDag();
-  profiler_ = new ExecutionProfiler();
-  device_manager_ = new DeviceManager();
-  if (FLAGS_use_dag) {
-    LOG(INFO) << "dag engine enabled";
-    backend_ = new DagScheduler(physical_dag_, device_manager_);
-  } else {
-    LOG(INFO) << "dag engine disabled";
-    backend_ = new SimpleBackend(*device_manager_);
-  }
-}
+
+
 
 }  // end of namespace minerva
 

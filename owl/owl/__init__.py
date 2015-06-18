@@ -18,9 +18,14 @@ on numpy such as IO and visualization.
 """
 import numpy as np
 import libowl as _owl
-
+import sys
+import time
 NArray = _owl.NArray
 _owl.initialize()
+
+if _owl.rank() !=0:
+    while True:
+        time.sleep(3600)
 
 # def initialize():
 #     """ Initialize Minerva System with `sys.argv`
@@ -37,6 +42,22 @@ def has_cuda():
     :rtype: int
     """
     return _owl.has_cuda()
+
+def has_mpi():
+    """ Check if MPI is enabled
+    
+    :return MPI status
+    :rtype int
+    """
+    return _owl.has_mpi()
+
+def rank():
+    """ The MPI rank of this process
+    
+    :return MPI rank
+    :rtype int
+    """
+    return _owl.rank()
 
 def wait_for_all():
     """ Wait for all evaluation to complete
@@ -73,6 +94,19 @@ def create_gpu_device(which):
     """
     return _owl.create_gpu_device(which)
 
+def create_mpi_device(rank, which):
+    """ Create device for running on GPU card
+
+    .. note::
+        At least one of :py:func:`create_cpu_device` or :py:func:`create_gpu_device` should be called
+        before using any ``owl`` APIs.
+
+    :param int which: which GPU card the code would be run on
+    :return: A unique id for the device on that GPU card
+    :rtype: int
+    """
+    return _owl.create_mpi_device(rank, which)
+
 def get_gpu_device_count():
     """ Get the number of compute-capable GPU devices
 
@@ -80,6 +114,25 @@ def get_gpu_device_count():
     :rtype: int
     """
     return _owl.get_gpu_device_count()
+
+def get_mpi_node_count():
+    """ Get the number of MPI connected compute nodes
+
+    :return: Number of MPI compute nodes
+    :rtype: int
+    """
+    return _owl.get_mpi_node_count()
+
+
+def get_mpi_device_count(r):
+    """ Get the number of compute-capable GPU devices on a given mpi node
+
+    :param int rank: The rank of the mpi node
+    :return: Number of compute-capable GPU devices on given mpi node
+    :rtype: int
+    """
+    return _owl.get_mpi_device_count(r)
+
 
 def set_device(dev):
     """ Switch to the given device for running computations

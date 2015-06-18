@@ -1,5 +1,6 @@
 #include "device_manager.h"
 #include <dmlc/logging.h>
+#include "system/minerva_system.h"
 #include "device/device.h"
 #include "common/cuda_utils.h"
 #include "common/common.h"
@@ -11,12 +12,9 @@ using namespace std;
 
 namespace minerva {
 
-DeviceManager::DeviceManager() {
+DeviceManager::DeviceManager(bool worker) : worker(worker) {
 #ifdef HAS_CUDA
   GetGpuDeviceCount();  // initialize driver, ensure correct `atexit` order
-#endif
-#ifdef HAS_MPI
-  GetMpiDeviceCount();
 #endif
 }
 
@@ -33,6 +31,12 @@ uint64_t DeviceManager::CreateCpuDevice() {
   return id;
 }
 
+uint64_t DeviceManager::CreateCpuDevice(uint64_t id) {
+  Device* d = new CpuDevice(id, listener_);
+  CHECK(device_storage_.emplace(id, d).second);
+  return id;
+}
+
 uint64_t DeviceManager::CreateGpuDevice(int gid) {
 #ifdef HAS_CUDA
   auto id = GenerateDeviceId();
@@ -44,10 +48,20 @@ uint64_t DeviceManager::CreateGpuDevice(int gid) {
 #endif
 }
 
+uint64_t DeviceManager::CreateGpuDevice(int gid, uint64_t id) {
+#ifdef HAS_CUDA
+  Device* d = new GpuDevice(id, listener_, gid);
+  CHECK(device_storage_.emplace(id, d).second);
+  return id;
+#else
+  common::FatalError("please recompile with macro HAS_CUDA");
+#endif
+}
+
 uint64_t DeviceManager::CreateMpiDevice(int rank, int gid) {
 #ifdef HAS_MPI
   auto id = GenerateDeviceId();
-  Device* d = new MpiDevice(id, listener_, rank, gid);
+  Device* d = new MpiDevice(rank, id, listener_, gid);
   CHECK(device_storage_.emplace(id, d).second);
   return id;
 #else
@@ -66,11 +80,17 @@ int DeviceManager::GetGpuDeviceCount() {
 #endif
 }
 
-int DeviceManager::GetMpiDeviceCount() {
+int DeviceManager::GetMpiNodeCount() {
 #ifdef HAS_MPI
-  int ret;
-  //TODO: 2 How many MPI nodes are there?
-  return ret;
+  return MinervaSystem::Instance().mpi_server().GetMpiNodeCount();
+#else
+  common::FatalError("please recompile with macro HAS_MPI");
+#endif
+}
+
+int DeviceManager::GetMpiDeviceCount(int rank) {
+#ifdef HAS_MPI
+  return MinervaSystem::Instance().mpi_server().GetMpiDeviceCount(rank);
 #else
   common::FatalError("please recompile with macro HAS_MPI");
 #endif
@@ -88,6 +108,9 @@ void DeviceManager::FreeData(uint64_t id) {
 }
 
 uint64_t DeviceManager::GenerateDeviceId() {
+	if(worker){
+		LOG(FATAL) << "Cannot generate device id's in a worker device manager";
+	}
   static uint64_t index_counter = 0;
   return index_counter++;
 }

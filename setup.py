@@ -26,7 +26,9 @@ extensions = [
             '-std=c++11',
             '-Wall',
             '-O2',
-            '-g'
+            '-g',
+            '-DHAS_MPI', #TODO: 2 Temporary hack
+            '-I/usr/include/mpich-x86_64/' #TODO: temporary hack
         ],
         libraries=[
             'minerva'

@@ -1,5 +1,7 @@
 project(MinervaLib)
 
+add_definitions(-Werror)
+
 include_directories(
   ${MinervaLib_SOURCE_DIR}
 )
@@ -25,6 +27,10 @@ endif ()
 if (BUILD_WITH_PS)
   target_link_libraries(minerva minervaps)
 endif ()
+
+if(BUILD_WITH_MPI AND MPI_CXX_FOUND)
+  target_link_libraries(minerva ${MPI_CXX_LIBRARIES})
+endif()
 
 set(LIBRARY_OUTPUT_PATH ${Minerva_BINARY_DIR}/lib)
 

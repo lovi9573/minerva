@@ -1,10 +1,11 @@
 #include "device/pooled_data_store.h"
+#include "device/mpi_data_store.h"
 
 using namespace std;
 
 namespace minerva {
 
-MpiDataStore::MpiDataStore(size_t threshold, function<void*(size_t)> a, function<void(void*)> d) : DataStore(a, d), threshold_(threshold) {
+MpiDataStore::MpiDataStore(function<void*(size_t)> a, function<void(void*)> d) : DataStore(a, d) {
 }
 
 MpiDataStore::~MpiDataStore() {

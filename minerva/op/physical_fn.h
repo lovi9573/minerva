@@ -5,6 +5,7 @@
 #include "common/common.h"
 #include "op/data_shard.h"
 #include "op/compute_fn.h"
+#include "device/task.h"
 
 namespace minerva {
 
@@ -17,11 +18,12 @@ class ComputeFnWithClosure : public ComputeFn, public ClosureTrait<Closure> {
     FnBundle<Closure>::Call(inputs, outputs, ClosureTrait<Closure>::closure, context);
   }
 #ifdef HAS_MPI
-  void Execute(Task const&, Context const&){
-	  FnBundle<Closure>::Call(Task& task, ClosureTrait<Closure>::closure, context);
-  }
+	void Execute(Task const& task, Context const& context){
+	  FnBundle<Closure>::Call(task, ClosureTrait<Closure>::closure, context);
+	}
 #endif
 };
+
 
 template<typename Closure>
 class PhyDataGenFnWithClosure : public ComputeFn, public ClosureTrait<Closure> {
@@ -30,8 +32,8 @@ class PhyDataGenFnWithClosure : public ComputeFn, public ClosureTrait<Closure> {
     FnBundle<Closure>::Call(outputs, ClosureTrait<Closure>::closure, context);
   }
 #ifdef HAS_MPI
-  void Execute(Task const&, Context const&){
-	  FnBundle<Closure>::Call(Task& task, ClosureTrait<Closure>::closure, context);
+  void Execute(Task const& task, Context const& context){
+	  FnBundle<Closure>::Call(task, ClosureTrait<Closure>::closure, context);
   }
 #endif
 };

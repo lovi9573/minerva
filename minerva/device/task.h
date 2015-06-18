@@ -6,7 +6,12 @@
 
 namespace minerva {
 
-struct Task {
+class Task : public Serializable{
+public:
+  Task(): id(0) {};
+  int GetSerializedSize() const override;
+  int Serialize(char* ) const override;
+  static Task& DeSerialize(char* , int*)  ;
   std::vector<TaskData> inputs;
   std::vector<TaskData> outputs;
   PhysicalOp op;

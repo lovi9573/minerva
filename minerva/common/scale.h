@@ -79,6 +79,9 @@ class Scale {
   bool operator>=(const Scale& other) const {
     return vec_ >= other.vec_;
   }
+  int GetSerializedSize() const;
+  int Serialize(char* ) const;
+  static Scale& DeSerialize(char*, int*) ;
   int get(int col) const {
     return vec_[col];
   }

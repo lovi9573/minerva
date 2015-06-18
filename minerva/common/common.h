@@ -22,6 +22,15 @@
 
 namespace minerva {
 
+
+class Serializable{
+public:
+	virtual ~Serializable() {};
+	virtual int GetSerializedSize() const =0;
+	virtual int Serialize(char*) const =0;
+};
+
+
 template<typename T>
 std::ostream& operator<<(std::ostream& os, const std::set<T>& s) {
   os << "{ ";
