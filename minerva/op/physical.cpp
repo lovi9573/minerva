@@ -21,15 +21,12 @@ int PhysicalData::GetSerializedSize() const {
 int PhysicalData::Serialize(char* buffer) const {
 	int offset = 0;
 	offset += size.Serialize(buffer);
-	*(buffer+offset) = device_id;
-	offset += sizeof(uint64_t);
-	*(buffer+offset) = data_id;
-	offset += sizeof(uint64_t);
+	SERIALIZE(buffer, offset, device_id, uint64_t)
+	SERIALIZE(buffer, offset, data_id, uint64_t)
 	//*(buffer+offset) = extern_rc;
 	//offset += sizeof(int);
 #ifdef HAS_MPI
-	*(buffer+offset) = rank;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, rank, int)
 #endif
 	return offset;
 }
@@ -59,16 +56,19 @@ int PhysicalOp::GetSerializedSize() const {
 int PhysicalOp::Serialize(char* buffer) const {
 	int offset = 0;
 	offset += compute_fn->Serialize(buffer);
-	*(buffer+offset) = device_id;
-	offset += sizeof(uint64_t);
+	SERIALIZE(buffer, offset, device_id, uint64_t)
 	return offset;
 }
 
-PhysicalOp& PhysicalOp::DeSerialize(char* buffer, int* offset){
+PhysicalOp& PhysicalOp::DeSerialize(char* buffer, int* bytes){
+	int offset = 0;
+	int b = 0;
 	PhysicalOp *op = new PhysicalOp();
-	op->compute_fn = ComputeFn::DeSerialize(buffer,offset);
-	op->device_id = *((uint64_t*)(buffer+*offset));
-	*offset += sizeof(uint64_t);
+	op->compute_fn = ComputeFn::DeSerialize(buffer,&b);
+	offset += b;
+	op->device_id = *((uint64_t*)(buffer+offset));
+	offset += sizeof(uint64_t);
+	*bytes = offset;
 	return *op;
 }
 

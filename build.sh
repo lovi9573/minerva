@@ -66,7 +66,7 @@ if [ ! -d $BUILD_DIR ]; then
   mkdir $BUILD_DIR
 fi
 cd $BUILD_DIR
-CC=$CC CXX=$CXX cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CXXFLAGS .. && make
+CC=$CC CXX=$CXX cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CXXFLAGS .. && make -j4
 cd ..
 
 if [ $BUILD_OWL -eq 1 ]; then

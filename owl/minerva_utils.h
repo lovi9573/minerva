@@ -13,6 +13,7 @@ int GetGpuDeviceCount();
 int GetMpiNodeCount();
 int GetMpiDeviceCount(int rank);
 int rank();
+void WorkerRun();
 void WaitForAll();
 void SetDevice(uint64_t);
 minerva::Scale ToScale(std::vector<int>*);

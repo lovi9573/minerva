@@ -26,37 +26,38 @@ int Task::GetSerializedSize() const {
 
 int Task::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer+offset) = inputs.size();
-	offset += sizeof(size_t);
+	SERIALIZE(buffer, offset, inputs.size(), size_t)
 	for(auto i : inputs){
 		offset += i.physical_data.Serialize(buffer+offset);
 	}
-	*(buffer+offset) = outputs.size();
-	offset += sizeof(size_t);
+	SERIALIZE(buffer, offset, outputs.size(), size_t)
 	for(auto o : outputs){
 		offset += o.physical_data.Serialize(buffer+offset);
 	}
 	offset += op.Serialize(buffer+offset);
-	*(buffer+offset) = id;
-	offset += sizeof(uint64_t);
+	SERIALIZE(buffer, offset, id, uint64_t)
 	return offset;
 }
 
-Task& Task::DeSerialize(char* buffer, int* offset) {
+Task& Task::DeSerialize(char* buffer, int* bytes) {
+	int b = 0;
+	int offset = 0;
+	size_t n;
 	Task *task = new Task();
-	size_t n = *(size_t*)(buffer+*offset);
-	*offset += sizeof(size_t);
+	DESERIALIZE(buffer, offset, n, size_t)
 	for(size_t i = 0; i < n; i++){
-		task->inputs.emplace_back(TaskData(PhysicalData::DeSerialize(buffer, offset),0));
+		task->inputs.emplace_back(TaskData(PhysicalData::DeSerialize(buffer+offset, &b),0));
+		offset += b;
 	}
-	n = *(size_t*)(buffer+*offset);
-	*offset += sizeof(size_t);
+	DESERIALIZE(buffer, offset, n, size_t)
 	for(size_t i = 0; i < n; i++){
-		task->outputs.emplace_back(TaskData(PhysicalData::DeSerialize(buffer, offset),0));
+		task->outputs.emplace_back(TaskData(PhysicalData::DeSerialize(buffer+offset, &b),0));
+		offset += b;
 	}
-    task->op = PhysicalOp::DeSerialize(buffer,offset);
-    task->id = *((uint64_t*)(buffer+*offset));
-    *offset += sizeof(uint64_t);
+    task->op = PhysicalOp::DeSerialize(buffer+offset, &b);
+    offset += b;
+    DESERIALIZE(buffer, offset, task->id, uint64_t)
+    *bytes = offset;
     return *task;
 }
 

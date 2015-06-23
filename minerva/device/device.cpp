@@ -87,14 +87,14 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 			WallTimer calculate_timer;
 			calculate_timer.Start();
 		#endif
-			DLOG(INFO) << Name() << " execute mpi task #" << task->id << ": " << op.compute_fn->Name();
+			DLOG(INFO) << Name() << " dispatching mpi task #" << task->id << ": " << op.compute_fn->Name();
 			//TODO: 0 task has unique data_id's in it BUT how will workers be able to get the data?
 			/*TODO: 1 The data local to this MPI node should be sent here instead of just the task.
 			 *The message will be a combination of Task for peer data and DataShards for local data.
 			 *This might a moot point for this embodiment of Minerva because I don't believe that any ops require more than one shard.
 			 */
 			DoExecute(task, thrid);
-			DLOG(INFO) << Name() << " finished execute mpi task #" << task->id << ": " << op.compute_fn->Name();
+			DLOG(INFO) << Name() << " finished dispatch of mpi task #" << task->id << ": " << op.compute_fn->Name();
 		#ifndef NDEBUG
 			calculate_timer.Stop();
 			MinervaSystem::Instance().profiler().RecordTime(TimerType::kCalculation, op.compute_fn->Name(), calculate_timer);
@@ -123,7 +123,17 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 			DLOG(INFO) << Name() << " input task data #" << i.id << " is remote and not copied";
 			size_t size = input_data.size.Prod() * sizeof(float);
 			auto ptr = data_store_->CreateData(input_data.data_id, size);
+#ifdef HAS_MPI
+			if(input_data.rank != MinervaSystem::Instance().rank()){
+				char buffer[size];
+				MinervaSystem::Instance().Request_Data(buffer, size, input_data.rank,  input_data.device_id, input_data.data_id );
+				DoCopyRemoteData(ptr, (float*)buffer, size, thrid);
+			}else{
+				DoCopyRemoteData(ptr, MinervaSystem::Instance().GetPtr(input_data.device_id, input_data.data_id).second, size, thrid);
+			}
+#else
 			DoCopyRemoteData(ptr, MinervaSystem::Instance().GetPtr(input_data.device_id, input_data.data_id).second, size, thrid);
+#endif
 			CHECK(remote_data_.Insert(input_data.data_id));
 		  }
 		}
@@ -289,7 +299,7 @@ Device::MemType MpiDevice::GetMemType() const {
 }
 
 string MpiDevice::Name() const {
-	return common::FString("Mpi Compute Node rank #%d",_rank);
+	return common::FString("Mpi Device shadowing Compute device %d at rank #%d", _gpu_id ,_rank);
 }
 
 /*

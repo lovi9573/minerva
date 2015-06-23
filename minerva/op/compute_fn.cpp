@@ -15,12 +15,16 @@ namespace minerva {
 
 #define CASE_CLOSURECODE_OP(CLOSURECODE,OP) \
 		case CLOSURECODE: \
-		return OP::DeSerialize(buffer, offset);
+		op = OP::DeSerialize(buffer+sizeof(int), &b); \
+		*bytes = sizeof(int) + b; \
+		return op;
 
 
 
-std::shared_ptr<ComputeFn> ComputeFn::DeSerialize(char* buffer, int* offset){
-	int opcode = *(int*)(buffer+*offset);
+std::shared_ptr<ComputeFn> ComputeFn::DeSerialize(char* buffer, int* bytes){
+	int b = 0;
+	std::shared_ptr<ComputeFn> op;
+	int opcode = *(int*)(buffer);
 	switch (opcode){
 		CASE_CLOSURECODE_OP( SIGMOIDFORWARDCLOSURE,SigmoidForwardOp )
 		CASE_CLOSURECODE_OP( TRANSPOSECLOSURE,TransOp )

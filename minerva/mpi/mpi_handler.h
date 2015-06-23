@@ -10,6 +10,7 @@
 #include "device/task.h"
 #include "op/context.h"
 #include "mpi/mpi_common.h"
+#include "mpi/mpi_data_handler.h"
 
 
 namespace minerva {
@@ -17,19 +18,18 @@ namespace minerva {
 #ifdef HAS_MPI
 
 
-class MpiHandler{
+class MpiHandler: public MpiDataHandler{
 public:
-	MpiHandler();
+	MpiHandler(int rank);
 	void MainLoop();
 	int rank();
 private:
 	void Handle_Device_Count(::MPI::Status& );
 	void Handle_Create_Device(::MPI::Status&);
 	void Handle_Task(::MPI::Status&);
-	template<typename T> void Handle_Closure(MpiTask*, T* );
-	void Handle_Task_Data(::MPI::Status&);
-	void Handle_Task_Data_Request(::MPI::Status&);
-	void PushReadyTasks();
+	//template<typename T> void Handle_Closure(MpiTask*, T* );
+
+	//void PushReadyTasks();
 
 	int _rank;
 };

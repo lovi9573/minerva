@@ -20,24 +20,10 @@ namespace minerva {
 #define MPI_TASK 2
 #define MPI_TASK_DATA 3
 #define MPI_TASK_DATA_REQUEST 4
-#define MPI_TERMINATE 5
+#define MPI_TASK_DATA_RESPONSE 5
+#define MPI_TERMINATE 6
 
 
-struct MpiTaskData{
-	uint64_t task_id;
-	uint64_t data_id;
-	int owner_rank;
-	int device_id;
-	int dim;
-};
-
-
-struct MpiTask{
-	uint64_t task_id;
-	int worker_rank;
-	int compute_device_id;
-	int closure_type;
-};
 
 struct MpiDevices{
 	MpiDevices(int r, int n): rank(r), nDevices(n){};

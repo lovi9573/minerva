@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <cstddef>
+#include <thread>
 #include "op/closure.h"
 #include "device/task.h"
 #include "op/context.h"
@@ -25,7 +26,7 @@ namespace minerva {
 
 extern MPI_Datatype MPI_TASKDATA;
 
-MpiHandler::MpiHandler(){
+MpiHandler::MpiHandler(int rank) : _rank(rank){
 //	MPI_Init(0,NULL);
 //	_rank = ::MPI::COMM_WORLD.Get_rank();
 }
@@ -34,9 +35,11 @@ void MpiHandler::MainLoop(){
 	bool term = false;
 	::MPI::Status status;
 	while (!term){
+		DLOG(INFO) << "[" << _rank << "] Top of mainloop.\n";
 		::MPI::COMM_WORLD.Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, status);
 		switch(status.Get_tag()){
 		case MPI_DEVICE_COUNT:
+			DLOG(INFO) << "[" << _rank << "] Fetching device count\n";
 			Handle_Device_Count(status);
 			break;
 		case MPI_CREATE_DEVICE:
@@ -55,7 +58,7 @@ void MpiHandler::MainLoop(){
 			term = true;
 			break;
 		}
-		PushReadyTasks();
+		//PushReadyTasks();
 	}
 }
 
@@ -63,8 +66,8 @@ int MpiHandler::rank(){
 	return _rank;
 }
 
-void MpiHandler::PushReadyTasks(){
-/*	//task_storage.LockRead();
+/*void MpiHandler::PushReadyTasks(){
+	//task_storage.LockRead();
 	auto it = task_storage.begin();
 	while (it != task_storage.end()){
 		if ((it->second->readyness & READY) == READY){
@@ -77,8 +80,8 @@ void MpiHandler::PushReadyTasks(){
 	}
 	//task_storage.UnLockRead();
 	 *
-	 */
 }
+	 */
 
 void MpiHandler::Handle_Device_Count(::MPI::Status& status){
 	int dummy;
@@ -95,6 +98,10 @@ void MpiHandler::Handle_Create_Device(::MPI::Status& status){
 	::MPI::COMM_WORLD.Recv(buffer, count, ::MPI::BYTE, status.Get_source(), MPI_CREATE_DEVICE);
 	id = *((int*)buffer);
 	device_id = *((uint64_t*)(buffer+sizeof(int)));
+	while (!MinervaSystem::IsAlive()){
+		DLOG(INFO) << "[" << _rank << "] waiting for MinervaInstance to come alive.\n" ;
+	}
+	DLOG(INFO) << "[" << _rank << "] Creating device #" << id << "\n";
 	if(id == 0){
 		MinervaSystem::Instance().device_manager().CreateCpuDevice(device_id);
 	}else{
@@ -105,25 +112,18 @@ void MpiHandler::Handle_Create_Device(::MPI::Status& status){
 void MpiHandler::Handle_Task(::MPI::Status& status){
 	int count = status.Get_count(MPI_BYTE);
 	char bytes[count];
+	printf("Recieving task data\n");
 	::MPI::COMM_WORLD.Recv(&bytes, count, MPI_BYTE, status.Get_source(),MPI_TASK);
-	//Task& td = Task::DeSerialize(bytes,0);
-
+	printf("Deserializing task data\n");
+	int bytesconsumed = 0;
+	Task& td = Task::DeSerialize(bytes,&bytesconsumed);
+	DLOG(INFO) << "[" << _rank << "] Handling task #" << td.id;
+	MinervaSystem::Instance().device_manager().GetDevice(td.op.device_id)->PushTask(&td);
 }
 
 
-void MpiHandler::Handle_Task_Data(::MPI::Status& status){
-	int count = status.Get_count(MPI_TASKDATA);
-	MpiTaskData taskdata[count];
-	::MPI::COMM_WORLD.Recv(&taskdata, count, MPI_TASKDATA, status.Get_source(),MPI_TASK_DATA );
-	//TODO: 4 Put this task data somewhere...
-}
 
-void MpiHandler::Handle_Task_Data_Request(::MPI::Status& status){
-	int count = status.Get_count(MPI_BYTE);
-	char buffer[count];
-	::MPI::COMM_WORLD.Recv(buffer, count, MPI_BYTE, status.Get_source(),MPI_TASK_DATA_REQUEST );
-	//TODO: Fetch the task data and send.
-}
+
 
 
 

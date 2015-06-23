@@ -220,6 +220,7 @@ void NArray::Wait() const {
 
 shared_ptr<float> NArray::Get() const {
   Wait();
+  printf("Wait over\n");
   return MinervaSystem::Instance().backend().GetValue(CHECK_NOTNULL(data_));
 }
 

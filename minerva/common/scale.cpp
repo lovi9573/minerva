@@ -1,6 +1,7 @@
 #include "common/scale.h"
 #include <dmlc/logging.h>
 #include <algorithm>
+#include "common/common.h"
 
 using namespace std;
 
@@ -89,22 +90,23 @@ int Scale::GetSerializedSize() const {
 
 int Scale::Serialize(char* buffer) const {
 	int offset = 0;
-	*buffer = NumDims();
-	offset += sizeof(size_t);
-	for( auto d : vec_){
-		*(buffer+offset) = d;
-		offset += sizeof(int);
+	SERIALIZE(buffer, offset, NumDims(), size_t)
+	for( int d : vec_){
+		SERIALIZE(buffer, offset, d, int)
 	}
 	return offset;
 }
 
-Scale& Scale::DeSerialize(char* buffer, int* offset){
+Scale& Scale::DeSerialize(char* buffer, int* bytes){
+	int offset =0;
 	std::vector<int> vec;
-	size_t n  = *((size_t*)(buffer+*offset));
+	size_t n  = *((size_t*)(buffer));
+	offset += sizeof(size_t);
 	for (size_t i = 0; i < n; i++){
-		vec.emplace_back(*((int*)(buffer+*offset)));
-		*offset += sizeof(int);
+		vec.emplace_back(*((int*)(buffer+offset)));
+		offset += sizeof(int);
 	}
+	*bytes = offset;
 	return *(new Scale(vec));
 }
 

@@ -23,9 +23,7 @@ import time
 NArray = _owl.NArray
 _owl.initialize()
 
-if _owl.rank() !=0:
-    while True:
-        time.sleep(3600)
+
 
 # def initialize():
 #     """ Initialize Minerva System with `sys.argv`
@@ -58,6 +56,13 @@ def rank():
     :rtype int
     """
     return _owl.rank()
+
+def worker_run():
+    """ The main loop of the mpi worker 
+    
+    :return none
+    """
+    return _owl.WorkerRun()
 
 def wait_for_all():
     """ Wait for all evaluation to complete

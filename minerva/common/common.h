@@ -20,7 +20,21 @@
   DISALLOW_COPY_AND_ASSIGN(TypeName); \
   DISALLOW_MOVE_AND_ASSIGN(TypeName)
 
+
+#define SERIALIZE(Buff, Off, Item, Type) \
+	*((Type*)(Buff+Off)) = Item; \
+	Off += sizeof(Type);
+
+#define DESERIALIZE(Buff, Off, Item, Type) \
+	Item = *((Type *)(Buff+Off)); \
+	Off += sizeof(Type);
+
+#define DESERIALIZE_ENUM(Buff, Off, Item, Type) \
+	Item = static_cast<Type>(*((int *)(Buff+Off))); \
+	Off += sizeof(int);
+
 namespace minerva {
+
 
 
 class Serializable{

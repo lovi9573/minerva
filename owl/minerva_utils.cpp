@@ -40,6 +40,11 @@ int rank(){
 	return ms.rank();
 }
 
+void WorkerRun(){
+	auto&& ms = minerva::MinervaSystem::Instance();
+	return ms.WorkerRun();
+}
+
 void WaitForAll() {
   auto&& ms = minerva::MinervaSystem::Instance();
   ms.backend().WaitForAll();
@@ -73,8 +78,11 @@ minerva::NArray FromNumpy(float const* data, minerva::Scale const& scale) {
 }
 
 void ToNumpy(float* dst, minerva::NArray const& n) {
+	printf("Entering minerva_utils ToNumpy\n");
   auto size = n.Size().Prod();
+  printf("narray size computed\n");
   auto ptr = n.Get();
+  printf("narray data gotten.  About to copy\n");
   memcpy(dst, ptr.get(), size * sizeof(float));
 }
 

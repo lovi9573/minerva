@@ -26,13 +26,22 @@ DeviceManager::~DeviceManager() {
 
 uint64_t DeviceManager::CreateCpuDevice() {
   auto id = GenerateDeviceId();
+#ifdef HAS_MPI
+  Device* d = new CpuDevice(0, id, listener_);
+#else
   Device* d = new CpuDevice(id, listener_);
+#endif
+
   CHECK(device_storage_.emplace(id, d).second);
   return id;
 }
 
 uint64_t DeviceManager::CreateCpuDevice(uint64_t id) {
+#ifdef HAS_MPI
+  Device* d = new CpuDevice(0, id, listener_);
+#else
   Device* d = new CpuDevice(id, listener_);
+#endif
   CHECK(device_storage_.emplace(id, d).second);
   return id;
 }
@@ -40,7 +49,11 @@ uint64_t DeviceManager::CreateCpuDevice(uint64_t id) {
 uint64_t DeviceManager::CreateGpuDevice(int gid) {
 #ifdef HAS_CUDA
   auto id = GenerateDeviceId();
+#ifdef HAS_MPI
+  Device* d = new GpuDevice(0, id, listener_, gid);
+#else
   Device* d = new GpuDevice(id, listener_, gid);
+#endif
   CHECK(device_storage_.emplace(id, d).second);
   return id;
 #else
@@ -50,7 +63,11 @@ uint64_t DeviceManager::CreateGpuDevice(int gid) {
 
 uint64_t DeviceManager::CreateGpuDevice(int gid, uint64_t id) {
 #ifdef HAS_CUDA
+#ifdef HAS_MPI
+  Device* d = new GpuDevice(0, id, listener_, gid);
+#else
   Device* d = new GpuDevice(id, listener_, gid);
+#endif
   CHECK(device_storage_.emplace(id, d).second);
   return id;
 #else

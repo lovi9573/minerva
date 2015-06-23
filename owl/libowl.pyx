@@ -49,6 +49,7 @@ def initialize():
     for i in range(argc):
         argv[i] = <char*>(calloc(len(sys.argv[i]) + 1, sizeof(char)))
         strcpy(argv[i], sys.argv[i])
+    print "libowl initializing a minerva instance"
     m.Initialize(&argc, &argv)
     for i in range(argc):
         free(argv[i])
@@ -62,6 +63,9 @@ def has_mpi():
 
 def rank():
     return m.rank()
+
+def WorkerRun():
+    return m.WorkerRun()
 
 cdef class NArray(object):
     cdef m.NArray* _d

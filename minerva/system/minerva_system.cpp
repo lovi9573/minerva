@@ -16,7 +16,7 @@
 #include "mpi/mpi_server.h"
 #endif
 
-DEFINE_bool(use_dag, true, "Use dag engine");
+DEFINE_bool(use_dag, false, "Use dag engine");
 DEFINE_bool(no_init_glog, false, "Skip initializing Google Logging");
 
 using namespace std;
@@ -36,6 +36,9 @@ void MinervaSystem::UniversalMemcpy(
   memcpy(to.second, from.second, size);
 #endif
 }
+
+
+
 
 int const MinervaSystem::has_cuda_ =
 #ifdef HAS_CUDA
@@ -76,14 +79,14 @@ uint64_t MinervaSystem::GenerateTaskId() {
 
 
 uint64_t MinervaSystem::CreateCpuDevice() {
-	printf("cpu device creation in rank %d\n",_rank);
-	if (worker){
+	LOG(INFO) << "cpu device creation in rank" << _rank << "\n";
+	if (_worker){
 		LOG(FATAL) << "Cannot create a unique device id on worker rank " << _rank;
 	}
   return MinervaSystem::Instance().device_manager().CreateCpuDevice();
 }
 uint64_t MinervaSystem::CreateGpuDevice(int id) {
-	if (worker){
+	if (_worker){
 		LOG(FATAL) << "Cannot create a unique device id on worker rank";
 	}
   return MinervaSystem::Instance().device_manager().CreateGpuDevice(id);
@@ -93,7 +96,7 @@ uint64_t MinervaSystem::CreateGpuDevice(int id) {
 #ifdef HAS_MPI
 
 uint64_t MinervaSystem::CreateMpiDevice(int rank, int id ) {
-	if (worker){
+	if (_worker){
 		LOG(FATAL) << "Cannot create a unique device id on worker rank";
 	}
 	uint64_t device_id =  MinervaSystem::Instance().device_manager().CreateMpiDevice(rank,id);
@@ -118,8 +121,20 @@ int MinervaSystem::rank(){
 #endif
 }
 
+void MinervaSystem::WorkerRun(){
+	mpihandler_->MainLoop();
+}
+
+void MinervaSystem::Request_Data(char* buffer, size_t bytes, int rank, uint64_t device_id, uint64_t data_id){
+	if(_worker){
+		mpihandler_->Request_Data(buffer, bytes, rank, device_id, data_id);
+	}else{
+		mpiserver_->Request_Data(buffer, bytes, rank, device_id, data_id);
+	}
+}
+
 MinervaSystem::MinervaSystem(int* argc, char*** argv)
-  : data_id_counter_(0), task_id_counter_(0), current_device_id_(0), worker(false) {
+  : data_id_counter_(0), task_id_counter_(0), current_device_id_(0), _worker(false) {
   gflags::ParseCommandLineFlags(argc, argv, true);
 #ifndef HAS_PS
   // glog is initialized in PS::main, and also here, so we will hit a
@@ -129,24 +144,26 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
   }
 #endif
 #ifdef HAS_MPI
-	::MPI::Init();
+  	int provided;
+  	MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
+	if( provided != MPI_THREAD_MULTIPLE){
+		LOG(FATAL) << "Multithreaded mpi support is needed.\n";
+	}
 	_rank = ::MPI::COMM_WORLD.Get_rank();
-	printf("===My rank: %d\n",_rank);
 	fflush(stdout);
 	if(_rank != 0){
-		worker = true;
-		mpihandler_ = new MpiHandler();
+		_worker = true;
+		mpihandler_ = new MpiHandler(_rank);
 	}
 	else{
-		worker = false;
+		_worker = false;
 		mpiserver_ = new MpiServer();
 	}
 #endif
   physical_dag_ = new PhysicalDag();
   profiler_ = new ExecutionProfiler();
-  printf("Worker: %u\n",worker);
-  device_manager_ = new DeviceManager(worker);
-  if (FLAGS_use_dag && !worker) {
+  device_manager_ = new DeviceManager(_worker);
+  if (FLAGS_use_dag && !_worker) {
     LOG(INFO) << "dag engine enabled";
     backend_ = new DagScheduler(physical_dag_, device_manager_);
   } else {

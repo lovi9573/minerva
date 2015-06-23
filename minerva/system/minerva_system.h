@@ -25,6 +25,7 @@ class MinervaSystem :
 
  public:
   static void UniversalMemcpy(std::pair<Device::MemType, float*>, std::pair<Device::MemType, float*>, size_t);
+  static void UniversalMemcpy(void* ,void*, size_t);
   static int const has_cuda_;
   static int const has_mpi_;
   MinervaSystem() = delete;
@@ -49,6 +50,7 @@ class MinervaSystem :
   MpiServer& mpi_server(){
 	  return *mpiserver_;
   }
+  void Request_Data(char* buffer, size_t bytes, int rank, uint64_t device_id, uint64_t data_id);
   std::pair<Device::MemType, float*> GetPtr(uint64_t, uint64_t);
   uint64_t GenerateDataId();
   uint64_t GenerateTaskId();
@@ -66,6 +68,7 @@ class MinervaSystem :
   // system
   void WaitForAll();
   int rank();
+  void WorkerRun();
 
  private:
   MinervaSystem(int*, char***);
@@ -77,7 +80,7 @@ class MinervaSystem :
   std::atomic<uint64_t> task_id_counter_;
   uint64_t current_device_id_;
   int _rank;
-  bool worker;
+  bool _worker;
 #ifdef HAS_MPI
   MpiHandler* mpihandler_;
   MpiServer* mpiserver_;

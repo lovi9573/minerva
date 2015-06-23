@@ -34,12 +34,9 @@ int RandnOp::GetSerializedSize() const {
 }
 int RandnOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = RANDNCLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.mu;
-	offset += sizeof(float);
-	*(buffer+offset) = closure.var;
-	offset += sizeof(float);
+	SERIALIZE(buffer, offset, RANDNCLOSURE, int)
+	SERIALIZE(buffer, offset, closure.mu, float)
+	SERIALIZE(buffer, offset, closure.var, float)
 	return offset;
 }
 
@@ -57,10 +54,8 @@ int RandBernoulliOp::GetSerializedSize() const {
 }
 int RandBernoulliOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = RANDBERNOULLICLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.p;
-	offset += sizeof(float);
+	SERIALIZE(buffer, offset, RANDBERNOULLICLOSURE, int)
+	SERIALIZE(buffer, offset, closure.p, float)
 	return offset;
 }
 std::shared_ptr<ComputeFn> RandBernoulliOp::DeSerialize(char* buffer, int* offset) {
@@ -74,15 +69,16 @@ int FillOp::GetSerializedSize() const  {
 }
 int FillOp::Serialize(char* buffer) const  {
 	int offset = 0;
-	*(buffer) = FILLCLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.val;
-	offset += sizeof(float);
+	SERIALIZE(buffer, offset, FILLCLOSURE, int)
+	SERIALIZE(buffer, offset, closure.val, float)
 	return offset;
 }
-std::shared_ptr<ComputeFn> FillOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> FillOp::DeSerialize(char* buffer, int* bytes) {
 	FillOp *op = new FillOp();
+	int offset = 0;
 	//TODO: 5 How much of this buffer do we consume?
+	DESERIALIZE(buffer, offset, op->closure.val, float)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -106,8 +102,7 @@ int MatMultOp::GetSerializedSize() const {
 }
 int MatMultOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = MATMULTCLOSURE;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, MATMULTCLOSURE, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> MatMultOp::DeSerialize(char* buffer, int* offset) {
@@ -121,8 +116,7 @@ int TransOp::GetSerializedSize() const {
 }
 int TransOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = TRANSPOSECLOSURE;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, TRANSPOSECLOSURE, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> TransOp::DeSerialize(char* buffer, int* offset) {
@@ -136,8 +130,7 @@ int ReshapeOp::GetSerializedSize() const {
 }
 int ReshapeOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = RESHAPECLOSURE;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, RESHAPECLOSURE, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> ReshapeOp::DeSerialize(char* buffer, int* offset) {
@@ -152,10 +145,8 @@ int ReductionOp::GetSerializedSize() const {
 }
 int ReductionOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = REDUCTIONCLOSURE;
-	offset += sizeof(int);
-	*( buffer+offset) = static_cast<int>(closure.type);
-	offset += sizeof(ReductionType);
+	SERIALIZE(buffer, offset, REDUCTIONCLOSURE, int)
+	SERIALIZE(buffer, offset, static_cast<int>(closure.type), int)
 	offset += closure.dims_to_reduce.Serialize(buffer);
 	return offset;
 }
@@ -170,10 +161,8 @@ int MaxIndexOp::GetSerializedSize() const {
 }
 int MaxIndexOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = MAXINDEXCLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = static_cast<int>(closure.dim);
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, MAXINDEXCLOSURE, int)
+	SERIALIZE(buffer, offset, static_cast<int>(closure.dim), int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> MaxIndexOp::DeSerialize(char* buffer, int* offset) {
@@ -187,10 +176,8 @@ int ElewiseOp::GetSerializedSize() const {
 }
 int ElewiseOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = ELEWISECLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = static_cast<int>(closure.type);
-	offset += sizeof(ElewiseType);
+	SERIALIZE(buffer, offset, ELEWISECLOSURE, int)
+	SERIALIZE(buffer, offset, static_cast<int>(closure.type), int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> ElewiseOp::DeSerialize(char* buffer, int* offset) {
@@ -205,8 +192,7 @@ int SigmoidForwardOp::GetSerializedSize() const {
 }
 int SigmoidForwardOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = SIGMOIDFORWARDCLOSURE;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, SIGMOIDFORWARDCLOSURE, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> SigmoidForwardOp::DeSerialize(char* buffer, int* offset) {
@@ -222,8 +208,7 @@ int SigmoidBackwardOp::GetSerializedSize() const {
 }
 int SigmoidBackwardOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = SIGMOIDBACKWARDCLOSURE;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, SIGMOIDBACKWARDCLOSURE, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> SigmoidBackwardOp::DeSerialize(char* buffer, int* offset) {
@@ -238,8 +223,7 @@ int ReluForwardOp::GetSerializedSize() const {
 }
 int ReluForwardOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = RELUFORWARDCLOSURE;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, RELUFORWARDCLOSURE, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> ReluForwardOp::DeSerialize(char* buffer, int* offset) {
@@ -253,8 +237,7 @@ int ReluBackwardOp::GetSerializedSize() const {
 }
 int ReluBackwardOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = RELUBACKWARDCLOSURE;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, RELUBACKWARDCLOSURE, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> ReluBackwardOp::DeSerialize(char* buffer, int* offset) {
@@ -269,8 +252,7 @@ int TanhForwardOp::GetSerializedSize() const {
 }
 int TanhForwardOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = TANHFORWARDCLOSURE;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, TANHFORWARDCLOSURE, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> TanhForwardOp::DeSerialize(char* buffer, int* offset) {
@@ -284,8 +266,7 @@ int TanhBackwardOp::GetSerializedSize() const {
 }
 int TanhBackwardOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = TANHBACKWARDCLOSURE;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, TANHBACKWARDCLOSURE, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> TanhBackwardOp::DeSerialize(char* buffer, int* offset) {
@@ -299,15 +280,16 @@ int ArithmeticOp::GetSerializedSize() const {
 }
 int ArithmeticOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = ARITHMETICCLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = static_cast<int>(closure.type);
-	offset += sizeof(ArithmeticType);
+	SERIALIZE(buffer, offset, ARITHMETICCLOSURE, int)
+	SERIALIZE(buffer, offset, static_cast<int>(closure.type), int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> ArithmeticOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> ArithmeticOp::DeSerialize(char* buffer, int* bytes) {
 	ArithmeticOp *op = new ArithmeticOp();
+	int offset = 0;
 	//TODO: 5 How much of this buffer do we consume?
+	DESERIALIZE_ENUM(buffer, offset, op->closure.type, ArithmeticType)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -316,14 +298,10 @@ int ArithmeticConstOp::GetSerializedSize() const {
 }
 int ArithmeticConstOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = ARITHMETICCONSTCLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = static_cast<int>(closure.type);
-	offset += sizeof(ArithmeticType);
-	*(buffer+offset) = closure.val;
-	offset += sizeof(float);
-	*(buffer+offset) = closure.side;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, ARITHMETICCONSTCLOSURE, int)
+	SERIALIZE(buffer, offset, static_cast<int>(closure.type), int)
+	SERIALIZE(buffer, offset, closure.val, float)
+	SERIALIZE(buffer, offset, closure.side, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> ArithmeticConstOp::DeSerialize(char* buffer, int* offset) {
@@ -337,10 +315,8 @@ int NormArithmeticOp::GetSerializedSize() const {
 }
 int NormArithmeticOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = NORMARITHMETICCLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = static_cast<int>(closure.type);
-	offset += sizeof(ArithmeticType);
+	SERIALIZE(buffer, offset, NORMARITHMETICCLOSURE, int)
+	SERIALIZE(buffer, offset, static_cast<int>(closure.type), int)
 	offset += closure.dims_to_replicate.Serialize(buffer);
 	return offset;
 }
@@ -355,16 +331,11 @@ int ConvForwardOp::GetSerializedSize() const {
 }
 int ConvForwardOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = CONVFORWARDCLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.pad_height;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.pad_width;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.stride_vertical;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.stride_horizontal;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, CONVFORWARDCLOSURE, int)
+	SERIALIZE(buffer, offset, closure.pad_height, int)
+	SERIALIZE(buffer, offset, closure.pad_width, int)
+	SERIALIZE(buffer, offset, closure.stride_vertical, int)
+	SERIALIZE(buffer, offset, closure.stride_horizontal, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> ConvForwardOp::DeSerialize(char* buffer, int* offset) {
@@ -378,16 +349,11 @@ int ConvBackwardDataOp::GetSerializedSize() const {
 }
 int ConvBackwardDataOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = CONVBACKWARDDATACLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.pad_height;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.pad_width;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.stride_vertical;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.stride_horizontal;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, CONVBACKWARDDATACLOSURE, int)
+	SERIALIZE(buffer, offset, closure.pad_height, int)
+	SERIALIZE(buffer, offset, closure.pad_width, int)
+	SERIALIZE(buffer, offset, closure.stride_vertical, int)
+	SERIALIZE(buffer, offset, closure.stride_horizontal, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> ConvBackwardDataOp::DeSerialize(char* buffer, int* offset) {
@@ -402,16 +368,11 @@ int ConvBackwardFilterOp::GetSerializedSize() const {
 }
 int ConvBackwardFilterOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = CONVBACKWARDFILTERCLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.pad_height;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.pad_width;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.stride_vertical;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.stride_horizontal;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, CONVBACKWARDFILTERCLOSURE, int)
+	SERIALIZE(buffer, offset, closure.pad_height, int)
+	SERIALIZE(buffer, offset, closure.pad_width, int)
+	SERIALIZE(buffer, offset, closure.stride_vertical, int)
+	SERIALIZE(buffer, offset, closure.stride_horizontal, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> ConvBackwardFilterOp::DeSerialize(char* buffer, int* offset) {
@@ -426,8 +387,7 @@ int ConvBackwardBiasOp::GetSerializedSize() const {
 }
 int ConvBackwardBiasOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = CONVBACKWARDBIASCLOSURE;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, CONVBACKWARDBIASCLOSURE, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> ConvBackwardBiasOp::DeSerialize(char* buffer, int* offset) {
@@ -441,10 +401,8 @@ int SoftmaxForwardOp::GetSerializedSize() const {
 }
 int SoftmaxForwardOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = SOFTMAXFORWARDCLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = static_cast<int>(closure.algorithm);
-	offset += sizeof(SoftmaxAlgorithm);
+	SERIALIZE(buffer, offset, SOFTMAXFORWARDCLOSURE, int)
+	SERIALIZE(buffer, offset, static_cast<int>(closure.algorithm), int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> SoftmaxForwardOp::DeSerialize(char* buffer, int* offset) {
@@ -459,10 +417,8 @@ int SoftmaxBackwardOp::GetSerializedSize() const {
 }
 int SoftmaxBackwardOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = SOFTMAXBACKWARDCLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = static_cast<int>(closure.algorithm);
-	offset += sizeof(SoftmaxAlgorithm);
+	SERIALIZE(buffer, offset, SOFTMAXBACKWARDCLOSURE, int)
+	SERIALIZE(buffer, offset, static_cast<int>(closure.algorithm), int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> SoftmaxBackwardOp::DeSerialize(char* buffer, int* offset) {
@@ -476,10 +432,8 @@ int ActivationForwardOp::GetSerializedSize() const {
 }
 int ActivationForwardOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = ACTIVATIONFORWARDCLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = static_cast<int>(closure.algorithm);
-	offset += sizeof(ActivationAlgorithm);
+	SERIALIZE(buffer, offset, ACTIVATIONFORWARDCLOSURE, int)
+	SERIALIZE(buffer, offset, static_cast<int>(closure.algorithm), int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> ActivationForwardOp::DeSerialize(char* buffer, int* offset) {
@@ -494,10 +448,8 @@ int ActivationBackwardOp::GetSerializedSize() const {
 }
 int ActivationBackwardOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = ACTIVATIONBACKWARDCLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = static_cast<int>(closure.algorithm);
-	offset += sizeof(ActivationAlgorithm);
+	SERIALIZE(buffer, offset, ACTIVATIONBACKWARDCLOSURE, int)
+	SERIALIZE(buffer, offset, static_cast<int>(closure.algorithm), int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> ActivationBackwardOp::DeSerialize(char* buffer, int* offset) {
@@ -511,22 +463,14 @@ int PoolingForwardOp::GetSerializedSize() const {
 }
 int PoolingForwardOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = POOLINGFORWARDCLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = static_cast<int>(closure.algorithm);
-	offset += sizeof(PoolingInfo::Algorithm);
-	*(buffer+offset) = closure.height;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.width;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.stride_vertical;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.stride_horizontal;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.pad_height;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.pad_width;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, POOLINGFORWARDCLOSURE, int)
+	SERIALIZE(buffer, offset, static_cast<int>(closure.algorithm), int)
+	SERIALIZE(buffer, offset, closure.height, int)
+	SERIALIZE(buffer, offset, closure.width, int)
+	SERIALIZE(buffer, offset, closure.stride_vertical, int)
+	SERIALIZE(buffer, offset, closure.stride_horizontal, int)
+	SERIALIZE(buffer, offset, closure.pad_height, int)
+	SERIALIZE(buffer, offset, closure.pad_width, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> PoolingForwardOp::DeSerialize(char* buffer, int* offset) {
@@ -540,22 +484,14 @@ int PoolingBackwardOp::GetSerializedSize() const {
 }
 int PoolingBackwardOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = POOLINGBACKWARDCLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = static_cast<int>(closure.algorithm);
-	offset += sizeof(PoolingInfo::Algorithm);
-	*(buffer+offset) = closure.height;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.width;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.stride_vertical;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.stride_horizontal;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.pad_height;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.pad_width;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, POOLINGBACKWARDCLOSURE, int)
+	SERIALIZE(buffer, offset, static_cast<int>(closure.algorithm), int)
+	SERIALIZE(buffer, offset, closure.height, int)
+	SERIALIZE(buffer, offset, closure.width, int)
+	SERIALIZE(buffer, offset, closure.stride_vertical, int)
+	SERIALIZE(buffer, offset, closure.stride_horizontal, int)
+	SERIALIZE(buffer, offset, closure.pad_height, int)
+	SERIALIZE(buffer, offset, closure.pad_width, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> PoolingBackwardOp::DeSerialize(char* buffer, int* offset) {
@@ -569,14 +505,10 @@ int LRNForwardOp::GetSerializedSize() const {
 }
 int LRNForwardOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = LRNFORWARDCLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.local_size;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.alpha;
-	offset += sizeof(float);
-	*(buffer+offset) = closure.beta;
-	offset += sizeof(float);
+	SERIALIZE(buffer, offset, LRNFORWARDCLOSURE, int)
+	SERIALIZE(buffer, offset, closure.local_size, int)
+	SERIALIZE(buffer, offset, closure.alpha, float)
+	SERIALIZE(buffer, offset, closure.beta, float)
 	offset += closure.data_shape.Serialize(buffer);
 	return offset;
 }
@@ -592,14 +524,10 @@ int LRNBackwardOp::GetSerializedSize() const {
 }
 int LRNBackwardOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = LRNBACKWARDCLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.local_size;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.alpha;
-	offset += sizeof(float);
-	*(buffer+offset) = closure.beta;
-	offset += sizeof(float);
+	SERIALIZE(buffer, offset, LRNBACKWARDCLOSURE, int)
+	SERIALIZE(buffer, offset, closure.local_size, int)
+	SERIALIZE(buffer, offset, closure.alpha, float)
+	SERIALIZE(buffer, offset, closure.beta, float)
 	offset += closure.data_shape.Serialize(buffer);
 	return offset;
 }
@@ -614,10 +542,8 @@ int ConcatOp::GetSerializedSize() const {
 }
 int ConcatOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = CONCATCLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.catdim;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, CONCATCLOSURE, int)
+	SERIALIZE(buffer, offset, closure.catdim, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> ConcatOp::DeSerialize(char* buffer, int* offset) {
@@ -631,14 +557,10 @@ int SliceOp::GetSerializedSize() const {
 }
 int SliceOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = SLICECLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.slice_dim;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.st_off;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.slice_count;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, SLICECLOSURE, int)
+	SERIALIZE(buffer, offset, closure.slice_dim, int)
+	SERIALIZE(buffer, offset, closure.st_off, int)
+	SERIALIZE(buffer, offset, closure.slice_count, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> SliceOp::DeSerialize(char* buffer, int* offset) {
@@ -652,10 +574,8 @@ int IndexOp::GetSerializedSize() const {
 }
 int IndexOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = INDEXCLOSURE;
-	offset += sizeof(int);
-	*(buffer+offset) = closure.idx;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, INDEXCLOSURE, int)
+	SERIALIZE(buffer, offset, closure.idx, int)
 	return offset;
 }
 std::shared_ptr<ComputeFn> IndexOp::DeSerialize(char* buffer, int* offset) {
@@ -670,11 +590,9 @@ int SelectOp::GetSerializedSize() const {
 }
 int SelectOp::Serialize(char* buffer) const {
 	int offset = 0;
-	*(buffer) = SELECTCLOSURE;
-	offset += sizeof(int);
+	SERIALIZE(buffer, offset, SELECTCLOSURE, int)
 	for(auto& i: closure.indices){
-		*(buffer+offset) = i;
-		offset += sizeof(int);
+		SERIALIZE(buffer, offset, i, int)
 	}
 	return offset;
 }

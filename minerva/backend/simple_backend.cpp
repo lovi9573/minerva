@@ -33,14 +33,23 @@ std::vector<BackendChunk*> SimpleBackend::Create(const std::vector<BackendChunk*
   std::vector<BackendChunk*> result_chunks;
   Task* task = new Task();
   task->light = true;
+  printf("Backend collecting task inputs\n");
   for (auto i : input) {
     auto c = CHECK_NOTNULL(dynamic_cast<SimpleChunk*>(i));
     task->inputs.emplace_back(c->data(), 0);
   }
+  printf("Backend collecting task outputs\n");
   for (auto s : result_sizes) {
     auto data_id = MinervaSystem::Instance().GenerateDataId();
+#ifdef HAS_MPI
+    int current_device_id = MinervaSystem::Instance().current_device_id();
+    int currentrank = MinervaSystem::Instance().device_manager().GetDevice(current_device_id)->rank();
+    std::shared_ptr<PhysicalData> data_ptr( new PhysicalData(s, currentrank,  current_device_id, data_id),
+       [&] (PhysicalData* d) { device_manager_.FreeData(d->data_id); delete d; } );
+#else
     std::shared_ptr<PhysicalData> data_ptr( new PhysicalData(s, current_device_id, data_id),
        [&] (PhysicalData* d) { device_manager_.FreeData(d->data_id); delete d; } );
+#endif
     SimpleChunk* o = new SimpleChunk(data_ptr);
     result_chunks.emplace_back(o);
     task->outputs.emplace_back(o->data(), 0);
@@ -68,11 +77,28 @@ void SimpleBackend::WaitForAll() {
 
 std::shared_ptr<float> SimpleBackend::GetValue(BackendChunk* chunk) {
   auto& data = CHECK_NOTNULL(dynamic_cast<SimpleChunk*>(chunk))->data();
+  printf("PhysicalData reference retrieved\n");
   shared_ptr<float> ret(new float[data.size.Prod()], [](float* p) {
     delete[] p;
   });
+#ifdef HAS_MPI
+  std::pair<Device::MemType, float*> dev_pair;
+  printf("Simple Backend fetching data for PhysicalData on rank %d\n",data.rank);
+  if (data.rank != MinervaSystem::Instance().rank()){
+	  printf("fetching remote data\n");
+	  size_t size = data.size.Prod()*sizeof(float);
+	  char buffer[size];
+	  MinervaSystem::Instance().Request_Data(buffer, size, data.rank,  data.device_id, data.data_id );
+	  printf("Data retrieved");
+	  dev_pair = make_pair(Device::MemType::kCpu, (float*)buffer);
+  }else{
+	  dev_pair = MinervaSystem::Instance().GetPtr(data.device_id, data.data_id);
+  }
+#else
   auto dev_pair = MinervaSystem::Instance().GetPtr(data.device_id, data.data_id);
+#endif
   MinervaSystem::UniversalMemcpy(make_pair(Device::MemType::kCpu, ret.get()), dev_pair, data.size.Prod() * sizeof(float));
+  printf("Data memcopied");
   return ret;
 }
 

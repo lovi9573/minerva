@@ -9,6 +9,7 @@
 #include "device/task.h"
 #include "op/context.h"
 #include "mpi/mpi_common.h"
+#include "mpi/mpi_data_handler.h"
 
 namespace minerva {
 
@@ -16,7 +17,7 @@ namespace minerva {
 
 
 
-class MpiServer{
+class MpiServer: public MpiDataHandler {
 public:
 	void init();
 	int rank();
