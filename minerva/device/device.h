@@ -116,7 +116,6 @@ class MpiDevice : public ThreadedDevice {
  private:
   static size_t constexpr kParallelism = 4;
   int _gpu_id;
-  int _rank;
   void DoCopyRemoteData(float*, float*, size_t, int) override;
   void DoExecute(const DataList&, const DataList&, PhysicalOp&, int) override;
   void DoExecute(Task* task, int thrid) override;

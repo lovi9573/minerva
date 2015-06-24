@@ -16,6 +16,7 @@
 #include "mpi/mpi_server.h"
 #endif
 
+
 DEFINE_bool(use_dag, false, "Use dag engine");
 DEFINE_bool(no_init_glog, false, "Skip initializing Google Logging");
 

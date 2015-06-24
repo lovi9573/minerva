@@ -38,12 +38,13 @@ std::vector<BackendChunk*> SimpleBackend::Create(const std::vector<BackendChunk*
     auto c = CHECK_NOTNULL(dynamic_cast<SimpleChunk*>(i));
     task->inputs.emplace_back(c->data(), 0);
   }
-  printf("Backend collecting task outputs\n");
+  printf("Backend collecting %lu task outputs\n",result_sizes.size());
   for (auto s : result_sizes) {
     auto data_id = MinervaSystem::Instance().GenerateDataId();
 #ifdef HAS_MPI
     int current_device_id = MinervaSystem::Instance().current_device_id();
     int currentrank = MinervaSystem::Instance().device_manager().GetDevice(current_device_id)->rank();
+    printf("Creating new PhysicalData on rank %d\n",currentrank);
     std::shared_ptr<PhysicalData> data_ptr( new PhysicalData(s, currentrank,  current_device_id, data_id),
        [&] (PhysicalData* d) { device_manager_.FreeData(d->data_id); delete d; } );
 #else

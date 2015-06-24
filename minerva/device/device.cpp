@@ -279,7 +279,7 @@ void GpuDevice::DoExecute(Task* task, int thrid){
 #endif
 
 #ifdef HAS_MPI
-MpiDevice::MpiDevice(int rank, uint64_t device_id, DeviceListener* l, int gpu_id) : ThreadedDevice(device_id, l, kParallelism) , _gpu_id(gpu_id), _rank(rank){
+MpiDevice::MpiDevice(int rank, uint64_t device_id, DeviceListener* l, int gpu_id) : ThreadedDevice(device_id, l, kParallelism) , _gpu_id(gpu_id){
 	auto allocator = [](size_t len) -> void* {
 	    void* ret = malloc(len);
 	    return ret;
@@ -288,6 +288,7 @@ MpiDevice::MpiDevice(int rank, uint64_t device_id, DeviceListener* l, int gpu_id
 	    free(ptr);
 	  };
 	  data_store_ = common::MakeUnique<DataStore>(allocator, deallocator);
+	  _rank = rank;
 }
 
 MpiDevice::~MpiDevice(){
@@ -344,6 +345,12 @@ CpuDevice::CpuDevice(uint64_t device_id, DeviceListener* l) : ThreadedDevice(dev
   };
   data_store_ = common::MakeUnique<DataStore>(allocator, deallocator);
 }
+
+#ifdef HAS_MPI
+CpuDevice::CpuDevice(int rank, uint64_t device_id, DeviceListener*l) : CpuDevice(device_id, l) {
+	_rank = rank;
+}
+#endif
 
 CpuDevice::~CpuDevice() {
   pool_.WaitForAllFinished();

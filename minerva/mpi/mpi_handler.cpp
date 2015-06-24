@@ -9,7 +9,7 @@
 #include "mpi/mpi_common.h"
 #include "mpi/mpi_handler.h"
 #include "system/minerva_system.h"
-
+#include <unistd.h>
 
 
 namespace minerva {
@@ -34,9 +34,11 @@ MpiHandler::MpiHandler(int rank) : _rank(rank){
 void MpiHandler::MainLoop(){
 	bool term = false;
 	::MPI::Status status;
+	//MPI_Status st;
 	while (!term){
 		DLOG(INFO) << "[" << _rank << "] Top of mainloop.\n";
 		::MPI::COMM_WORLD.Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, status);
+		//MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
 		switch(status.Get_tag()){
 		case MPI_DEVICE_COUNT:
 			DLOG(INFO) << "[" << _rank << "] Fetching device count\n";

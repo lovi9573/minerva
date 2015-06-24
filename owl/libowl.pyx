@@ -65,7 +65,8 @@ def rank():
     return m.rank()
 
 def WorkerRun():
-    return m.WorkerRun()
+    with nogil:
+        m.WorkerRun()
 
 cdef class NArray(object):
     cdef m.NArray* _d

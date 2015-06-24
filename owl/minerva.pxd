@@ -16,7 +16,7 @@ cdef extern from './minerva_utils.h' namespace 'libowl':
   NArray FromNumpy(const float*, const Scale&) except +
   void ToNumpy(float*, const NArray&) except +
   int rank() except +
-  void WorkerRun() except +
+  void WorkerRun() nogil 
 
 cdef extern from '../minerva/minerva.h' namespace 'minerva::MinervaSystem':
   void Initialize(int*, char***) except +

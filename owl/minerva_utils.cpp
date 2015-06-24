@@ -3,6 +3,7 @@
 #include <cstring>
 #include <iostream>
 
+
 namespace libowl {
 
 uint64_t CreateCpuDevice() {
@@ -42,7 +43,7 @@ int rank(){
 
 void WorkerRun(){
 	auto&& ms = minerva::MinervaSystem::Instance();
-	return ms.WorkerRun();
+	ms.WorkerRun();
 }
 
 void WaitForAll() {
