@@ -12,7 +12,9 @@
         ], 
         "depends": [
             "/usr/lib64/python2.7/site-packages/numpy/core/include/numpy/ufuncobject.h", 
-            "/usr/lib64/python2.7/site-packages/numpy/core/include/numpy/arrayobject.h"
+            "/usr/lib64/python2.7/site-packages/numpy/core/include/numpy/arrayobject.h", 
+            "/home/jlovitt/git/myminerva/owl/minerva_utils.h", 
+            "/home/jlovitt/git/myminerva/minerva/minerva.h"
         ], 
         "extra_compile_args": [
             "-std=c++11", 
@@ -991,10 +993,6 @@ static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j
 static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
                                                      int is_list, int wraparound, int boundscheck);
 
-#ifndef __PYX_FORCE_INIT_THREADS
-  #define __PYX_FORCE_INIT_THREADS 0
-#endif
-
 static CYTHON_INLINE int __Pyx_CheckKeywordStrings(PyObject *kwdict, const char* function_name, int kw_allowed);
 
 static CYTHON_INLINE int __Pyx_TypeTest(PyObject *obj, PyTypeObject *type);
@@ -1246,6 +1244,10 @@ static PyObject* __pyx_print_kwargs = 0;
 #endif
 
 static int __Pyx_PrintOne(PyObject* stream, PyObject *o);
+
+#ifndef __PYX_FORCE_INIT_THREADS
+  #define __PYX_FORCE_INIT_THREADS 0
+#endif
 
 #if CYTHON_CCOMPLEX
   #ifdef __cplusplus
@@ -3215,9 +3217,6 @@ static PyObject *__pyx_pw_6libowl_25WorkerRun(PyObject *__pyx_self, CYTHON_UNUSE
 static PyObject *__pyx_pf_6libowl_24WorkerRun(CYTHON_UNUSED PyObject *__pyx_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("WorkerRun", 0);
 
   /* "libowl.pyx":68
@@ -3241,18 +3240,7 @@ static PyObject *__pyx_pf_6libowl_24WorkerRun(CYTHON_UNUSED PyObject *__pyx_self
  * 
  * cdef class NArray(object):
  */
-        try {
-          libowl::WorkerRun();
-        } catch(...) {
-          #ifdef WITH_THREAD
-          PyGILState_STATE __pyx_gilstate_save = PyGILState_Ensure();
-          #endif
-          __Pyx_CppExn2PyErr();
-          #ifdef WITH_THREAD
-          PyGILState_Release(__pyx_gilstate_save);
-          #endif
-          {__pyx_filename = __pyx_f[0]; __pyx_lineno = 69; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
-        }
+        libowl::WorkerRun();
       }
 
       /* "libowl.pyx":68
@@ -3269,12 +3257,6 @@ static PyObject *__pyx_pf_6libowl_24WorkerRun(CYTHON_UNUSED PyObject *__pyx_self
           #endif
           goto __pyx_L5;
         }
-        __pyx_L4_error: {
-          #ifdef WITH_THREAD
-          Py_BLOCK_THREADS
-          #endif
-          goto __pyx_L1_error;
-        }
         __pyx_L5:;
       }
   }
@@ -3289,11 +3271,6 @@ static PyObject *__pyx_pf_6libowl_24WorkerRun(CYTHON_UNUSED PyObject *__pyx_self
 
   /* function exit code */
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
-  goto __pyx_L0;
-  __pyx_L1_error:;
-  __Pyx_AddTraceback("libowl.WorkerRun", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;

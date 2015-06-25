@@ -33,18 +33,18 @@ std::vector<BackendChunk*> SimpleBackend::Create(const std::vector<BackendChunk*
   std::vector<BackendChunk*> result_chunks;
   Task* task = new Task();
   task->light = true;
-  printf("Backend collecting task inputs\n");
+  //printf("Backend collecting task inputs\n");
   for (auto i : input) {
     auto c = CHECK_NOTNULL(dynamic_cast<SimpleChunk*>(i));
     task->inputs.emplace_back(c->data(), 0);
   }
-  printf("Backend collecting %lu task outputs\n",result_sizes.size());
+  //printf("Backend collecting %lu task outputs\n",result_sizes.size());
   for (auto s : result_sizes) {
     auto data_id = MinervaSystem::Instance().GenerateDataId();
 #ifdef HAS_MPI
     int current_device_id = MinervaSystem::Instance().current_device_id();
     int currentrank = MinervaSystem::Instance().device_manager().GetDevice(current_device_id)->rank();
-    printf("Creating new PhysicalData on rank %d\n",currentrank);
+    //printf("[%d] Backend Creating new PhysicalData on rank %d\n",MinervaSystem::Instance().rank(),currentrank);
     std::shared_ptr<PhysicalData> data_ptr( new PhysicalData(s, currentrank,  current_device_id, data_id),
        [&] (PhysicalData* d) { device_manager_.FreeData(d->data_id); delete d; } );
 #else
@@ -78,7 +78,7 @@ void SimpleBackend::WaitForAll() {
 
 std::shared_ptr<float> SimpleBackend::GetValue(BackendChunk* chunk) {
   auto& data = CHECK_NOTNULL(dynamic_cast<SimpleChunk*>(chunk))->data();
-  printf("PhysicalData reference retrieved\n");
+  //printf("PhysicalData reference retrieved\n");
   shared_ptr<float> ret(new float[data.size.Prod()], [](float* p) {
     delete[] p;
   });
@@ -99,7 +99,7 @@ std::shared_ptr<float> SimpleBackend::GetValue(BackendChunk* chunk) {
   auto dev_pair = MinervaSystem::Instance().GetPtr(data.device_id, data.data_id);
 #endif
   MinervaSystem::UniversalMemcpy(make_pair(Device::MemType::kCpu, ret.get()), dev_pair, data.size.Prod() * sizeof(float));
-  printf("Data memcopied");
+  //printf("Data memcopied");
   return ret;
 }
 

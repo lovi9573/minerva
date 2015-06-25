@@ -159,6 +159,8 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
 	else{
 		_worker = false;
 		mpiserver_ = new MpiServer();
+		std::thread t(&MpiServer::MainLoop, *mpiserver_);
+		t.detach();
 	}
 #endif
   physical_dag_ = new PhysicalDag();

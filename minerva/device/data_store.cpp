@@ -1,4 +1,5 @@
 #include "data_store.h"
+#include "system/minerva_system.h"
 
 using namespace std;
 
@@ -26,6 +27,7 @@ float* DataStore::CreateData(uint64_t id, size_t length) {
 
 float* DataStore::GetData(uint64_t id) {
   lock_guard<mutex> lck(access_mutex_);
+  CHECK_EQ(data_states_.count(id), 1) << " rank: " << MinervaSystem::Instance().rank();
   auto& ds = data_states_.at(id);
   return static_cast<float*>(ds.ptr);
 }
@@ -37,6 +39,7 @@ bool DataStore::ExistData(uint64_t id) const {
 
 void DataStore::FreeData(uint64_t id) {
   lock_guard<mutex> lck(access_mutex_);
+  CHECK_EQ(data_states_.count(id), 1) << " rank: " << MinervaSystem::Instance().rank();
   auto& ds = data_states_.at(id);
   deallocator_(ds.ptr);
   CHECK_EQ(data_states_.erase(id), 1);

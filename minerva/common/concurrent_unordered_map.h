@@ -1,5 +1,6 @@
 #pragma once
 #include <unordered_map>
+#include <dmlc/logging.h>
 #include "common/shared_mutex.h"
 #include "common/common.h"
 
@@ -23,10 +24,12 @@ class ConcurrentUnorderedMap {
   }
   V& At(const K& k) {
     ReaderLock lock(m_);
+    CHECK_EQ(map_.count(k), 1) ;
     return map_.at(k);
   }
   const V& At(const K& k) const {
     ReaderLock lock(m_);
+    CHECK_EQ(map_.count(k), 1) ;
     return map_.at(k);
   }
   size_t Size() const {

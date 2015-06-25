@@ -27,7 +27,7 @@ DeviceManager::~DeviceManager() {
 uint64_t DeviceManager::CreateCpuDevice() {
   auto id = GenerateDeviceId();
 #ifdef HAS_MPI
-  Device* d = new CpuDevice(0, id, listener_);
+  Device* d = new CpuDevice(MinervaSystem::Instance().rank(), id, listener_);
 #else
   Device* d = new CpuDevice(id, listener_);
 #endif
@@ -38,7 +38,7 @@ uint64_t DeviceManager::CreateCpuDevice() {
 
 uint64_t DeviceManager::CreateCpuDevice(uint64_t id) {
 #ifdef HAS_MPI
-  Device* d = new CpuDevice(0, id, listener_);
+  Device* d = new CpuDevice(MinervaSystem::Instance().rank(), id, listener_);
 #else
   Device* d = new CpuDevice(id, listener_);
 #endif
@@ -50,7 +50,7 @@ uint64_t DeviceManager::CreateGpuDevice(int gid) {
 #ifdef HAS_CUDA
   auto id = GenerateDeviceId();
 #ifdef HAS_MPI
-  Device* d = new GpuDevice(0, id, listener_, gid);
+  Device* d = new GpuDevice(MinervaSystem::Instance().rank(), id, listener_, gid);
 #else
   Device* d = new GpuDevice(id, listener_, gid);
 #endif
@@ -64,7 +64,7 @@ uint64_t DeviceManager::CreateGpuDevice(int gid) {
 uint64_t DeviceManager::CreateGpuDevice(int gid, uint64_t id) {
 #ifdef HAS_CUDA
 #ifdef HAS_MPI
-  Device* d = new GpuDevice(0, id, listener_, gid);
+  Device* d = new GpuDevice(MinervaSystem::Instance().rank(), id, listener_, gid);
 #else
   Device* d = new GpuDevice(id, listener_, gid);
 #endif
@@ -115,6 +115,7 @@ int DeviceManager::GetMpiDeviceCount(int rank) {
 
 
 Device* DeviceManager::GetDevice(uint64_t id) {
+  CHECK_EQ(device_storage_.count(id), 1) << " rank: " << MinervaSystem::Instance().rank();
   return device_storage_.at(id);
 }
 

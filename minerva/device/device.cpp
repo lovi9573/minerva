@@ -42,6 +42,7 @@ int Device::rank(){
 #endif
 
 pair<Device::MemType, float*> Device::GetPtr(uint64_t data_id) {
+	printf("[%d] Getting pointer to data id %lu\n",_rank, data_id);
   return make_pair(GetMemType(), data_store_->GetData(data_id));
 }
 
@@ -88,12 +89,11 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 			calculate_timer.Start();
 		#endif
 			DLOG(INFO) << Name() << " dispatching mpi task #" << task->id << ": " << op.compute_fn->Name();
-			//TODO: 0 task has unique data_id's in it BUT how will workers be able to get the data?
-			/*TODO: 1 The data local to this MPI node should be sent here instead of just the task.
-			 *The message will be a combination of Task for peer data and DataShards for local data.
-			 *This might a moot point for this embodiment of Minerva because I don't believe that any ops require more than one shard.
-			 */
+			//TODO: 2 We can simply serialize the task and send it here rather than go through all the Execute/ Call/ Impl machinery.
+			//TODO: 0 We should block here until the completed response comes back..
+			//printf("Dispatching task < %lu > with new data size | %lu | to rank %d\n",task->id, task->outputs.size(), _rank);
 			DoExecute(task, thrid);
+
 			DLOG(INFO) << Name() << " finished dispatch of mpi task #" << task->id << ": " << op.compute_fn->Name();
 		#ifndef NDEBUG
 			calculate_timer.Stop();
@@ -114,9 +114,11 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 	  DataList input_shards;
 	  for (auto& i : task->inputs) {
 		auto& input_data = i.physical_data;
+		//printf("[%d] process task input\n",_rank);
 		if (input_data.device_id == device_id_) {  // Input is local
 		  DLOG(INFO) << Name() << " input task data #" << i.id << " is local";
-		  CHECK_EQ(local_data_.Count(input_data.data_id), 1);
+		  //printf("[%d] Task < %lu > Local data [ %lu ] count: %lu\n",_rank,task->id,input_data.data_id, local_data_.Count(input_data.data_id));
+		  CHECK_EQ(local_data_.Count(input_data.data_id), 1) << " rank: "<< _rank;
 		} else {
 		  lock_guard<mutex> lck(copy_locks_[input_data.data_id]);
 		  if (!remote_data_.Count(input_data.data_id)) {  // Input is remote and not copied
@@ -138,15 +140,18 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 		  }
 		}
 		//A list of (pointer , Scale) tuples.
+		printf("[%d] Placing input shard id %lu\n",_rank, input_data.data_id);
 		input_shards.emplace_back(data_store_->GetData(input_data.data_id), input_data.size);
 	  }
 	  /*
 	   * Create output data pointers
 	   */
+	  //printf("[%d] creating datastore for task < %lu > with | %lu | outputs",_rank, task->id, task->outputs.size());
 	  DataList output_shards;
 	  for (auto& i : task->outputs) {
 		size_t size = i.physical_data.size.Prod() * sizeof(float);
 		DLOG(INFO) << Name() << " create output for task data #" << i.id;
+		//printf("[%d] Local data [ %lu ] created on rank %d\n",_rank,i.physical_data.data_id, _rank);
 		auto ptr = data_store_->CreateData(i.physical_data.data_id, size);
 		CHECK(local_data_.Insert(i.physical_data.data_id));
 		output_shards.emplace_back(ptr, i.physical_data.size);
@@ -169,8 +174,13 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 		MinervaSystem::Instance().profiler().RecordTime(TimerType::kCalculation, op.compute_fn->Name(), calculate_timer);
 	#endif
 	  }
+#ifdef HAS_MPI
+	  if(_rank != 0){
+		  MinervaSystem::Instance().mpi_handler().FinalizeTask(task->id);
+	  }
+#endif
   }//end kCpu || kGpu
-  listener_->OnOperationComplete(task);
+	  listener_->OnOperationComplete(task);
 } // end Execute
 
 void ThreadedDevice::PreExecute() {

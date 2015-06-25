@@ -19,8 +19,8 @@ TEST(Serialize, Fillop) {
   //Deserialize
   int offset = 0;
   int bytesconsumed = 0;
-  int closuretype = *(int*)(buffer);
-  offset += sizeof(int);
+  int closuretype;
+  DESERIALIZE(buffer, offset, closuretype, int)
   std::shared_ptr<ComputeFn> deop = FillOp::DeSerialize(buffer+offset,&bytesconsumed);
   offset += bytesconsumed;
 
@@ -76,8 +76,8 @@ TEST(Serialize, PhysicalData) {
   uint64_t device_id =12;
   uint64_t data_id = 2;
   int rank = 4;
-  PhysicalData pd = PhysicalData(Scale({1,2,3,4}),device_id,data_id);
-  pd.rank = rank;
+  PhysicalData pd = PhysicalData(Scale({1,2,3,4}),rank,device_id,data_id);
+  //pd.rank = rank;
 
   //Serialize
   int size = pd.GetSerializedSize();

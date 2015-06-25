@@ -97,9 +97,10 @@ void MpiHandler::Handle_Create_Device(::MPI::Status& status){
 	uint64_t device_id;
 	int count = status.Get_count(::MPI::BYTE);
 	char buffer[count];
+	int offset = 0;
 	::MPI::COMM_WORLD.Recv(buffer, count, ::MPI::BYTE, status.Get_source(), MPI_CREATE_DEVICE);
-	id = *((int*)buffer);
-	device_id = *((uint64_t*)(buffer+sizeof(int)));
+	DESERIALIZE(buffer, offset, id, int)
+	DESERIALIZE(buffer, offset, device_id, uint64_t)
 	while (!MinervaSystem::IsAlive()){
 		DLOG(INFO) << "[" << _rank << "] waiting for MinervaInstance to come alive.\n" ;
 	}
@@ -114,9 +115,7 @@ void MpiHandler::Handle_Create_Device(::MPI::Status& status){
 void MpiHandler::Handle_Task(::MPI::Status& status){
 	int count = status.Get_count(MPI_BYTE);
 	char bytes[count];
-	printf("Recieving task data\n");
 	::MPI::COMM_WORLD.Recv(&bytes, count, MPI_BYTE, status.Get_source(),MPI_TASK);
-	printf("Deserializing task data\n");
 	int bytesconsumed = 0;
 	Task& td = Task::DeSerialize(bytes,&bytesconsumed);
 	DLOG(INFO) << "[" << _rank << "] Handling task #" << td.id;
@@ -124,7 +123,9 @@ void MpiHandler::Handle_Task(::MPI::Status& status){
 }
 
 
-
+void MpiHandler::FinalizeTask(uint64_t task_id){
+	::MPI::COMM_WORLD.Send(&task_id, sizeof(uint64_t), MPI_CHAR, 0, MPI_FINALIZE_TASK);
+}
 
 
 

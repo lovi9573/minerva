@@ -50,6 +50,9 @@ class MinervaSystem :
   MpiServer& mpi_server(){
 	  return *mpiserver_;
   }
+  MpiHandler& mpi_handler(){
+	  return *mpihandler_;
+  }
   void Request_Data(char* buffer, size_t bytes, int rank, uint64_t device_id, uint64_t data_id);
   std::pair<Device::MemType, float*> GetPtr(uint64_t, uint64_t);
   uint64_t GenerateDataId();

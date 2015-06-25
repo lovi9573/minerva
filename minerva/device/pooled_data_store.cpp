@@ -1,4 +1,5 @@
 #include "device/pooled_data_store.h"
+#include "system/minerva_system.h"
 
 using namespace std;
 
@@ -43,6 +44,7 @@ float* PooledDataStore::CreateData(uint64_t id, size_t length) {
 
 void PooledDataStore::FreeData(uint64_t id) {
   lock_guard<mutex> lck(access_mutex_);
+  CHECK_EQ(data_states_.count(id), 1) << " rank: " << MinervaSystem::Instance().rank();
   auto& ds = data_states_.at(id);
   free_space_[ds.length].push(ds.ptr);
   CHECK_EQ(data_states_.erase(id), 1);

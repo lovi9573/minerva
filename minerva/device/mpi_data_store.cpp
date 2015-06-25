@@ -4,6 +4,7 @@
 using namespace std;
 
 namespace minerva {
+/*
 
 MpiDataStore::MpiDataStore(function<void*(size_t)> a, function<void(void*)> d) : DataStore(a, d) {
 }
@@ -41,7 +42,7 @@ size_t MpiDataStore::GetTotalBytes() const {
   }
   return total_bytes;
 }
-
+*/
 
 }  // namespace minerva
 

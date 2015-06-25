@@ -24,6 +24,12 @@ NArray = _owl.NArray
 _owl.initialize()
 
 
+"""
+worker nodes drop into forever loop.
+"""
+if _owl.has_mpi() and _owl.rank() != 0:
+    _owl.WorkerRun()
+
 
 # def initialize():
 #     """ Initialize Minerva System with `sys.argv`

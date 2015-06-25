@@ -79,11 +79,12 @@ minerva::NArray FromNumpy(float const* data, minerva::Scale const& scale) {
 }
 
 void ToNumpy(float* dst, minerva::NArray const& n) {
-	printf("Entering minerva_utils ToNumpy\n");
+	//printf("Entering minerva_utils ToNumpy\n");
   auto size = n.Size().Prod();
-  printf("narray size computed\n");
   auto ptr = n.Get();
-  printf("narray data gotten.  About to copy\n");
+  for (int i = 0; i < size; i++){
+	  //printf("%f , ",*(ptr.get()+i));
+  }
   memcpy(dst, ptr.get(), size * sizeof(float));
 }
 

@@ -21,7 +21,7 @@ int ArrayLoaderOp::Serialize(char* buffer) const {
 	//TODO: Serialize the array and send it.
 	return 0;
 }
-std::shared_ptr<ComputeFn> ArrayLoaderOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> ArrayLoaderOp::DeSerialize(char* buffer,int* bytes) {
 	ArrayLoaderOp *op = new ArrayLoaderOp();
 	//TODO: 5 How much of this buffer do we consume?
 	//op->closure.data = ((float*)(buffer+*offset));
@@ -39,15 +39,15 @@ int RandnOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, closure.var, float)
 	return offset;
 }
-
-std::shared_ptr<ComputeFn> RandnOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> RandnOp::DeSerialize(char* buffer,int* bytes) {
 	RandnOp *op = new RandnOp();
-	op->closure.mu = *((float*)(buffer+*offset));
-	*offset += sizeof(float);
-	op->closure.var = *((float*)(buffer+*offset));
-	*offset += sizeof(float);
+	int offset = 0;
+	DESERIALIZE(buffer, offset, op->closure.mu, float)
+	DESERIALIZE(buffer, offset, op->closure.var, float)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
+
 
 int RandBernoulliOp::GetSerializedSize() const {
 	return sizeof(int) + sizeof(float);
@@ -58,11 +58,14 @@ int RandBernoulliOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, closure.p, float)
 	return offset;
 }
-std::shared_ptr<ComputeFn> RandBernoulliOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> RandBernoulliOp::DeSerialize(char* buffer,int* bytes) {
 	RandBernoulliOp *op = new RandBernoulliOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	DESERIALIZE(buffer, offset, op->closure.p, float)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
+
 
 int FillOp::GetSerializedSize() const  {
 	return sizeof(int) + sizeof(float);
@@ -76,7 +79,6 @@ int FillOp::Serialize(char* buffer) const  {
 std::shared_ptr<ComputeFn> FillOp::DeSerialize(char* buffer, int* bytes) {
 	FillOp *op = new FillOp();
 	int offset = 0;
-	//TODO: 5 How much of this buffer do we consume?
 	DESERIALIZE(buffer, offset, op->closure.val, float)
 	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
@@ -90,9 +92,10 @@ int SyncWithPSOp::Serialize(char* buffer) const {
 	NO_IMPL();
 	return 0;
 }
-std::shared_ptr<ComputeFn> SyncWithPSOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> SyncWithPSOp::DeSerialize(char* buffer,int* bytes) {
 	SyncWithPSOp *op = new SyncWithPSOp();
 	//TODO: 5 How much of this buffer do we consume?
+	NO_IMPL();
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -105,11 +108,12 @@ int MatMultOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, MATMULTCLOSURE, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> MatMultOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> MatMultOp::DeSerialize(char* buffer, int* bytes) {
 	MatMultOp *op = new MatMultOp();
-	//TODO: 5 How much of this buffer do we consume?
+	*bytes = 0;
 	return std::shared_ptr<ComputeFn>(op);
 }
+
 
 int TransOp::GetSerializedSize() const {
 	return sizeof(int);
@@ -119,11 +123,12 @@ int TransOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, TRANSPOSECLOSURE, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> TransOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> TransOp::DeSerialize(char* buffer, int* bytes) {
 	TransOp *op = new TransOp();
-	//TODO: 5 How much of this buffer do we consume?
+	*bytes = 0;
 	return std::shared_ptr<ComputeFn>(op);
 }
+
 
 int ReshapeOp::GetSerializedSize() const {
 	return sizeof(int);
@@ -133,9 +138,9 @@ int ReshapeOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, RESHAPECLOSURE, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> ReshapeOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> ReshapeOp::DeSerialize(char* buffer, int* bytes) {
 	ReshapeOp *op = new ReshapeOp();
-	//TODO: 5 How much of this buffer do we consume?
+	*bytes = 0;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -150,9 +155,11 @@ int ReductionOp::Serialize(char* buffer) const {
 	offset += closure.dims_to_reduce.Serialize(buffer);
 	return offset;
 }
-std::shared_ptr<ComputeFn> ReductionOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> ReductionOp::DeSerialize(char* buffer,int* bytes) {
 	ReductionOp *op = new ReductionOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	DESERIALIZE_ENUM(buffer, offset, op->closure.type, ReductionType)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -165,9 +172,11 @@ int MaxIndexOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, static_cast<int>(closure.dim), int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> MaxIndexOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> MaxIndexOp::DeSerialize(char* buffer, int* bytes) {
 	MaxIndexOp *op = new MaxIndexOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	DESERIALIZE(buffer, offset, op->closure.dim, int)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -180,9 +189,11 @@ int ElewiseOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, static_cast<int>(closure.type), int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> ElewiseOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> ElewiseOp::DeSerialize(char* buffer, int* bytes) {
 	ElewiseOp *op = new ElewiseOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	DESERIALIZE_ENUM(buffer, offset, op->closure.type, ElewiseType)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -195,9 +206,9 @@ int SigmoidForwardOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, SIGMOIDFORWARDCLOSURE, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> SigmoidForwardOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> SigmoidForwardOp::DeSerialize(char* buffer, int* bytes) {
 	SigmoidForwardOp *op = new SigmoidForwardOp();
-	//TODO: 5 How much of this buffer do we consume?
+	*bytes = 0;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -211,9 +222,9 @@ int SigmoidBackwardOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, SIGMOIDBACKWARDCLOSURE, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> SigmoidBackwardOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> SigmoidBackwardOp::DeSerialize(char* buffer,int* bytes) {
 	SigmoidBackwardOp *op = new SigmoidBackwardOp();
-	//TODO: 5 How much of this buffer do we consume?
+	*bytes = 0;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -226,9 +237,9 @@ int ReluForwardOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, RELUFORWARDCLOSURE, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> ReluForwardOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> ReluForwardOp::DeSerialize(char* buffer,int* bytes) {
 	ReluForwardOp *op = new ReluForwardOp();
-	//TODO: 5 How much of this buffer do we consume?
+	*bytes = 0;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -240,9 +251,9 @@ int ReluBackwardOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, RELUBACKWARDCLOSURE, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> ReluBackwardOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> ReluBackwardOp::DeSerialize(char* buffer,int* bytes) {
 	ReluBackwardOp *op = new ReluBackwardOp();
-	//TODO: 5 How much of this buffer do we consume?
+	*bytes = 0;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -255,9 +266,9 @@ int TanhForwardOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, TANHFORWARDCLOSURE, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> TanhForwardOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> TanhForwardOp::DeSerialize(char* buffer,int* bytes) {
 	TanhForwardOp *op = new TanhForwardOp();
-	//TODO: 5 How much of this buffer do we consume?
+	*bytes = 0;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -269,9 +280,9 @@ int TanhBackwardOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, TANHBACKWARDCLOSURE, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> TanhBackwardOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> TanhBackwardOp::DeSerialize(char* buffer,int* bytes) {
 	TanhBackwardOp *op = new TanhBackwardOp();
-	//TODO: 5 How much of this buffer do we consume?
+	*bytes = 0;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -287,7 +298,6 @@ int ArithmeticOp::Serialize(char* buffer) const {
 std::shared_ptr<ComputeFn> ArithmeticOp::DeSerialize(char* buffer, int* bytes) {
 	ArithmeticOp *op = new ArithmeticOp();
 	int offset = 0;
-	//TODO: 5 How much of this buffer do we consume?
 	DESERIALIZE_ENUM(buffer, offset, op->closure.type, ArithmeticType)
 	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
@@ -304,9 +314,13 @@ int ArithmeticConstOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, closure.side, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> ArithmeticConstOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> ArithmeticConstOp::DeSerialize(char* buffer,int* bytes) {
 	ArithmeticConstOp *op = new ArithmeticConstOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	DESERIALIZE_ENUM(buffer, offset, op->closure.type, ArithmeticType)
+	DESERIALIZE(buffer, offset, op->closure.val, float)
+	DESERIALIZE(buffer, offset, op->closure.side, int)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -320,9 +334,14 @@ int NormArithmeticOp::Serialize(char* buffer) const {
 	offset += closure.dims_to_replicate.Serialize(buffer);
 	return offset;
 }
-std::shared_ptr<ComputeFn> NormArithmeticOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> NormArithmeticOp::DeSerialize(char* buffer,int* bytes) {
 	NormArithmeticOp *op = new NormArithmeticOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	int b = 0;
+	DESERIALIZE_ENUM(buffer, offset, op->closure.type, ArithmeticType)
+	op->closure.dims_to_replicate = Scale::DeSerialize(buffer+offset, &b );
+	offset += b;
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -338,9 +357,14 @@ int ConvForwardOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, closure.stride_horizontal, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> ConvForwardOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> ConvForwardOp::DeSerialize(char* buffer,int* bytes) {
 	ConvForwardOp *op = new ConvForwardOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	DESERIALIZE(buffer, offset, op->closure.pad_height, int)
+	DESERIALIZE(buffer, offset, op->closure.pad_width, int)
+	DESERIALIZE(buffer, offset, op->closure.stride_vertical, int)
+	DESERIALIZE(buffer, offset, op->closure.stride_horizontal, int)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -356,9 +380,14 @@ int ConvBackwardDataOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, closure.stride_horizontal, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> ConvBackwardDataOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> ConvBackwardDataOp::DeSerialize(char* buffer,int* bytes) {
 	ConvBackwardDataOp *op = new ConvBackwardDataOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	DESERIALIZE(buffer, offset, op->closure.pad_height, int)
+	DESERIALIZE(buffer, offset, op->closure.pad_width, int)
+	DESERIALIZE(buffer, offset, op->closure.stride_vertical, int)
+	DESERIALIZE(buffer, offset, op->closure.stride_horizontal, int)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -375,9 +404,14 @@ int ConvBackwardFilterOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, closure.stride_horizontal, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> ConvBackwardFilterOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> ConvBackwardFilterOp::DeSerialize(char* buffer,int* bytes) {
 	ConvBackwardFilterOp *op = new ConvBackwardFilterOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	DESERIALIZE(buffer, offset, op->closure.pad_height, int)
+	DESERIALIZE(buffer, offset, op->closure.pad_width, int)
+	DESERIALIZE(buffer, offset, op->closure.stride_vertical, int)
+	DESERIALIZE(buffer, offset, op->closure.stride_horizontal, int)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -390,9 +424,9 @@ int ConvBackwardBiasOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, CONVBACKWARDBIASCLOSURE, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> ConvBackwardBiasOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> ConvBackwardBiasOp::DeSerialize(char* buffer,int* bytes) {
 	ConvBackwardBiasOp *op = new ConvBackwardBiasOp();
-	//TODO: 5 How much of this buffer do we consume?
+	*bytes = 0;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -405,9 +439,11 @@ int SoftmaxForwardOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, static_cast<int>(closure.algorithm), int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> SoftmaxForwardOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> SoftmaxForwardOp::DeSerialize(char* buffer,int* bytes) {
 	SoftmaxForwardOp *op = new SoftmaxForwardOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	DESERIALIZE_ENUM(buffer, offset, op->closure.algorithm, SoftmaxAlgorithm)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -421,11 +457,14 @@ int SoftmaxBackwardOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, static_cast<int>(closure.algorithm), int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> SoftmaxBackwardOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> SoftmaxBackwardOp::DeSerialize(char* buffer,int* bytes) {
 	SoftmaxBackwardOp *op = new SoftmaxBackwardOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	DESERIALIZE_ENUM(buffer, offset, op->closure.algorithm, SoftmaxAlgorithm)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
+
 
 int ActivationForwardOp::GetSerializedSize() const {
 	return sizeof(int)+sizeof(ActivationAlgorithm);
@@ -436,9 +475,11 @@ int ActivationForwardOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, static_cast<int>(closure.algorithm), int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> ActivationForwardOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> ActivationForwardOp::DeSerialize(char* buffer,int* bytes) {
 	ActivationForwardOp *op = new ActivationForwardOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	DESERIALIZE_ENUM(buffer, offset, op->closure.algorithm, ActivationAlgorithm)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -452,9 +493,11 @@ int ActivationBackwardOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, static_cast<int>(closure.algorithm), int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> ActivationBackwardOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> ActivationBackwardOp::DeSerialize(char* buffer,int* bytes) {
 	ActivationBackwardOp *op = new ActivationBackwardOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	DESERIALIZE_ENUM(buffer, offset, op->closure.algorithm, ActivationAlgorithm)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -473,9 +516,17 @@ int PoolingForwardOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, closure.pad_width, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> PoolingForwardOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> PoolingForwardOp::DeSerialize(char* buffer,int* bytes) {
 	PoolingForwardOp *op = new PoolingForwardOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	DESERIALIZE_ENUM(buffer, offset, op->closure.algorithm, PoolingInfo::Algorithm)
+	DESERIALIZE(buffer, offset, op->closure.height, int)
+	DESERIALIZE(buffer, offset, op->closure.width, int)
+	DESERIALIZE(buffer, offset, op->closure.stride_vertical, int)
+	DESERIALIZE(buffer, offset, op->closure.stride_horizontal, int)
+	DESERIALIZE(buffer, offset, op->closure.pad_height, int)
+	DESERIALIZE(buffer, offset, op->closure.pad_width, int)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -494,9 +545,17 @@ int PoolingBackwardOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, closure.pad_width, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> PoolingBackwardOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> PoolingBackwardOp::DeSerialize(char* buffer,int* bytes) {
 	PoolingBackwardOp *op = new PoolingBackwardOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	DESERIALIZE_ENUM(buffer, offset, op->closure.algorithm, PoolingInfo::Algorithm)
+	DESERIALIZE(buffer, offset, op->closure.height, int)
+	DESERIALIZE(buffer, offset, op->closure.width, int)
+	DESERIALIZE(buffer, offset, op->closure.stride_vertical, int)
+	DESERIALIZE(buffer, offset, op->closure.stride_horizontal, int)
+	DESERIALIZE(buffer, offset, op->closure.pad_height, int)
+	DESERIALIZE(buffer, offset, op->closure.pad_width, int)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -512,9 +571,16 @@ int LRNForwardOp::Serialize(char* buffer) const {
 	offset += closure.data_shape.Serialize(buffer);
 	return offset;
 }
-std::shared_ptr<ComputeFn> LRNForwardOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> LRNForwardOp::DeSerialize(char* buffer,int* bytes) {
 	LRNForwardOp *op = new LRNForwardOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	int b = 0;
+	DESERIALIZE(buffer, offset, op->closure.local_size, int)
+	DESERIALIZE(buffer, offset, op->closure.alpha, float)
+	DESERIALIZE(buffer, offset, op->closure.beta, float)
+	op->closure.data_shape = Scale::DeSerialize(buffer+offset, &b );
+	offset += b;
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -531,9 +597,16 @@ int LRNBackwardOp::Serialize(char* buffer) const {
 	offset += closure.data_shape.Serialize(buffer);
 	return offset;
 }
-std::shared_ptr<ComputeFn> LRNBackwardOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> LRNBackwardOp::DeSerialize(char* buffer,int* bytes) {
 	LRNBackwardOp *op = new LRNBackwardOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	int b = 0;
+	DESERIALIZE(buffer, offset, op->closure.local_size, int)
+	DESERIALIZE(buffer, offset, op->closure.alpha, float)
+	DESERIALIZE(buffer, offset, op->closure.beta, float)
+	op->closure.data_shape = Scale::DeSerialize(buffer+offset, &b );
+	offset += b;
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -546,9 +619,11 @@ int ConcatOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, closure.catdim, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> ConcatOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> ConcatOp::DeSerialize(char* buffer,int* bytes) {
 	ConcatOp *op = new ConcatOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	DESERIALIZE(buffer, offset, op->closure.catdim, int)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -563,11 +638,16 @@ int SliceOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, closure.slice_count, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> SliceOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> SliceOp::DeSerialize(char* buffer,int* bytes) {
 	SliceOp *op = new SliceOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	DESERIALIZE(buffer, offset, op->closure.slice_dim, int)
+	DESERIALIZE(buffer, offset, op->closure.st_off, int)
+	DESERIALIZE(buffer, offset, op->closure.slice_count, int)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
+
 
 int IndexOp::GetSerializedSize() const {
 	return 2*sizeof(int);
@@ -578,9 +658,11 @@ int IndexOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, closure.idx, int)
 	return offset;
 }
-std::shared_ptr<ComputeFn> IndexOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> IndexOp::DeSerialize(char* buffer,int* bytes) {
 	IndexOp *op = new IndexOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	DESERIALIZE(buffer, offset, op->closure.idx, int)
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -591,14 +673,23 @@ int SelectOp::GetSerializedSize() const {
 int SelectOp::Serialize(char* buffer) const {
 	int offset = 0;
 	SERIALIZE(buffer, offset, SELECTCLOSURE, int)
+	SERIALIZE(buffer, offset, closure.indices.size(), size_t)
 	for(auto& i: closure.indices){
 		SERIALIZE(buffer, offset, i, int)
 	}
 	return offset;
 }
-std::shared_ptr<ComputeFn> SelectOp::DeSerialize(char* buffer, int* offset) {
+std::shared_ptr<ComputeFn> SelectOp::DeSerialize(char* buffer,int* bytes) {
 	SelectOp *op = new SelectOp();
-	//TODO: 5 How much of this buffer do we consume?
+	int offset = 0;
+	size_t n;
+	int val;
+	DESERIALIZE(buffer, offset, n, size_t)
+	for(size_t i = 0; i < n ; i++){
+		DESERIALIZE(buffer, offset, val, int)
+		op->closure.indices.emplace_back(val);
+	}
+	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
 

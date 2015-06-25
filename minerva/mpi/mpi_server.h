@@ -21,6 +21,8 @@ class MpiServer: public MpiDataHandler {
 public:
 	void init();
 	int rank();
+	bool IsPending(uint64_t);
+	void MainLoop();
 	int GetMpiNodeCount();
 	int GetMpiDeviceCount(int rank);
 	void CreateMpiDevice(int rank, int id, uint64_t);
@@ -28,6 +30,7 @@ public:
 	void MPI_Send_task_data(const float* ptr, size_t size);
 private:
 	int _rank;
+	ConcurrentUnorderedSet<uint64_t> _pendingTasks;
 };
 
 

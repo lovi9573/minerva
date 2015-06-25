@@ -3,10 +3,10 @@
 #include "device/data_store.h"
 
 namespace minerva {
-
 /*
+
  * Maintains a symbolic store of allocated data on foreign mpi host.
- */
+
 class MpiDataStore final : public DataStore {
  public:
   MpiDataStore(std::function<void*(size_t)> a, std::function<void(void*)> d);
@@ -22,6 +22,6 @@ class MpiDataStore final : public DataStore {
   //std::unordered_map<size_t, std::queue<void*>> free_space_;
   //void ReleaseFreeSpace();
 };
-
+*/
 }  // namespace minerva
 

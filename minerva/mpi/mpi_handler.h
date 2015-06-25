@@ -23,6 +23,7 @@ public:
 	MpiHandler(int rank);
 	void MainLoop();
 	int rank();
+	void FinalizeTask(uint64_t);
 private:
 	void Handle_Device_Count(::MPI::Status& );
 	void Handle_Create_Device(::MPI::Status&);

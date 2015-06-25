@@ -20,8 +20,29 @@ MPI_Datatype MPI_TASKDATA;
 void MpiServer::init(){
 //	MPI_Init(0,NULL);
 //	_rank = ::MPI::COMM_WORLD.Get_rank();
-
+	_pendingTasks = ConcurrentUnorderedSet<uint64_t>();
 }
+
+void MpiServer::MainLoop(){
+	bool term = false;
+	::MPI::Status status;
+	//MPI_Status st;
+	while (!term){
+		DLOG(INFO) << "[" << _rank << "] Top of mainloop.\n";
+		::MPI::COMM_WORLD.Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, status);
+		switch(status.Get_tag()){
+		case MPI_TASK_DATA_REQUEST:
+			Handle_Task_Data_Request(status);
+			break;
+		case MPI_FINALIZE_TASK:
+			Handle_Finalize_Task(status);
+			break;
+		}
+		//MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
+
+	}
+}
+
 
 int MpiServer::rank(){
 	return _rank;
@@ -47,8 +68,9 @@ void MpiServer::CreateMpiDevice(int rank, int id, uint64_t device_id){
 	DLOG(INFO) << "Creating device #" << id << " at rank "<< rank <<", uid " << device_id << "\n";
 	int size = sizeof(int)+sizeof(uint64_t);
 	char buffer[size];
-	*((int*)buffer) = id;
-	*((uint64_t*)(buffer+sizeof(int))) = device_id;
+	int offset = 0;
+	SERIALIZE(buffer, offset, id, int)
+	SERIALIZE(buffer, offset, device_id, uint64_t)
 	::MPI::COMM_WORLD.Send(buffer,size,::MPI::BYTE,rank,MPI_CREATE_DEVICE);
 }
 
@@ -59,11 +81,19 @@ void MpiServer::MPI_Send_task(const Task& task,const Context& ctx ){
 	char buffer[bufsize];
 	size_t usedbytes = task.Serialize(buffer);
 	CHECK_EQ(bufsize, usedbytes);
-	printf("++++mpisend");
 	::MPI::COMM_WORLD.Send(buffer, bufsize, MPI_BYTE, ctx.rank, MPI_TASK);
-	printf("++++mpisend-done");
+	_pending_tasks.Insert(task.id);
 }
 
+
+void MpiServer::Handle_Finalize_Task(::MPI::Status status){
+	int count = status.Get_count(::MPI::BYTE);
+	char buffer[count];
+	uint64_t task_id;
+	::MPI::COMM_WORLD.Recv(&task_id, count, MPI_CHAR, status.Get_source(), MPI_FINALIZE_TASK);
+	_pending_tasks.Erase(task_id);
+	//TODO: notify on pending tasks condition.
+}
 
 #endif
 }
