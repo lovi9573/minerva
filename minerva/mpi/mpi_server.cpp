@@ -20,7 +20,7 @@ MPI_Datatype MPI_TASKDATA;
 void MpiServer::init(){
 //	MPI_Init(0,NULL);
 //	_rank = ::MPI::COMM_WORLD.Get_rank();
-	_pendingTasks = ConcurrentUnorderedSet<uint64_t>();
+	//_pendingTasks = ConcurrentUnorderedSet<uint64_t>();
 }
 
 void MpiServer::MainLoop(){
@@ -88,12 +88,21 @@ void MpiServer::MPI_Send_task(const Task& task,const Context& ctx ){
 
 void MpiServer::Handle_Finalize_Task(::MPI::Status status){
 	int count = status.Get_count(::MPI::BYTE);
-	char buffer[count];
+	//char buffer[count];
 	uint64_t task_id;
 	::MPI::COMM_WORLD.Recv(&task_id, count, MPI_CHAR, status.Get_source(), MPI_FINALIZE_TASK);
 	_pending_tasks.Erase(task_id);
-	//TODO: notify on pending tasks condition.
+	std::unique_lock<std::mutex> lock(_mutex);
+	_task_complete_condition.notify_all();
 }
+
+void MpiServer::Wait_On_Task(uint64_t task_id){
+	std::unique_lock<std::mutex> lock(_mutex);
+	while(_pending_tasks.Count(task_id) > 0){
+		_task_complete_condition.wait(lock);
+	}
+}
+
 
 #endif
 }

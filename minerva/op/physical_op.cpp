@@ -5,7 +5,7 @@
  *      Author: jlovitt
  */
 
-
+#include <string.h>
 #include "op/physical_op.h"
 #include "op/compute_fn.h"
 
@@ -14,18 +14,28 @@ namespace minerva {
 
 
 int ArrayLoaderOp::GetSerializedSize() const {
-	//TODO: Serialize the array and send it.
-	return 0;
+	return sizeof(int) + sizeof(int) + closure.count*sizeof(float);
 }
 int ArrayLoaderOp::Serialize(char* buffer) const {
-	//TODO: Serialize the array and send it.
-	return 0;
+	int offset = 0;
+	SERIALIZE(buffer, offset, ARRAYLOADERCLOSURE, int)
+	SERIALIZE(buffer, offset, closure.count, int)
+	memcpy(buffer+offset, closure.data.get(), closure.count*sizeof(float));
+	offset += closure.count*sizeof(float);
+	return offset;
 }
 std::shared_ptr<ComputeFn> ArrayLoaderOp::DeSerialize(char* buffer,int* bytes) {
 	ArrayLoaderOp *op = new ArrayLoaderOp();
-	//TODO: 5 How much of this buffer do we consume?
-	//op->closure.data = ((float*)(buffer+*offset));
-	//*offset += sizeof(float);
+	int offset = 0;
+	int count;
+	DESERIALIZE(buffer, offset, count, int)
+	op->closure.count = count;
+	std::shared_ptr<float> data(new float[count], [](float* p) {
+	    delete[] p;
+	  });
+	memcpy(data.get(), buffer+offset, count*sizeof(float));
+	op->closure.data = data;
+	*bytes = offset + count*sizeof(float);
 	return std::shared_ptr<ComputeFn>(op);
 }
 
@@ -152,13 +162,16 @@ int ReductionOp::Serialize(char* buffer) const {
 	int offset = 0;
 	SERIALIZE(buffer, offset, REDUCTIONCLOSURE, int)
 	SERIALIZE(buffer, offset, static_cast<int>(closure.type), int)
-	offset += closure.dims_to_reduce.Serialize(buffer);
+	offset += closure.dims_to_reduce.Serialize(buffer+offset);
 	return offset;
 }
 std::shared_ptr<ComputeFn> ReductionOp::DeSerialize(char* buffer,int* bytes) {
 	ReductionOp *op = new ReductionOp();
 	int offset = 0;
+	int b = 0;
 	DESERIALIZE_ENUM(buffer, offset, op->closure.type, ReductionType)
+	op->closure.dims_to_reduce = Scale::DeSerialize(buffer+offset, &b );
+	offset += b;
 	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
@@ -331,7 +344,7 @@ int NormArithmeticOp::Serialize(char* buffer) const {
 	int offset = 0;
 	SERIALIZE(buffer, offset, NORMARITHMETICCLOSURE, int)
 	SERIALIZE(buffer, offset, static_cast<int>(closure.type), int)
-	offset += closure.dims_to_replicate.Serialize(buffer);
+	offset += closure.dims_to_replicate.Serialize(buffer+offset);
 	return offset;
 }
 std::shared_ptr<ComputeFn> NormArithmeticOp::DeSerialize(char* buffer,int* bytes) {
@@ -568,7 +581,7 @@ int LRNForwardOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, closure.local_size, int)
 	SERIALIZE(buffer, offset, closure.alpha, float)
 	SERIALIZE(buffer, offset, closure.beta, float)
-	offset += closure.data_shape.Serialize(buffer);
+	offset += closure.data_shape.Serialize(buffer+offset);
 	return offset;
 }
 std::shared_ptr<ComputeFn> LRNForwardOp::DeSerialize(char* buffer,int* bytes) {
@@ -594,7 +607,7 @@ int LRNBackwardOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, closure.local_size, int)
 	SERIALIZE(buffer, offset, closure.alpha, float)
 	SERIALIZE(buffer, offset, closure.beta, float)
-	offset += closure.data_shape.Serialize(buffer);
+	offset += closure.data_shape.Serialize(buffer+offset);
 	return offset;
 }
 std::shared_ptr<ComputeFn> LRNBackwardOp::DeSerialize(char* buffer,int* bytes) {

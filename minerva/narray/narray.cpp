@@ -42,7 +42,11 @@ NArray NArray::Ones(const Scale& size) {
 
 NArray NArray::MakeNArray(const Scale& size, shared_ptr<float> array) {
   ArrayLoaderOp* loader_op = new ArrayLoaderOp();
+#ifdef HAS_MPI
+  loader_op->closure = {size.Prod(), array};
+#else
   loader_op->closure = {array};
+#endif
   return NArray::GenerateOne(size, loader_op);
 }
 

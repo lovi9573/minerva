@@ -115,7 +115,7 @@ int DeviceManager::GetMpiDeviceCount(int rank) {
 
 
 Device* DeviceManager::GetDevice(uint64_t id) {
-  CHECK_EQ(device_storage_.count(id), 1) << " rank: " << MinervaSystem::Instance().rank();
+  CHECK_EQ(device_storage_.count(id), 1) << "id: " << id << ", rank: " << MinervaSystem::Instance().rank();
   return device_storage_.at(id);
 }
 

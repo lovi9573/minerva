@@ -42,7 +42,7 @@ int Device::rank(){
 #endif
 
 pair<Device::MemType, float*> Device::GetPtr(uint64_t data_id) {
-	printf("[%d] Getting pointer to data id %lu\n",_rank, data_id);
+	//printf("[%d] Getting pointer to data id %lu\n",_rank, data_id);
   return make_pair(GetMemType(), data_store_->GetData(data_id));
 }
 
@@ -89,11 +89,9 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 			calculate_timer.Start();
 		#endif
 			DLOG(INFO) << Name() << " dispatching mpi task #" << task->id << ": " << op.compute_fn->Name();
-			//TODO: 2 We can simply serialize the task and send it here rather than go through all the Execute/ Call/ Impl machinery.
 			//TODO: 0 We should block here until the completed response comes back..
 			//printf("Dispatching task < %lu > with new data size | %lu | to rank %d\n",task->id, task->outputs.size(), _rank);
 			DoExecute(task, thrid);
-
 			DLOG(INFO) << Name() << " finished dispatch of mpi task #" << task->id << ": " << op.compute_fn->Name();
 		#ifndef NDEBUG
 			calculate_timer.Stop();
@@ -140,7 +138,7 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 		  }
 		}
 		//A list of (pointer , Scale) tuples.
-		printf("[%d] Placing input shard id %lu\n",_rank, input_data.data_id);
+		//printf("[%d] Placing input shard id %lu\n",_rank, input_data.data_id);
 		input_shards.emplace_back(data_store_->GetData(input_data.data_id), input_data.size);
 	  }
 	  /*
@@ -150,6 +148,7 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 	  DataList output_shards;
 	  for (auto& i : task->outputs) {
 		size_t size = i.physical_data.size.Prod() * sizeof(float);
+		//printf("[%d] Device creating output shard for %lu floats\n",_rank, size);
 		DLOG(INFO) << Name() << " create output for task data #" << i.id;
 		//printf("[%d] Local data [ %lu ] created on rank %d\n",_rank,i.physical_data.data_id, _rank);
 		auto ptr = data_store_->CreateData(i.physical_data.data_id, size);
@@ -337,8 +336,9 @@ void MpiDevice::DoExecute(Task* task, int thrid){
 	ctx.impl_type = ImplType::kMpi;
 	ctx.rank = _rank;
 	ctx.gpu_id = _gpu_id;
-
-	task->op.compute_fn->Execute(*task, ctx);
+	MinervaSystem::Instance().mpi_server().MPI_Send_task(*task, ctx );
+	MinervaSystem::Instance().mpi_server().Wait_On_Task(task->id);
+	//task->op.compute_fn->Execute(*task, ctx);
 }
 
 

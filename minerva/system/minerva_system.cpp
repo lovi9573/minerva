@@ -34,6 +34,10 @@ void MinervaSystem::UniversalMemcpy(
 #else
   CHECK_EQ(static_cast<int>(to.first), static_cast<int>(Device::MemType::kCpu));
   CHECK_EQ(static_cast<int>(from.first), static_cast<int>(Device::MemType::kCpu));
+/*  printf("\nUniversal memcopy copying %lu floats at %p\n", size/sizeof(float), from.second);
+	for(size_t i =0; i < size/sizeof(float); i ++){
+		printf("%f, ", *(  ((float*)from.second)+i        ));
+	}*/
   memcpy(to.second, from.second, size);
 #endif
 }
@@ -80,7 +84,7 @@ uint64_t MinervaSystem::GenerateTaskId() {
 
 
 uint64_t MinervaSystem::CreateCpuDevice() {
-	LOG(INFO) << "cpu device creation in rank" << _rank << "\n";
+	DLOG(INFO) << "cpu device creation in rank" << _rank << "\n";
 	if (_worker){
 		LOG(FATAL) << "Cannot create a unique device id on worker rank " << _rank;
 	}
@@ -159,7 +163,7 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
 	else{
 		_worker = false;
 		mpiserver_ = new MpiServer();
-		std::thread t(&MpiServer::MainLoop, *mpiserver_);
+		std::thread t(&MpiServer::MainLoop, mpiserver_);
 		t.detach();
 	}
 #endif
@@ -167,10 +171,10 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
   profiler_ = new ExecutionProfiler();
   device_manager_ = new DeviceManager(_worker);
   if (FLAGS_use_dag && !_worker) {
-    LOG(INFO) << "dag engine enabled";
+    DLOG(INFO) << "dag engine enabled";
     backend_ = new DagScheduler(physical_dag_, device_manager_);
   } else {
-    LOG(INFO) << "dag engine disabled";
+    DLOG(INFO) << "dag engine disabled";
     backend_ = new SimpleBackend(*device_manager_);
   }
 }

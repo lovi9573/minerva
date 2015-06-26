@@ -44,7 +44,11 @@ void MpiDataHandler::Handle_Task_Data_Request(::MPI::Status& status){
 	char outbuffer[bytes];
 	std::pair<Device::MemType, float*> devptr = MinervaSystem::Instance().GetPtr(device_id, data_id);
 	std::pair<Device::MemType, float*> to = std::pair<Device::MemType, float*>(Device::MemType::kCpu, (float*)outbuffer);
+	//printf("Mpi data handler copying %lu floats over\n",(bytes/sizeof(float)));
 	MinervaSystem::Instance().UniversalMemcpy(to, devptr, bytes);
+/*	for(uint64_t i =0; i < bytes/sizeof(float); i ++){
+		printf("%f, ", *(to.second+i));
+	}*/
 	::MPI::COMM_WORLD.Send(outbuffer, bytes, MPI_BYTE, status.Get_source(), MPI_TASK_DATA_RESPONSE);
 }
 
@@ -57,6 +61,10 @@ void MpiDataHandler::Request_Data(char* buffer, size_t bytes, int rank, uint64_t
 	SERIALIZE(msgbuffer, offset, bytes, size_t);
 	::MPI::COMM_WORLD.Send(msgbuffer, size, MPI_BYTE, rank, MPI_TASK_DATA_REQUEST);
 	::MPI::COMM_WORLD.Recv(buffer, bytes, MPI_BYTE, rank, MPI_TASK_DATA_RESPONSE);
+/*	printf("Mpi data handler recieving %lu floats\n",(bytes/sizeof(float)));
+	for(uint64_t i =0; i < bytes/sizeof(float); i ++){
+		printf("%f, ", *(  ((float*)buffer)+i        ));
+	}*/
 }
 
 } /* namespace minerva */

@@ -100,8 +100,8 @@ int Scale::Serialize(char* buffer) const {
 Scale& Scale::DeSerialize(char* buffer, int* bytes){
 	int offset =0;
 	std::vector<int> vec;
-	size_t n  = *((size_t*)(buffer));
-	offset += sizeof(size_t);
+	size_t n;
+	DESERIALIZE(buffer, offset, n, size_t)
 	for (size_t i = 0; i < n; i++){
 		vec.emplace_back(*((int*)(buffer+offset)));
 		offset += sizeof(int);

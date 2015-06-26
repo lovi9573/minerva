@@ -73,6 +73,9 @@ enum class ReductionType : int {
 
 
 struct ArrayLoaderClosure {
+#ifdef HAS_MPI
+  int count;
+#endif
   std::shared_ptr<float> data;
 };
 
