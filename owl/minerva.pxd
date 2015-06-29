@@ -5,6 +5,7 @@ from libcpp.vector cimport vector
 cdef extern from './minerva_utils.h' namespace 'libowl':
   uint64_t CreateCpuDevice() except +
   uint64_t CreateGpuDevice(int) except +
+  uint64_t CreateFpgaDevice(int) except +
   uint64_t CreateMpiDevice(int, int) except +
   int GetGpuDeviceCount() except +
   int GetMpiNodeCount() except +

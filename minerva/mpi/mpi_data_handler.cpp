@@ -5,6 +5,8 @@
  *      Author: jlovitt
  */
 
+#ifdef HAS_MPI
+
 #include "mpi/mpi_data_handler.h"
 #include "mpi/mpi_common.h"
 #include "common/common.h"
@@ -68,3 +70,5 @@ void MpiDataHandler::Request_Data(char* buffer, size_t bytes, int rank, uint64_t
 }
 
 } /* namespace minerva */
+
+#endif // HAS_MPI

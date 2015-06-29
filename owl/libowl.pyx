@@ -25,6 +25,9 @@ def create_cpu_device():
 def create_gpu_device(i):
     return m.CreateGpuDevice(i)
 
+def create_fpga_device(i):
+    return m.CreateFpgaDevice(i)
+
 def create_mpi_device(r, i):
     return m.CreateMpiDevice(r, i)
 

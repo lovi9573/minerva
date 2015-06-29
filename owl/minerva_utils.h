@@ -8,6 +8,7 @@ namespace libowl {
 
 uint64_t CreateCpuDevice();
 uint64_t CreateGpuDevice(int);
+uint64_t CreateFpgaDevice(int);
 uint64_t CreateMpiDevice(int , int );
 int GetGpuDeviceCount();
 int GetMpiNodeCount();

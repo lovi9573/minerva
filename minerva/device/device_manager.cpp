@@ -2,6 +2,9 @@
 #include <dmlc/logging.h>
 #include "system/minerva_system.h"
 #include "device/device.h"
+#include "device/device_mpi.h"
+#include "device/device_fpga.h"
+#include "device/device_cuda.h"
 #include "common/cuda_utils.h"
 #include "common/common.h"
 #ifdef HAS_CUDA
@@ -36,16 +39,6 @@ uint64_t DeviceManager::CreateCpuDevice() {
   return id;
 }
 
-uint64_t DeviceManager::CreateCpuDevice(uint64_t id) {
-#ifdef HAS_MPI
-  Device* d = new CpuDevice(MinervaSystem::Instance().rank(), id, listener_);
-#else
-  Device* d = new CpuDevice(id, listener_);
-#endif
-  CHECK(device_storage_.emplace(id, d).second);
-  return id;
-}
-
 uint64_t DeviceManager::CreateGpuDevice(int gid) {
 #ifdef HAS_CUDA
   auto id = GenerateDeviceId();
@@ -61,28 +54,20 @@ uint64_t DeviceManager::CreateGpuDevice(int gid) {
 #endif
 }
 
-uint64_t DeviceManager::CreateGpuDevice(int gid, uint64_t id) {
-#ifdef HAS_CUDA
-#ifdef HAS_MPI
-  Device* d = new GpuDevice(MinervaSystem::Instance().rank(), id, listener_, gid);
-#else
-  Device* d = new GpuDevice(id, listener_, gid);
-#endif
-  CHECK(device_storage_.emplace(id, d).second);
-  return id;
-#else
-  common::FatalError("please recompile with macro HAS_CUDA");
-#endif
-}
 
-uint64_t DeviceManager::CreateMpiDevice(int rank, int gid) {
-#ifdef HAS_MPI
+
+uint64_t DeviceManager::CreateFpgaDevice(int sub_id) {
+#ifdef HAS_FPGA
   auto id = GenerateDeviceId();
-  Device* d = new MpiDevice(rank, id, listener_, gid);
+#ifdef HAS_MPI
+  Device* d = new FpgaDevice(MinervaSystem::Instance().rank(), id, listener_, sub_id);
+#else
+  Device* d = new FpgaDevice(id, listener_, sub_id);
+#endif
   CHECK(device_storage_.emplace(id, d).second);
   return id;
 #else
-  common::FatalError("please recompile with macro HAS_MPI");
+  common::FatalError("please recompile with macro HAS_FPGA");
 #endif
 }
 
@@ -132,6 +117,44 @@ uint64_t DeviceManager::GenerateDeviceId() {
   static uint64_t index_counter = 0;
   return index_counter++;
 }
+
+#ifdef HAS_MPI
+	uint64_t DeviceManager::CreateCpuDevice(uint64_t id) {
+	  Device* d = new CpuDevice(MinervaSystem::Instance().rank(), id, listener_);
+	  CHECK(device_storage_.emplace(id, d).second);
+	  return id;
+	}
+
+	uint64_t DeviceManager::CreateGpuDevice(int gid, uint64_t id) {
+	#ifdef HAS_CUDA
+	  Device* d = new GpuDevice(MinervaSystem::Instance().rank(), id, listener_, gid);
+	  CHECK(device_storage_.emplace(id, d).second);
+	  return id;
+	#else
+	  common::FatalError("please recompile with macro HAS_CUDA");
+	#endif
+	}
+
+	uint64_t DeviceManager::CreateFpgaDevice(int sub_id, uint64_t id) {
+	#ifdef HAS_FPGA
+	  Device* d = new FpgaDevice(MinervaSystem::Instance().rank(), id, listener_, sub_id);
+	  CHECK(device_storage_.emplace(id, d).second);
+	  return id;
+	#else
+	  common::FatalError("please recompile with macro HAS_FPGA");
+	#endif
+	}
+
+	uint64_t DeviceManager::CreateMpiDevice(int rank, int gid) {
+	  auto id = GenerateDeviceId();
+	  Device* d = new MpiDevice(rank, id, listener_, gid);
+	  CHECK(device_storage_.emplace(id, d).second);
+	  return id;
+	}
+
+#endif // END HAS_MPI
+
+
 
 }  // namespace minerva
 

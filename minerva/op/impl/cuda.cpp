@@ -647,7 +647,7 @@ void Select(DataList const& inputs, DataList const& outputs, SelectClosure& clos
   CHECK_EQ(inputs[0].size_.NumDims(), 2);
   CHECK_EQ(outputs[0].size_.NumDims(), 2);
   CHECK_EQ(inputs[0].size_[0], outputs[0].size_[0]);
-  CHECK_EQ(outputs[0].size_[1], closure.indices.size());
+  CHECK_EQ(static_cast<size_t>(outputs[0].size_[1]), closure.indices.size());
   for (auto i : closure.indices) {
     CHECK_LT(i, inputs[0].size_[1]);
   }

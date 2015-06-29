@@ -105,6 +105,20 @@ def create_gpu_device(which):
     """
     return _owl.create_gpu_device(which)
 
+def create_fpga_device(which):
+    """ Create device for running on FPGA card
+
+    .. note::
+        At least one of :py:func:`create_cpu_device` or :py:func:`create_gpu_device` should be called
+        before using any ``owl`` APIs.
+
+    :param int which: which FPGA card the code would be run on
+    :return: A unique id for the device on that FPGA card
+    :rtype: int
+    """
+    return _owl.create_fpga_device(which)
+
+
 def create_mpi_device(rank, which):
     """ Create device for running on GPU card
 

@@ -48,6 +48,7 @@ option(BUILD_CPU_ONLY    "build cpu-only version"                OFF)
 option(BUILD_WITH_PS     "build with parameter server support"   OFF)
 option(BUILD_WITH_BLAS   "build with BLAS library for CPU"       OFF)
 option(BUILD_WITH_MPI    "build with MPI distributed support"    OFF)
+option(BUILD_WITH_FPGA   "build with FPGA support"               OFF)
 
 message(STATUS "cmake generator: ${CMAKE_GENERATOR}")
 message(STATUS "cmake build tool: ${CMAKE_BUILD_TOOL}")
@@ -103,6 +104,11 @@ include_directories(SYSTEM ${THIRD_INCLUDE_PATH})
 set(CORE_DEPS ${CORE_DEPS} ${THIRD_LIBS})
 ############################################# macros
 
+#TODO: Fill in with fpga resource detection, includes, and linker flags.
+if(BUILD_WITH_FPGA)
+  add_definitions(-DHAS_FPGA)
+endif()
+
 if(BUILD_WITH_MPI AND MPI_CXX_FOUND)
   add_definitions(-DHAS_MPI)
   include_directories(SYSTEM ${MPI_CXX_INCLUDE_PATH})
@@ -126,6 +132,7 @@ message(STATUS "build with parameter server support -- ${BUILD_WITH_PS}")
 message(STATUS "build with BLAS library for CPU     -- ${BUILD_WITH_BLAS}")
 message(STATUS "build with MPI support              -- ${BUILD_WITH_MPI}")
 message(STATUS "MPI libraries found.                -- ${MPI_CXX_FOUND}")
+message(STATUS "build with FPGA support             -- ${BUILD_WITH_FPGA}")
 
 add_subdirectory(minerva)
 

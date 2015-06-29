@@ -24,6 +24,7 @@ class Device {
   enum class MemType {
     kCpu,
     kGpu,
+	kFpga,
     kMpi,
   };
   Device() = delete;
@@ -51,11 +52,9 @@ class Device {
    */
   ConcurrentUnorderedSet<uint64_t> remote_data_;
   uint64_t device_id_;
-#ifdef HAS_MPI
-  int _rank;
-#endif
   std::unique_ptr<DataStore> data_store_;
   DeviceListener* listener_;
+  int rank_;
 };
 
 class ThreadedDevice : public Device {
@@ -81,46 +80,6 @@ class ThreadedDevice : public Device {
   ThreadPool pool_;
 };
 
-#ifdef HAS_CUDA
-class GpuDevice : public ThreadedDevice {
- public:
-  GpuDevice(uint64_t device_id, DeviceListener*, int gpu_id);
-#ifdef HAS_MPI
-  GpuDevice(int rank, uint64_t device_id, DeviceListener*, int gpu_id);
-#endif
-  DISALLOW_COPY_AND_ASSIGN(GpuDevice);
-  ~GpuDevice();
-  MemType GetMemType() const override;
-  std::string Name() const override;
-
- private:
-  struct Impl;
-  std::unique_ptr<Impl> impl_;
-  void PreExecute() override;
-  void Barrier(int) override;
-  void DoCopyRemoteData(float*, float*, size_t, int) override;
-  void DoExecute(const DataList&, const DataList&, PhysicalOp&, int) override;
-  void DoExecute(Task* task, int thrid) override;
-};
-#endif
-
-#ifdef HAS_MPI
-class MpiDevice : public ThreadedDevice {
- public:
-  MpiDevice( int rank, uint64_t device_id, DeviceListener*, int gpu_id);
-  DISALLOW_COPY_AND_ASSIGN(MpiDevice);
-  ~MpiDevice();
-  MemType GetMemType() const override;
-  std::string Name() const override;
-
- private:
-  static size_t constexpr kParallelism = 4;
-  int _gpu_id;
-  void DoCopyRemoteData(float*, float*, size_t, int) override;
-  void DoExecute(const DataList&, const DataList&, PhysicalOp&, int) override;
-  void DoExecute(Task* task, int thrid) override;
-};
-#endif
 
 class CpuDevice : public ThreadedDevice {
  public:

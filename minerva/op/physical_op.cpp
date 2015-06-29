@@ -14,19 +14,28 @@ namespace minerva {
 
 
 int ArrayLoaderOp::GetSerializedSize() const {
+#ifdef HAS_MPI
 	return sizeof(int) + sizeof(int) + closure.count*sizeof(float);
+#else
+	return sizeof(int) + sizeof(int);
+#endif
 }
 int ArrayLoaderOp::Serialize(char* buffer) const {
 	int offset = 0;
 	SERIALIZE(buffer, offset, ARRAYLOADERCLOSURE, int)
+#ifdef HAS_MPI
 	SERIALIZE(buffer, offset, closure.count, int)
 	memcpy(buffer+offset, closure.data.get(), closure.count*sizeof(float));
 	offset += closure.count*sizeof(float);
+#else
+	SERIALIZE(buffer, offset, closure.data.get(), float*);
+#endif
 	return offset;
 }
 std::shared_ptr<ComputeFn> ArrayLoaderOp::DeSerialize(char* buffer,int* bytes) {
 	ArrayLoaderOp *op = new ArrayLoaderOp();
 	int offset = 0;
+#ifdef HAS_MPI
 	int count;
 	DESERIALIZE(buffer, offset, count, int)
 	op->closure.count = count;
@@ -36,6 +45,11 @@ std::shared_ptr<ComputeFn> ArrayLoaderOp::DeSerialize(char* buffer,int* bytes) {
 	memcpy(data.get(), buffer+offset, count*sizeof(float));
 	op->closure.data = data;
 	*bytes = offset + count*sizeof(float);
+#else
+	float *ptr;
+	DESERIALIZE(buffer, offset, ptr, float*)
+	op->closure.data.reset(ptr);
+#endif
 	return std::shared_ptr<ComputeFn>(op);
 }
 

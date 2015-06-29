@@ -16,6 +16,11 @@ uint64_t CreateGpuDevice(int id) {
   return ms.CreateGpuDevice(id);
 }
 
+uint64_t CreateFpgaDevice(int id) {
+  auto&& ms = minerva::MinervaSystem::Instance();
+  return ms.CreateFpgaDevice(id);
+}
+
 uint64_t CreateMpiDevice(int rank, int id) {
   auto&& ms = minerva::MinervaSystem::Instance();
   return ms.CreateMpiDevice(rank, id);

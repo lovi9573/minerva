@@ -61,6 +61,14 @@ int const MinervaSystem::has_mpi_ =
 #endif
 ;
 
+int const MinervaSystem::has_fpga_ =
+#ifdef HAS_FPGA
+1
+#else
+0
+#endif
+;
+
 MinervaSystem::~MinervaSystem() {
   delete backend_;
   delete device_manager_;
@@ -84,32 +92,20 @@ uint64_t MinervaSystem::GenerateTaskId() {
 
 
 uint64_t MinervaSystem::CreateCpuDevice() {
-	DLOG(INFO) << "cpu device creation in rank" << _rank << "\n";
-	if (_worker){
-		LOG(FATAL) << "Cannot create a unique device id on worker rank " << _rank;
+	DLOG(INFO) << "cpu device creation in rank" << rank_ << "\n";
+	if (worker_){
+		LOG(FATAL) << "Cannot create a unique device id on worker rank " << rank_;
 	}
   return MinervaSystem::Instance().device_manager().CreateCpuDevice();
 }
+
 uint64_t MinervaSystem::CreateGpuDevice(int id) {
-	if (_worker){
+	if (worker_){
 		LOG(FATAL) << "Cannot create a unique device id on worker rank";
 	}
   return MinervaSystem::Instance().device_manager().CreateGpuDevice(id);
 }
 
-//TODO: 3 map these non-worker device functions into owl.
-#ifdef HAS_MPI
-
-uint64_t MinervaSystem::CreateMpiDevice(int rank, int id ) {
-	if (_worker){
-		LOG(FATAL) << "Cannot create a unique device id on worker rank";
-	}
-	uint64_t device_id =  MinervaSystem::Instance().device_manager().CreateMpiDevice(rank,id);
-	mpiserver_->CreateMpiDevice(rank, id, device_id);
-	return device_id;
-}
-
-#endif //end HAS_MPI
 
 void MinervaSystem::SetDevice(uint64_t id) {
   current_device_id_ = id;
@@ -119,27 +115,12 @@ void MinervaSystem::WaitForAll() {
 }
 
 int MinervaSystem::rank(){
-#ifdef HAS_MPI
-	return _rank;
-#else
-	return 0;
-#endif
+	return rank_;
 }
 
-void MinervaSystem::WorkerRun(){
-	mpihandler_->MainLoop();
-}
-
-void MinervaSystem::Request_Data(char* buffer, size_t bytes, int rank, uint64_t device_id, uint64_t data_id){
-	if(_worker){
-		mpihandler_->Request_Data(buffer, bytes, rank, device_id, data_id);
-	}else{
-		mpiserver_->Request_Data(buffer, bytes, rank, device_id, data_id);
-	}
-}
 
 MinervaSystem::MinervaSystem(int* argc, char*** argv)
-  : data_id_counter_(0), task_id_counter_(0), current_device_id_(0), _worker(false) {
+  : data_id_counter_(0), task_id_counter_(0), current_device_id_(0), rank_(0), worker_(false) {
   gflags::ParseCommandLineFlags(argc, argv, true);
 #ifndef HAS_PS
   // glog is initialized in PS::main, and also here, so we will hit a
@@ -154,14 +135,14 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
 	if( provided != MPI_THREAD_MULTIPLE){
 		LOG(FATAL) << "Multithreaded mpi support is needed.\n";
 	}
-	_rank = ::MPI::COMM_WORLD.Get_rank();
+	rank_ = ::MPI::COMM_WORLD.Get_rank();
 	fflush(stdout);
-	if(_rank != 0){
-		_worker = true;
-		mpihandler_ = new MpiHandler(_rank);
+	if(rank_ != 0){
+		worker_ = true;
+		mpihandler_ = new MpiHandler(rank_);
 	}
 	else{
-		_worker = false;
+		worker_ = false;
 		mpiserver_ = new MpiServer();
 		std::thread t(&MpiServer::MainLoop, mpiserver_);
 		t.detach();
@@ -169,8 +150,8 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
 #endif
   physical_dag_ = new PhysicalDag();
   profiler_ = new ExecutionProfiler();
-  device_manager_ = new DeviceManager(_worker);
-  if (FLAGS_use_dag && !_worker) {
+  device_manager_ = new DeviceManager(worker_);
+  if (FLAGS_use_dag && !worker_) {
     DLOG(INFO) << "dag engine enabled";
     backend_ = new DagScheduler(physical_dag_, device_manager_);
   } else {
@@ -180,6 +161,38 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
 }
 
 
+#ifdef HAS_FPGA
+uint64_t MinervaSystem::CreateFpgaDevice(int sub_id ) {
+	if (worker_){
+		LOG(FATAL) << "Cannot create a unique device id on worker rank";
+	}
+	return  MinervaSystem::Instance().device_manager().CreateFpgaDevice(sub_id);
+}
+#endif
+
+#ifdef HAS_MPI
+uint64_t MinervaSystem::CreateMpiDevice(int rank, int id ) {
+	if (worker_){
+		LOG(FATAL) << "Cannot create a unique device id on worker rank";
+	}
+	uint64_t device_id =  MinervaSystem::Instance().device_manager().CreateMpiDevice(rank,id);
+	mpiserver_->CreateMpiDevice(rank, id, device_id);
+	return device_id;
+}
+
+void MinervaSystem::WorkerRun(){
+	mpihandler_->MainLoop();
+}
+
+void MinervaSystem::Request_Data(char* buffer, size_t bytes, int rank, uint64_t device_id, uint64_t data_id){
+	if(worker_){
+		mpihandler_->Request_Data(buffer, bytes, rank, device_id, data_id);
+	}else{
+		mpiserver_->Request_Data(buffer, bytes, rank, device_id, data_id);
+	}
+}
+
+#endif //end HAS_MPI
 
 
 }  // end of namespace minerva

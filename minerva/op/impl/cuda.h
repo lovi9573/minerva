@@ -2,6 +2,7 @@
 
 #include "op/context.h"
 #include "op/closure.h"
+#include "op/data_shard.h"
 
 namespace minerva {
 #ifdef HAS_CUDA

@@ -1,6 +1,7 @@
 
 #ifndef MPI_MPI_HANDLER_H_
 #define MPI_MPI_HANDLER_H_
+#ifdef HAS_MPI
 
 #include <mpi.h>
 #include <cstring>
@@ -15,7 +16,6 @@
 
 namespace minerva {
 
-#ifdef HAS_MPI
 
 
 class MpiHandler: public MpiDataHandler{
@@ -35,10 +35,10 @@ private:
 	int _rank;
 };
 
-#endif
 
 
 
 } // end namespace minerva
+#endif // end HAS_MPI
 
 #endif /* MPI_MPI_HANDLER_H_ */

@@ -5,10 +5,12 @@
  *      Author: jlovitt
  */
 
+#ifdef HAS_MPI
+
+
 #include <mpi.h>
 #include "mpi_server.h"
 
-#ifdef HAS_MPI
 
 using namespace std;
 
@@ -104,7 +106,7 @@ void MpiServer::Wait_On_Task(uint64_t task_id){
 }
 
 
+} // end namespace minerva
 #endif
-}
 
 

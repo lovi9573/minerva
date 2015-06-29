@@ -21,6 +21,8 @@
   DISALLOW_MOVE_AND_ASSIGN(TypeName)
 
 
+
+//TODO: Change these pointer casts to reinterpret_cast
 #define SERIALIZE(Buff, Off, Item, Type) \
 	*((Type*)(Buff+Off)) = Item; \
 	Off += sizeof(Type);

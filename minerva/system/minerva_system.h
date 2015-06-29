@@ -9,10 +9,11 @@
 #include "device/device_manager.h"
 #include "device/device.h"
 #include "profiler/execution_profiler.h"
-#ifdef HAS_MPI
+
+
 #include "mpi/mpi_handler.h"
 #include "mpi/mpi_server.h"
-#endif
+
 
 
 namespace minerva {
@@ -28,6 +29,7 @@ class MinervaSystem :
   static void UniversalMemcpy(void* ,void*, size_t);
   static int const has_cuda_;
   static int const has_mpi_;
+  static int const has_fpga_;
   MinervaSystem() = delete;
   DISALLOW_COPY_AND_ASSIGN(MinervaSystem);
   ~MinervaSystem();
@@ -47,24 +49,17 @@ class MinervaSystem :
   DeviceManager& device_manager() {
     return *device_manager_;
   }
-  MpiServer& mpi_server(){
-	  return *mpiserver_;
-  }
-  MpiHandler& mpi_handler(){
-	  return *mpihandler_;
-  }
+
+
   void Request_Data(char* buffer, size_t bytes, int rank, uint64_t device_id, uint64_t data_id);
   std::pair<Device::MemType, float*> GetPtr(uint64_t, uint64_t);
   uint64_t GenerateDataId();
   uint64_t GenerateTaskId();
-#ifdef HAS_MPI
-  // device master
-  uint64_t CreateMpiDevice(int, int);
-#endif //end HAS_MPI
 
   // device
   uint64_t CreateCpuDevice();
   uint64_t CreateGpuDevice(int);
+
 
   void SetDevice(uint64_t );
   uint64_t current_device_id() const { return current_device_id_; }
@@ -72,6 +67,21 @@ class MinervaSystem :
   void WaitForAll();
   int rank();
   void WorkerRun();
+
+#ifdef HAS_FPGA
+  uint64_t CreateFpgaDevice(int);
+#endif
+
+#ifdef HAS_MPI
+  MpiServer& mpi_server(){
+	  return *mpiserver_;
+  }
+  MpiHandler& mpi_handler(){
+	  return *mpihandler_;
+  }
+  // device master
+  uint64_t CreateMpiDevice(int, int);
+#endif
 
  private:
   MinervaSystem(int*, char***);
@@ -82,8 +92,8 @@ class MinervaSystem :
   std::atomic<uint64_t> data_id_counter_;
   std::atomic<uint64_t> task_id_counter_;
   uint64_t current_device_id_;
-  int _rank;
-  bool _worker;
+  int rank_;
+  bool worker_;
 #ifdef HAS_MPI
   MpiHandler* mpihandler_;
   MpiServer* mpiserver_;

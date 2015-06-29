@@ -13,10 +13,12 @@ class DeviceManager {
   ~DeviceManager();
   uint64_t CreateCpuDevice();
   uint64_t CreateGpuDevice(int gid);
-  uint64_t CreateMpiDevice(int rank, int gid);
+  uint64_t CreateFpgaDevice(int sub_id);
 #ifdef HAS_MPI
+  uint64_t CreateMpiDevice(int rank, int gid);
   uint64_t CreateCpuDevice(uint64_t device_id);
   uint64_t CreateGpuDevice(int gid, uint64_t device_id);
+  uint64_t CreateFpgaDevice(int sub_id, uint64_t device_id);
 #endif
   int GetGpuDeviceCount();
   int GetMpiNodeCount();

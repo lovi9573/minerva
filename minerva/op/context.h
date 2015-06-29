@@ -13,6 +13,7 @@ enum class ImplType {
   kBasic,
   kMkl,
   kCuda,
+  kFpga,
   kMpi
 };
 
@@ -22,6 +23,7 @@ inline std::ostream& operator<<(std::ostream& os, ImplType t) {
     case ImplType::kBasic: return os << "Basic";
     case ImplType::kMkl: return os << "Mkl";
     case ImplType::kCuda: return os << "Cuda";
+    case ImplType::kFpga: return os << "FPGA";
     default: return os << "Unknown impl type";
   }
 }
