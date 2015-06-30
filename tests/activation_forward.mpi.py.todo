@@ -13,7 +13,7 @@ class TestForiegnOps(unittest.TestCase):
         test = conv.softmax(owlarray)
         print 'Expected\n',expected
         print "Actual\n",test.to_numpy()
-        self.assertTrue(np.array_equal(expected, test.to_numpy())))
+        self.assertTrue(np.array_equal(expected, test.to_numpy()))
 
 
 if __name__ == "__main__":

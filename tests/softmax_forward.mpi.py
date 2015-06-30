@@ -14,8 +14,8 @@ class TestForiegnOps(unittest.TestCase):
         expected = np.exp(base - max)
         expected = expected / np.sum(expected)
         test = conv.softmax(owlarray)
-        print 'Expected\n',expected
-        print "Actual\n",test.to_numpy()
+        #print 'Expected\n',expected
+        #print "Actual\n",test.to_numpy()
         self.assertTrue(np.allclose(expected, test.to_numpy()))
 
 

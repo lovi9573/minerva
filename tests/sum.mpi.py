@@ -11,10 +11,10 @@ class TestForiegnOps(unittest.TestCase):
         testb = t.sum(1)
         expecteda = np.ones([2,1])*20
         expectedb = np.ones([1,20])*2
-        print 'Expecteda\n',expecteda
-        print 'Expectedb\n',expectedb
-        print "Actuala\n",testa.to_numpy()
-        print "Actualb\n",testb.to_numpy()
+        #print 'Expecteda\n',expecteda
+        #print 'Expectedb\n',expectedb
+        #print "Actuala\n",testa.to_numpy()
+        #print "Actualb\n",testb.to_numpy()
         self.assertTrue(np.array_equal(expecteda, testa.to_numpy()))
         self.assertTrue(np.array_equal(expectedb, testb.to_numpy()))
 

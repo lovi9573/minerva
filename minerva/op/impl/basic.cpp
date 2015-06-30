@@ -211,11 +211,10 @@ void SoftmaxForward(const DataList& inputs, const DataList& outputs, SoftmaxForw
   auto res_max = outputs[0].size_;
   auto res_range = ScaleRange::MakeRangeFromOrigin(res_max);
   auto accumulator = Scale::Origin(in_max.NumDims());
- 
+
   //normalize according to batch dimension
   std::vector<int> batchdim(1,0);
   auto dim_to_norm = Scale(batchdim);
-
   //sub the max to prevent numerical problem
   do {
     auto cur = accumulator;
@@ -230,15 +229,16 @@ void SoftmaxForward(const DataList& inputs, const DataList& outputs, SoftmaxForw
     //exp(x - max), also sum the result
     cur = accumulator;
     float sum_exp = 0;
-    while (cur.IncrDimensions(in_max, dim_to_norm)) {
+    do {
       res_data[in_range.Flatten(cur)] = expf(in_data[in_range.Flatten(cur)] - tmp);
       sum_exp += res_data[in_range.Flatten(cur)];
-    }
+    }while (cur.IncrDimensions(in_max, dim_to_norm));
+
     //devide the sum
     cur = accumulator;
-    while (cur.IncrDimensions(in_max, dim_to_norm)) {
+    do {
       res_data[in_range.Flatten(cur)] /= sum_exp; 
-    }
+    }while (cur.IncrDimensions(in_max, dim_to_norm));
   } while (accumulator.IncrWithDimensionsFixed(res_max, dim_to_norm));
 }
 

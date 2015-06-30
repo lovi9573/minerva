@@ -73,10 +73,8 @@ string MpiDevice::Name() const {
  * @param src  The read pointer. Remote data.
  */
 void MpiDevice::DoCopyRemoteData(float* dst, float* src, size_t size, int) {
-	//TODO: 1 Copy data !
-	// Determine data owner
-	// Determine dst owner
-	// Select copy method.
+	//TODO(jlovitt): Perhaps this will be possible with RDMA
+	LOG(FATAL) << "Cannot copy over Mpi using pointers.";
 }
 
 void MpiDevice::DoExecute(const DataList& in, const DataList& out, PhysicalOp& op, int thrid) {

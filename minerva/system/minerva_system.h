@@ -59,6 +59,8 @@ class MinervaSystem :
   // device
   uint64_t CreateCpuDevice();
   uint64_t CreateGpuDevice(int);
+  uint64_t CreateFpgaDevice(int);
+  uint64_t CreateMpiDevice(int, int);
 
 
   void SetDevice(uint64_t );
@@ -68,9 +70,6 @@ class MinervaSystem :
   int rank();
   void WorkerRun();
 
-#ifdef HAS_FPGA
-  uint64_t CreateFpgaDevice(int);
-#endif
 
 #ifdef HAS_MPI
   MpiServer& mpi_server(){
@@ -80,7 +79,6 @@ class MinervaSystem :
 	  return *mpihandler_;
   }
   // device master
-  uint64_t CreateMpiDevice(int, int);
 #endif
 
  private:

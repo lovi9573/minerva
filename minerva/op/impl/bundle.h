@@ -16,7 +16,7 @@ template<typename I, typename O, typename C, typename... Args>
 void NO_IMPL(const I & i, const O & o, C & c, Args&&...) {
   LOG(FATAL) << "no implementation for " << typeid(C).name();
 }
-//TODO: 1 Replace fpga NO_IMPL's with proper function calls as implemented.
+//TODO(jlovitt): 1 Replace fpga NO_IMPL's with proper function calls as implemented.
 
 INSTALL_COMPUTE_FN(ArithmeticClosure, basic::Arithmetic, NO_IMPL, cuda::Arithmetic, NO_IMPL, mpi::Arithmetic);
 INSTALL_COMPUTE_FN(ArithmeticConstClosure, basic::ArithmeticConst, NO_IMPL, cuda::ArithmeticConst, NO_IMPL, mpi::ArithmeticConst);
@@ -44,7 +44,6 @@ INSTALL_COMPUTE_FN(ActivationBackwardClosure, NO_IMPL, NO_IMPL, cuda::Activation
 INSTALL_COMPUTE_FN(PoolingForwardClosure, NO_IMPL, NO_IMPL, cuda::PoolingForward, NO_IMPL, mpi::PoolingForward);
 INSTALL_COMPUTE_FN(PoolingBackwardClosure, NO_IMPL, NO_IMPL, cuda::PoolingBackward, NO_IMPL, mpi::PoolingBackward);
 INSTALL_COMPUTE_FN(SyncWithPSClosure, basic::SyncWithPS, NO_IMPL, cuda::SyncWithPS, NO_IMPL, mpi::SyncWithPS);
-
 INSTALL_DATAGEN_FN(ArrayLoaderClosure, basic::ArrayLoader, NO_IMPL, cuda::ArrayLoader, NO_IMPL, mpi::ArrayLoader);
 INSTALL_DATAGEN_FN(RandnClosure, basic::Randn, NO_IMPL, cuda::Randn, NO_IMPL, mpi::Randn);
 INSTALL_DATAGEN_FN(RandBernoulliClosure, basic::RandBernoulli, NO_IMPL, cuda::RandBernoulli, NO_IMPL, mpi::RandBernoulli);

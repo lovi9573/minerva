@@ -27,7 +27,7 @@ void ArithmeticConst(const Task& task, ArithmeticConstClosure& closure, const Co
 void Transpose(const Task& task, TransposeClosure& closure, const Context& ctx){
 	MPI_SIMPLE_CLOSURE_CALL(TransposeClosure);
 }
-//TODO: 4 Continue here translating each of these nested struct MPI calls.
+//TODO(jlovitt): 4 Implement these NO_IMPL's
 void NormArithmetic(const Task& task, NormArithmeticClosure& closure, const Context &){
 	NO_IMPL();
 }

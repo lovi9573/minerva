@@ -11,9 +11,9 @@ class TestForiegnOps(unittest.TestCase):
         testa = a-b
         testb = a - 1
         expected = np.zeros([900,20])
-        print 'Expected\n',expected
-        print "Actuala\n",testa.to_numpy()
-        print "Actualb\n",testb.to_numpy()
+        #print 'Expected\n',expected
+        #print "Actuala\n",testa.to_numpy()
+        #print "Actualb\n",testb.to_numpy()
         self.assertTrue(np.array_equal(expected, testa.to_numpy()))
         self.assertTrue(np.array_equal(expected, testb.to_numpy()))
 

@@ -21,23 +21,22 @@
   DISALLOW_MOVE_AND_ASSIGN(TypeName)
 
 
-
-//TODO: Change these pointer casts to reinterpret_cast
+/*
+ *  Serialization
+ */
 #define SERIALIZE(Buff, Off, Item, Type) \
-	*((Type*)(Buff+Off)) = Item; \
+	*(reinterpret_cast<Type*>(Buff+Off)) = Item; \
 	Off += sizeof(Type);
 
 #define DESERIALIZE(Buff, Off, Item, Type) \
-	Item = *((Type *)(Buff+Off)); \
+	Item = *(reinterpret_cast<Type *>(Buff+Off)); \
 	Off += sizeof(Type);
 
 #define DESERIALIZE_ENUM(Buff, Off, Item, Type) \
-	Item = static_cast<Type>(*((int *)(Buff+Off))); \
+	Item = static_cast<Type>(*(Buff+Off)); \
 	Off += sizeof(int);
 
 namespace minerva {
-
-
 
 class Serializable{
 public:

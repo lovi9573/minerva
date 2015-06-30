@@ -24,7 +24,7 @@ using namespace std;
 
 namespace minerva {
 
-//TODO: 1 multiway memcopy!
+//TODO(jlovitt): Perhaps this will be possible with RDMA
 void MinervaSystem::UniversalMemcpy(
     pair<Device::MemType, float*> to,
     pair<Device::MemType, float*> from,
@@ -106,6 +106,22 @@ uint64_t MinervaSystem::CreateGpuDevice(int id) {
   return MinervaSystem::Instance().device_manager().CreateGpuDevice(id);
 }
 
+uint64_t MinervaSystem::CreateFpgaDevice(int sub_id ) {
+	if (worker_){
+		LOG(FATAL) << "Cannot create a unique device id on worker rank";
+	}
+	return  MinervaSystem::Instance().device_manager().CreateFpgaDevice(sub_id);
+}
+
+uint64_t MinervaSystem::CreateMpiDevice(int rank, int id ) {
+	if (worker_){
+		LOG(FATAL) << "Cannot create a unique device id on worker rank";
+	}
+	uint64_t device_id =  MinervaSystem::Instance().device_manager().CreateMpiDevice(rank,id);
+	mpiserver_->CreateMpiDevice(rank, id, device_id);
+	return device_id;
+}
+
 
 void MinervaSystem::SetDevice(uint64_t id) {
   current_device_id_ = id;
@@ -161,24 +177,8 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
 }
 
 
-#ifdef HAS_FPGA
-uint64_t MinervaSystem::CreateFpgaDevice(int sub_id ) {
-	if (worker_){
-		LOG(FATAL) << "Cannot create a unique device id on worker rank";
-	}
-	return  MinervaSystem::Instance().device_manager().CreateFpgaDevice(sub_id);
-}
-#endif
 
 #ifdef HAS_MPI
-uint64_t MinervaSystem::CreateMpiDevice(int rank, int id ) {
-	if (worker_){
-		LOG(FATAL) << "Cannot create a unique device id on worker rank";
-	}
-	uint64_t device_id =  MinervaSystem::Instance().device_manager().CreateMpiDevice(rank,id);
-	mpiserver_->CreateMpiDevice(rank, id, device_id);
-	return device_id;
-}
 
 void MinervaSystem::WorkerRun(){
 	mpihandler_->MainLoop();

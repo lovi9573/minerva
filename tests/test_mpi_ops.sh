@@ -3,5 +3,5 @@
 
 for T in *.mpi.py; do 
 	echo $T
-	mpirun -n 3 python $T
+	mpirun -n 4 python $T
 done

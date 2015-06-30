@@ -118,7 +118,6 @@ int SyncWithPSOp::Serialize(char* buffer) const {
 }
 std::shared_ptr<ComputeFn> SyncWithPSOp::DeSerialize(char* buffer,int* bytes) {
 	SyncWithPSOp *op = new SyncWithPSOp();
-	//TODO: 5 How much of this buffer do we consume?
 	NO_IMPL();
 	return std::shared_ptr<ComputeFn>(op);
 }

@@ -113,12 +113,13 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 			DLOG(INFO) << Name() << " input task data #" << i.id << " is remote and not copied";
 			size_t size = input_data.size.Prod() * sizeof(float);
 			auto ptr = data_store_->CreateData(input_data.data_id, size);
+			//printf("[%d] Data ptr returned\n",rank_);
 #ifdef HAS_MPI
-			if(MinervaSystem::has_mpi_ && input_data.rank != MinervaSystem::Instance().rank()){
-				char buffer[size];
-				MinervaSystem::Instance().Request_Data(buffer, size, input_data.rank,  input_data.device_id, input_data.data_id );
-				DoCopyRemoteData(ptr, (float*)buffer, size, thrid);
+			if(MinervaSystem::has_mpi_ == 1 && input_data.rank != MinervaSystem::Instance().rank()){
+				//printf("[%d] Device requesting data for %lu floats\n",rank_, size);
+				MinervaSystem::Instance().Request_Data(reinterpret_cast<char*>(ptr), size, input_data.rank,  input_data.device_id, input_data.data_id );
 			}else{
+				//printf("[%d] Copying Intra-rank data for %lu floats\n",rank_, size);
 				DoCopyRemoteData(ptr, MinervaSystem::Instance().GetPtr(input_data.device_id, input_data.data_id).second, size, thrid);
 			}
 #else
@@ -128,13 +129,13 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 		  }
 		}
 		//A list of (pointer , Scale) tuples.
-		//printf("[%d] Placing input shard id %lu\n",_rank, input_data.data_id);
+		//printf("[%d] Placing input shard id %lu\n",rank_, input_data.data_id);
 		input_shards.emplace_back(data_store_->GetData(input_data.data_id), input_data.size);
 	  }
 	  /*
 	   * Create output data pointers
 	   */
-	  //printf("[%d] creating datastore for task < %lu > with | %lu | outputs",_rank, task->id, task->outputs.size());
+	  //printf("[%d] creating output shards for task < %lu > with | %lu | outputs\n",rank_, task->id, task->outputs.size());
 	  DataList output_shards;
 	  for (auto& i : task->outputs) {
 		size_t size = i.physical_data.size.Prod() * sizeof(float);
