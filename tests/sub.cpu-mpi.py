@@ -1,5 +1,5 @@
 import owl
-import mpitestinit
+import cpumpitestinit
 import unittest
 import numpy as np
 
@@ -8,9 +8,9 @@ class TestForiegnOps(unittest.TestCase):
     def test(self):
         a = owl.ones([20,900])
         b = owl.ones([20,900])
-        testa = a+b
-        testb = a+1
-        expected = np.ones([900,20])*2
+        testa = a-b
+        testb = a - 1
+        expected = np.zeros([900,20])
         #print 'Expected\n',expected
         #print "Actuala\n",testa.to_numpy()
         #print "Actualb\n",testb.to_numpy()

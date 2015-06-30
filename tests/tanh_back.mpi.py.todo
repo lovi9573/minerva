@@ -1,5 +1,5 @@
 import owl
-import mpitestinit
+import cpumpitestinit
 import unittest
 import numpy as np
 

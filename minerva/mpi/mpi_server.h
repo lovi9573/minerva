@@ -24,7 +24,7 @@ public:
 	int rank();
 	void Wait_On_Task(uint64_t);
 	void MainLoop();
-	void Handle_Finalize_Task(::MPI::Status );
+	void Handle_Finalize_Task(MPI_Status );
 	int GetMpiNodeCount();
 	int GetMpiDeviceCount(int rank);
 	void CreateMpiDevice(int rank, int id, uint64_t);
@@ -32,9 +32,9 @@ public:
 	void MPI_Send_task_data(const float* ptr, size_t size);
 private:
 	int _rank;
-	ConcurrentUnorderedSet<uint64_t> _pending_tasks;
-	std::mutex _mutex;
-	std::condition_variable _task_complete_condition;
+	ConcurrentUnorderedSet<uint64_t> pending_tasks_;
+	std::mutex mutex_;
+	std::condition_variable task_complete_condition_;
 };
 
 

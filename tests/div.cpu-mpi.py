@@ -1,18 +1,18 @@
 import owl
-import mpitestinit
+import cpumpitestinit
 import unittest
 import numpy as np
 
 class TestForiegnOps(unittest.TestCase):
     
     def test(self):
-        base = np.arange(1,15)
-        t = owl.NArray.from_numpy(base)
-        test = t.max(0)
-        expected = np.max(base)
+        a = owl.ones([20,900])
+        b = 5
+        test = a/b
+        expected = np.ones([900,20])*0.2
         #print 'Expected\n',expected
         #print "Actual\n",test.to_numpy()
-        self.assertEqual(expected, test.to_numpy())
+        self.assertTrue(np.allclose(expected, test.to_numpy()))
 
 
 if __name__ == "__main__":

@@ -27,6 +27,8 @@ DeviceManager::~DeviceManager() {
   }
 }
 
+
+//TODO(jlovitt): opt for runtime mpi check vs the #ifdef mess.
 uint64_t DeviceManager::CreateCpuDevice() {
   auto id = GenerateDeviceId();
 #ifdef HAS_MPI

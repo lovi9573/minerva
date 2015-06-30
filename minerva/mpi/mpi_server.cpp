@@ -27,12 +27,12 @@ void MpiServer::init(){
 
 void MpiServer::MainLoop(){
 	bool term = false;
-	::MPI::Status status;
+	MPI_Status status;
 	//MPI_Status st;
 	while (!term){
 		DLOG(INFO) << "[" << _rank << "] Top of mainloop.\n";
-		::MPI::COMM_WORLD.Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, status);
-		switch(status.Get_tag()){
+		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+		switch(status.MPI_TAG){
 		case MPI_TASK_DATA_REQUEST:
 			Handle_Task_Data_Request(status);
 			break;
@@ -51,18 +51,20 @@ int MpiServer::rank(){
 }
 
 int MpiServer::GetMpiNodeCount(){
-	return ::MPI::COMM_WORLD.Get_size();
+	int size = 0;
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	return size;
 }
 
 int MpiServer::GetMpiDeviceCount(int rank){
-	int size = ::MPI::COMM_WORLD.Get_size();
+	int size = GetMpiNodeCount();
 	if (rank >= size || rank == 0){
 		return 0;
 	}
 	DLOG(INFO) << "Device count requested from rank #" << rank;
 	int count;
-	::MPI::COMM_WORLD.Send(0,0,MPI_INT, rank,MPI_DEVICE_COUNT);
-	::MPI::COMM_WORLD.Recv((void*)&count, 1, ::MPI::INT, rank,MPI_DEVICE_COUNT);
+	MPI_Send(0,0,MPI_INT, rank,MPI_DEVICE_COUNT, MPI_COMM_WORLD);
+	MPI_Recv((void*)&count, 1, MPI_INT, rank,MPI_DEVICE_COUNT, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	return count;
 }
 
@@ -73,7 +75,7 @@ void MpiServer::CreateMpiDevice(int rank, int id, uint64_t device_id){
 	int offset = 0;
 	SERIALIZE(buffer, offset, id, int)
 	SERIALIZE(buffer, offset, device_id, uint64_t)
-	::MPI::COMM_WORLD.Send(buffer,size,::MPI::BYTE,rank,MPI_CREATE_DEVICE);
+	MPI_Send(buffer,size, MPI_BYTE,rank,MPI_CREATE_DEVICE, MPI_COMM_WORLD);
 }
 
 
@@ -83,25 +85,26 @@ void MpiServer::MPI_Send_task(const Task& task,const Context& ctx ){
 	char buffer[bufsize];
 	size_t usedbytes = task.Serialize(buffer);
 	CHECK_EQ(bufsize, usedbytes);
-	::MPI::COMM_WORLD.Send(buffer, bufsize, MPI_BYTE, ctx.rank, MPI_TASK);
-	_pending_tasks.Insert(task.id);
+	MPI_Send(buffer, bufsize, MPI_BYTE, ctx.rank, MPI_TASK, MPI_COMM_WORLD);
+	pending_tasks_.Insert(task.id);
 }
 
 
-void MpiServer::Handle_Finalize_Task(::MPI::Status status){
-	int count = status.Get_count(::MPI::BYTE);
+void MpiServer::Handle_Finalize_Task(MPI_Status status){
+	int count ;
+	MPI_Get_count(&status, MPI_BYTE, &count);
 	//char buffer[count];
 	uint64_t task_id;
-	::MPI::COMM_WORLD.Recv(&task_id, count, MPI_CHAR, status.Get_source(), MPI_FINALIZE_TASK);
-	_pending_tasks.Erase(task_id);
-	std::unique_lock<std::mutex> lock(_mutex);
-	_task_complete_condition.notify_all();
+	MPI_Recv(&task_id, count, MPI_CHAR, status.MPI_SOURCE, MPI_FINALIZE_TASK, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	pending_tasks_.Erase(task_id);
+	std::unique_lock<std::mutex> lock(mutex_);
+	task_complete_condition_.notify_all();
 }
 
 void MpiServer::Wait_On_Task(uint64_t task_id){
-	std::unique_lock<std::mutex> lock(_mutex);
-	while(_pending_tasks.Count(task_id) > 0){
-		_task_complete_condition.wait(lock);
+	std::unique_lock<std::mutex> lock(mutex_);
+	while(pending_tasks_.Count(task_id) > 0){
+		task_complete_condition_.wait(lock);
 	}
 }
 

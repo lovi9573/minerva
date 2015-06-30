@@ -21,9 +21,6 @@ class ComputeFn : public BasicFn {
 	  return 0;
   };
   static std::shared_ptr<ComputeFn> DeSerialize(char*, int*);
-#ifdef HAS_MPI
-  virtual void Execute(Task const&, Context const&)=0;
-#endif
 };
 
 }  // namespace minerva

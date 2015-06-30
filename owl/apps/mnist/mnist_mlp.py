@@ -9,7 +9,7 @@ import mnist_io
 class MnistTrainer:
     def __init__(self, data_file='mnist_all.mat', num_epochs=100, mb_size=256, eps_w=0.01, eps_b=0.01):
         self.cpu = owl.create_cpu_device()
-        self.gpu = owl.create_gpu_device(0)
+        #self.gpu = owl.create_gpu_device(0)
         self.data_file = data_file
         self.num_epochs=num_epochs
         self.mb_size=mb_size
@@ -29,7 +29,7 @@ class MnistTrainer:
         num_test_samples = test_data[0].shape[0]
         (test_samples, test_labels) = map(lambda npdata : owl.from_numpy(npdata), test_data)
         count = 1
-        owl.set_device(self.gpu)
+        #owl.set_device(self.gpu)
         for epoch in range(self.num_epochs):
             print '---Start epoch #%d' % epoch
             # train

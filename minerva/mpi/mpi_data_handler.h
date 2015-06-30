@@ -19,8 +19,8 @@ public:
 	MpiDataHandler();
 	virtual ~MpiDataHandler();
 	void Request_Data(char*, size_t, int , uint64_t , uint64_t );
-	void Handle_Task_Data(::MPI::Status&);
-	void Handle_Task_Data_Request(::MPI::Status&);
+	void Handle_Task_Data(MPI_Status&);
+	void Handle_Task_Data_Request(MPI_Status&);
 };
 
 } /* namespace minerva */

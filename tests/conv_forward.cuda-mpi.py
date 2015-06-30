@@ -1,6 +1,6 @@
 import owl
 import owl.conv
-import mpitestinit
+import cudampitestinit
 import unittest
 import numpy as np
 from scipy.ndimage.filters import convolve

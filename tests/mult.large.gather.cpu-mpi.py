@@ -1,6 +1,6 @@
 import owl
-import mpitestinit
-from mpitestinit import devices as d
+import cpumpitestinit
+from cpumpitestinit import devices as d
 import unittest
 import numpy as np
 

@@ -13,7 +13,6 @@ namespace minerva {
 
 #ifdef HAS_MPI
 
-
 // MPI TAGS
 #define MPI_DEVICE_COUNT 0
 #define MPI_CREATE_DEVICE 1
@@ -23,8 +22,6 @@ namespace minerva {
 #define MPI_TASK_DATA_RESPONSE 5
 #define MPI_FINALIZE_TASK 6
 #define MPI_TERMINATE 7
-
-
 
 #endif
 

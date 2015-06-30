@@ -23,20 +23,21 @@ MpiDataHandler::~MpiDataHandler() {
 
 
 	//TODO(jlovitt): This will be important when using async communication.
-void MpiDataHandler::Handle_Task_Data(::MPI::Status& status){
+void MpiDataHandler::Handle_Task_Data(MPI_Status& status){
 	//int count = status.Get_count(MPI_TASKDATA);
 	//MpiTaskData taskdata[count];
 	//::MPI::COMM_WORLD.Recv(&taskdata, count, MPI_TASKDATA, status.Get_source(),MPI_TASK_DATA );
 }
 
-void MpiDataHandler::Handle_Task_Data_Request(::MPI::Status& status){
-	int count = status.Get_count(MPI_BYTE);
+void MpiDataHandler::Handle_Task_Data_Request(MPI_Status& status){
+	int count ;
+	MPI_Get_count(&status, MPI_BYTE, &count);
 	char buffer[count];
 	int offset = 0;
 	uint64_t device_id;
 	uint64_t data_id;
 	uint64_t bytes;
-	::MPI::COMM_WORLD.Recv(buffer, count, MPI_BYTE, status.Get_source(),MPI_TASK_DATA_REQUEST );
+	MPI_Recv(buffer, count, MPI_BYTE, status.MPI_SOURCE,MPI_TASK_DATA_REQUEST, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
 	DESERIALIZE(buffer, offset, device_id, uint64_t)
 	DESERIALIZE(buffer, offset, data_id, uint64_t)
 	DESERIALIZE(buffer, offset, bytes, uint64_t)
@@ -49,7 +50,7 @@ void MpiDataHandler::Handle_Task_Data_Request(::MPI::Status& status){
 	}*/
 
 	//printf("[%d] Mpi data handler sending %lu floats over\n", MinervaSystem::Instance().rank(),(bytes/sizeof(float)));
-	::MPI::COMM_WORLD.Send(devptr.second, bytes, MPI_BYTE, status.Get_source(), MPI_TASK_DATA_RESPONSE);
+	MPI_Send(devptr.second, bytes, MPI_BYTE, status.MPI_SOURCE, MPI_TASK_DATA_RESPONSE, MPI_COMM_WORLD);
 }
 
 void MpiDataHandler::Request_Data(char* devbuffer, size_t bytes, int rank, uint64_t device_id, uint64_t data_id){
@@ -59,9 +60,9 @@ void MpiDataHandler::Request_Data(char* devbuffer, size_t bytes, int rank, uint6
 	SERIALIZE(msgbuffer, offset, device_id, uint64_t);
 	SERIALIZE(msgbuffer, offset, data_id, uint64_t);
 	SERIALIZE(msgbuffer, offset, bytes, size_t);
-	::MPI::COMM_WORLD.Send(msgbuffer, size, MPI_BYTE, rank, MPI_TASK_DATA_REQUEST);
+	MPI_Send(msgbuffer, size, MPI_BYTE, rank, MPI_TASK_DATA_REQUEST, MPI_COMM_WORLD);
 	//printf("[%d] Mpi data handler recieving %lu floats\n", MinervaSystem::Instance().rank(),(bytes/sizeof(float)));
-	::MPI::COMM_WORLD.Recv(devbuffer, bytes, MPI_BYTE, rank, MPI_TASK_DATA_RESPONSE);
+	MPI_Recv(devbuffer, bytes, MPI_BYTE, rank, MPI_TASK_DATA_RESPONSE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 /*
 	for(uint64_t i =0; i < bytes/sizeof(float); i ++){
 		printf("%f, ", *(  ((float*)buffer)+i        ));

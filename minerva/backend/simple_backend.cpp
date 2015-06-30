@@ -83,6 +83,7 @@ std::shared_ptr<float> SimpleBackend::GetValue(BackendChunk* chunk) {
     delete[] p;
   });
 #ifdef HAS_MPI
+  //TODO(jlovitt): Clean up this mess
   std::pair<Device::MemType, float*> dev_pair;
   //printf("\nSimple Backend fetching data for %d floats on rank %d\n",data.size.Prod(),data.rank);
   if (data.rank != MinervaSystem::Instance().rank()){

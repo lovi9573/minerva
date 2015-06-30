@@ -25,14 +25,14 @@ public:
 	int rank();
 	void FinalizeTask(uint64_t);
 private:
-	void Handle_Device_Count(::MPI::Status& );
-	void Handle_Create_Device(::MPI::Status&);
-	void Handle_Task(::MPI::Status&);
+	void Handle_Device_Count(MPI_Status& );
+	void Handle_Create_Device(MPI_Status&);
+	void Handle_Task(MPI_Status&);
 	//template<typename T> void Handle_Closure(MpiTask*, T* );
 
 	//void PushReadyTasks();
 
-	int _rank;
+	int rank_;
 };
 
 

@@ -17,11 +17,6 @@ class ComputeFnWithClosure : public ComputeFn, public ClosureTrait<Closure> {
   void Execute(const DataList& inputs, const DataList& outputs, const Context& context) {
     FnBundle<Closure>::Call(inputs, outputs, ClosureTrait<Closure>::closure, context);
   }
-#ifdef HAS_MPI
-	void Execute(Task const& task, Context const& context){
-	  FnBundle<Closure>::Call(task, ClosureTrait<Closure>::closure, context);
-	}
-#endif
 };
 
 
@@ -31,11 +26,6 @@ class PhyDataGenFnWithClosure : public ComputeFn, public ClosureTrait<Closure> {
   void Execute(const DataList&, const DataList& outputs, const Context& context) {
     FnBundle<Closure>::Call(outputs, ClosureTrait<Closure>::closure, context);
   }
-#ifdef HAS_MPI
-  void Execute(Task const& task, Context const& context){
-	  FnBundle<Closure>::Call(task, ClosureTrait<Closure>::closure, context);
-  }
-#endif
 };
 
 }

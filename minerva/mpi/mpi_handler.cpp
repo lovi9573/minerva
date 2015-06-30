@@ -26,22 +26,22 @@ namespace minerva {
 
 extern MPI_Datatype MPI_TASKDATA;
 
-MpiHandler::MpiHandler(int rank) : _rank(rank){
+MpiHandler::MpiHandler(int rank) : rank_ (rank){
 //	MPI_Init(0,NULL);
-//	_rank = ::MPI::COMM_WORLD.Get_rank();
+//	rank_  = ::MPI::COMM_WORLD.Getrank_ ();
 }
 
 void MpiHandler::MainLoop(){
 	bool term = false;
-	::MPI::Status status;
+	MPI_Status status;
 	//MPI_Status st;
 	while (!term){
-		DLOG(INFO) << "[" << _rank << "] Top of mainloop.\n";
-		::MPI::COMM_WORLD.Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, status);
+		DLOG(INFO) << "[" << rank_  << "] Top of mainloop.\n";
+		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 		//MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
-		switch(status.Get_tag()){
+		switch(status.MPI_TAG){
 		case MPI_DEVICE_COUNT:
-			DLOG(INFO) << "[" << _rank << "] Fetching device count\n";
+			DLOG(INFO) << "[" << rank_  << "] Fetching device count\n";
 			Handle_Device_Count(status);
 			break;
 		case MPI_CREATE_DEVICE:
@@ -65,7 +65,7 @@ void MpiHandler::MainLoop(){
 }
 
 int MpiHandler::rank(){
-	return _rank;
+	return rank_ ;
 }
 
 /*void MpiHandler::PushReadyTasks(){
@@ -85,26 +85,27 @@ int MpiHandler::rank(){
 }
 	 */
 
-void MpiHandler::Handle_Device_Count(::MPI::Status& status){
+void MpiHandler::Handle_Device_Count(MPI_Status& status){
 	int dummy;
-	::MPI::COMM_WORLD.Recv(&dummy, 0, ::MPI::INT, status.Get_source(), MPI_DEVICE_COUNT);
+	MPI_Recv(&dummy, 0, ::MPI::INT, status.MPI_SOURCE, MPI_DEVICE_COUNT, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	int count = MinervaSystem::Instance().device_manager().GetGpuDeviceCount();
-	::MPI::COMM_WORLD.Send(&count, 1, MPI_INT, status.Get_source(), MPI_DEVICE_COUNT);
+	MPI_Send(&count, 1, MPI_INT, status.MPI_SOURCE, MPI_DEVICE_COUNT, MPI_COMM_WORLD);
 }
 
-void MpiHandler::Handle_Create_Device(::MPI::Status& status){
+void MpiHandler::Handle_Create_Device(MPI_Status& status){
 	int id;
 	uint64_t device_id;
-	int count = status.Get_count(::MPI::BYTE);
+	int count;
+	MPI_Get_count(&status,MPI_BYTE, &count);
 	char buffer[count];
 	int offset = 0;
-	::MPI::COMM_WORLD.Recv(buffer, count, ::MPI::BYTE, status.Get_source(), MPI_CREATE_DEVICE);
+	MPI_Recv(buffer, count, ::MPI::BYTE, status.MPI_SOURCE, MPI_CREATE_DEVICE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	DESERIALIZE(buffer, offset, id, int)
 	DESERIALIZE(buffer, offset, device_id, uint64_t)
 	while (!MinervaSystem::IsAlive()){
-		DLOG(INFO) << "[" << _rank << "] waiting for MinervaInstance to come alive.\n" ;
+		DLOG(INFO) << "[" << rank_ << "] waiting for MinervaInstance to come alive.\n" ;
 	}
-	DLOG(INFO) << "[" << _rank << "] Creating device #" << id << "\n";
+	DLOG(INFO) << "[" << rank_  << "] Creating device #" << id << "\n";
 	if(id == 0){
 		MinervaSystem::Instance().device_manager().CreateCpuDevice(device_id);
 	}else{
@@ -112,19 +113,20 @@ void MpiHandler::Handle_Create_Device(::MPI::Status& status){
 	}
 }
 
-void MpiHandler::Handle_Task(::MPI::Status& status){
-	int count = status.Get_count(MPI_BYTE);
+void MpiHandler::Handle_Task(MPI_Status& status){
+	int count;
+	MPI_Get_count(&status,MPI_BYTE, &count);
 	char bytes[count];
-	::MPI::COMM_WORLD.Recv(&bytes, count, MPI_BYTE, status.Get_source(),MPI_TASK);
+	MPI_Recv(&bytes, count, MPI_BYTE, status.MPI_SOURCE,MPI_TASK, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	int bytesconsumed = 0;
 	Task& td = Task::DeSerialize(bytes,&bytesconsumed);
-	DLOG(INFO) << "[" << _rank << "] Handling task #" << td.id;
+	DLOG(INFO) << "[" << rank_  << "] Handling task #" << td.id;
 	MinervaSystem::Instance().device_manager().GetDevice(td.op.device_id)->PushTask(&td);
 }
 
 
 void MpiHandler::FinalizeTask(uint64_t task_id){
-	::MPI::COMM_WORLD.Send(&task_id, sizeof(uint64_t), MPI_CHAR, 0, MPI_FINALIZE_TASK);
+	MPI_Send(&task_id, sizeof(uint64_t), MPI_CHAR, 0, MPI_FINALIZE_TASK, MPI_COMM_WORLD);
 }
 
 

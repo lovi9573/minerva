@@ -1,7 +1,6 @@
 #pragma once
 #include "op/impl/basic.h"
 #include "op/impl/cuda.h"
-#include "op/impl/mpi_impl.h"
 #include "op/impl/impl.h"
 #include <dmlc/logging.h>
 
@@ -18,40 +17,40 @@ void NO_IMPL(const I & i, const O & o, C & c, Args&&...) {
 }
 //TODO(jlovitt): 1 Replace fpga NO_IMPL's with proper function calls as implemented.
 
-INSTALL_COMPUTE_FN(ArithmeticClosure, basic::Arithmetic, NO_IMPL, cuda::Arithmetic, NO_IMPL, mpi::Arithmetic);
-INSTALL_COMPUTE_FN(ArithmeticConstClosure, basic::ArithmeticConst, NO_IMPL, cuda::ArithmeticConst, NO_IMPL, mpi::ArithmeticConst);
-INSTALL_COMPUTE_FN(MatMultClosure, basic::MatMult, NO_IMPL, cuda::MatMult, NO_IMPL, mpi::MatMult);
-INSTALL_COMPUTE_FN(TransposeClosure, basic::Transpose, NO_IMPL, cuda::Transpose, NO_IMPL, mpi::Transpose);
-INSTALL_COMPUTE_FN(ReductionClosure, basic::Reduction, NO_IMPL, cuda::Reduction, NO_IMPL, mpi::Reduction);
-INSTALL_COMPUTE_FN(NormArithmeticClosure, basic::NormArithmetic, NO_IMPL, cuda::NormArithmetic, NO_IMPL, mpi::NormArithmetic);
-INSTALL_COMPUTE_FN(MaxIndexClosure, basic::MaxIndex, NO_IMPL, cuda::MaxIndex, NO_IMPL, mpi::MaxIndex);
-INSTALL_COMPUTE_FN(ReshapeClosure, basic::Reshape, NO_IMPL, cuda::Reshape, NO_IMPL, mpi::Reshape);
-INSTALL_COMPUTE_FN(ElewiseClosure, basic::Elewise, NO_IMPL, cuda::Elewise, NO_IMPL, mpi::Elewise);
-INSTALL_COMPUTE_FN(SigmoidForwardClosure, basic::SigmoidForward, NO_IMPL, cuda::SigmoidForward, NO_IMPL, mpi::SigmoidForward);
-INSTALL_COMPUTE_FN(SigmoidBackwardClosure, NO_IMPL, NO_IMPL, cuda::SigmoidBackward, NO_IMPL, mpi::SigmoidBackward);
-INSTALL_COMPUTE_FN(ReluForwardClosure, basic::ReluForward, NO_IMPL, cuda::ReluForward, NO_IMPL, mpi::ReluForward);
-INSTALL_COMPUTE_FN(ReluBackwardClosure, NO_IMPL, NO_IMPL, cuda::ReluBackward, NO_IMPL, mpi::ReluBackward);
-INSTALL_COMPUTE_FN(TanhForwardClosure, basic::TanhForward, NO_IMPL, cuda::TanhForward, NO_IMPL, mpi::TanhForward);
-INSTALL_COMPUTE_FN(TanhBackwardClosure, NO_IMPL, NO_IMPL, cuda::TanhBackward, NO_IMPL, mpi::TanhBackward);
-INSTALL_COMPUTE_FN(ConvForwardClosure, NO_IMPL, NO_IMPL, cuda::ConvForward, NO_IMPL, mpi::ConvForward);
-INSTALL_COMPUTE_FN(ConvBackwardDataClosure, NO_IMPL, NO_IMPL, cuda::ConvBackwardData, NO_IMPL, mpi::ConvBackwardData);
-INSTALL_COMPUTE_FN(ConvBackwardFilterClosure, NO_IMPL, NO_IMPL, cuda::ConvBackwardFilter, NO_IMPL, mpi::ConvBackwardFilter);
-INSTALL_COMPUTE_FN(ConvBackwardBiasClosure, NO_IMPL, NO_IMPL, cuda::ConvBackwardBias, NO_IMPL, mpi::ConvBackwardBias);
-INSTALL_COMPUTE_FN(SoftmaxForwardClosure, basic::SoftmaxForward, NO_IMPL, cuda::SoftmaxForward, NO_IMPL, mpi::SoftmaxForward);
-INSTALL_COMPUTE_FN(SoftmaxBackwardClosure, NO_IMPL, NO_IMPL, cuda::SoftmaxBackward, NO_IMPL, mpi::SoftmaxBackward);
-INSTALL_COMPUTE_FN(ActivationForwardClosure, basic::ActivationForward, NO_IMPL, cuda::ActivationForward, NO_IMPL, mpi::ActivationForward);
-INSTALL_COMPUTE_FN(ActivationBackwardClosure, NO_IMPL, NO_IMPL, cuda::ActivationBackward, NO_IMPL, mpi::ActivationBackward);
-INSTALL_COMPUTE_FN(PoolingForwardClosure, NO_IMPL, NO_IMPL, cuda::PoolingForward, NO_IMPL, mpi::PoolingForward);
-INSTALL_COMPUTE_FN(PoolingBackwardClosure, NO_IMPL, NO_IMPL, cuda::PoolingBackward, NO_IMPL, mpi::PoolingBackward);
-INSTALL_COMPUTE_FN(SyncWithPSClosure, basic::SyncWithPS, NO_IMPL, cuda::SyncWithPS, NO_IMPL, mpi::SyncWithPS);
-INSTALL_DATAGEN_FN(ArrayLoaderClosure, basic::ArrayLoader, NO_IMPL, cuda::ArrayLoader, NO_IMPL, mpi::ArrayLoader);
-INSTALL_DATAGEN_FN(RandnClosure, basic::Randn, NO_IMPL, cuda::Randn, NO_IMPL, mpi::Randn);
-INSTALL_DATAGEN_FN(RandBernoulliClosure, basic::RandBernoulli, NO_IMPL, cuda::RandBernoulli, NO_IMPL, mpi::RandBernoulli);
-INSTALL_DATAGEN_FN(FillClosure, basic::Fill, NO_IMPL, cuda::Fill, NO_IMPL, mpi::Fill);
-INSTALL_COMPUTE_FN(LRNForwardClosure, NO_IMPL, NO_IMPL, cuda::LRNForward, NO_IMPL, mpi::LRNForward);
-INSTALL_COMPUTE_FN(LRNBackwardClosure, NO_IMPL, NO_IMPL, cuda::LRNBackward, NO_IMPL, mpi::LRNBackward);
-INSTALL_COMPUTE_FN(ConcatClosure, NO_IMPL, NO_IMPL, cuda::Concat, NO_IMPL, mpi::Concat);
-INSTALL_COMPUTE_FN(SliceClosure, NO_IMPL, NO_IMPL, cuda::Slice, NO_IMPL, mpi::Slice);
-INSTALL_COMPUTE_FN(IndexClosure, basic::Index, NO_IMPL, NO_IMPL, NO_IMPL, NO_IMPL);
-INSTALL_COMPUTE_FN(SelectClosure, NO_IMPL, NO_IMPL, cuda::Select, NO_IMPL, mpi::Select);
+INSTALL_COMPUTE_FN(ArithmeticClosure, basic::Arithmetic, NO_IMPL, cuda::Arithmetic, NO_IMPL);
+INSTALL_COMPUTE_FN(ArithmeticConstClosure, basic::ArithmeticConst, NO_IMPL, cuda::ArithmeticConst, NO_IMPL);
+INSTALL_COMPUTE_FN(MatMultClosure, basic::MatMult, NO_IMPL, cuda::MatMult, NO_IMPL);
+INSTALL_COMPUTE_FN(TransposeClosure, basic::Transpose, NO_IMPL, cuda::Transpose, NO_IMPL);
+INSTALL_COMPUTE_FN(ReductionClosure, basic::Reduction, NO_IMPL, cuda::Reduction, NO_IMPL);
+INSTALL_COMPUTE_FN(NormArithmeticClosure, basic::NormArithmetic, NO_IMPL, cuda::NormArithmetic, NO_IMPL);
+INSTALL_COMPUTE_FN(MaxIndexClosure, basic::MaxIndex, NO_IMPL, cuda::MaxIndex, NO_IMPL);
+INSTALL_COMPUTE_FN(ReshapeClosure, basic::Reshape, NO_IMPL, cuda::Reshape, NO_IMPL);
+INSTALL_COMPUTE_FN(ElewiseClosure, basic::Elewise, NO_IMPL, cuda::Elewise, NO_IMPL);
+INSTALL_COMPUTE_FN(SigmoidForwardClosure, basic::SigmoidForward, NO_IMPL, cuda::SigmoidForward, NO_IMPL);
+INSTALL_COMPUTE_FN(SigmoidBackwardClosure, NO_IMPL, NO_IMPL, cuda::SigmoidBackward, NO_IMPL);
+INSTALL_COMPUTE_FN(ReluForwardClosure, basic::ReluForward, NO_IMPL, cuda::ReluForward, NO_IMPL);
+INSTALL_COMPUTE_FN(ReluBackwardClosure, NO_IMPL, NO_IMPL, cuda::ReluBackward, NO_IMPL);
+INSTALL_COMPUTE_FN(TanhForwardClosure, basic::TanhForward, NO_IMPL, cuda::TanhForward, NO_IMPL);
+INSTALL_COMPUTE_FN(TanhBackwardClosure, NO_IMPL, NO_IMPL, cuda::TanhBackward, NO_IMPL);
+INSTALL_COMPUTE_FN(ConvForwardClosure, NO_IMPL, NO_IMPL, cuda::ConvForward, NO_IMPL);
+INSTALL_COMPUTE_FN(ConvBackwardDataClosure, NO_IMPL, NO_IMPL, cuda::ConvBackwardData, NO_IMPL);
+INSTALL_COMPUTE_FN(ConvBackwardFilterClosure, NO_IMPL, NO_IMPL, cuda::ConvBackwardFilter, NO_IMPL);
+INSTALL_COMPUTE_FN(ConvBackwardBiasClosure, NO_IMPL, NO_IMPL, cuda::ConvBackwardBias, NO_IMPL);
+INSTALL_COMPUTE_FN(SoftmaxForwardClosure, basic::SoftmaxForward, NO_IMPL, cuda::SoftmaxForward, NO_IMPL);
+INSTALL_COMPUTE_FN(SoftmaxBackwardClosure, NO_IMPL, NO_IMPL, cuda::SoftmaxBackward, NO_IMPL);
+INSTALL_COMPUTE_FN(ActivationForwardClosure, basic::ActivationForward, NO_IMPL, cuda::ActivationForward, NO_IMPL);
+INSTALL_COMPUTE_FN(ActivationBackwardClosure, NO_IMPL, NO_IMPL, cuda::ActivationBackward, NO_IMPL);
+INSTALL_COMPUTE_FN(PoolingForwardClosure, NO_IMPL, NO_IMPL, cuda::PoolingForward, NO_IMPL);
+INSTALL_COMPUTE_FN(PoolingBackwardClosure, NO_IMPL, NO_IMPL, cuda::PoolingBackward, NO_IMPL);
+INSTALL_COMPUTE_FN(SyncWithPSClosure, basic::SyncWithPS, NO_IMPL, cuda::SyncWithPS, NO_IMPL);
+INSTALL_DATAGEN_FN(ArrayLoaderClosure, basic::ArrayLoader, NO_IMPL, cuda::ArrayLoader, NO_IMPL);
+INSTALL_DATAGEN_FN(RandnClosure, basic::Randn, NO_IMPL, cuda::Randn, NO_IMPL);
+INSTALL_DATAGEN_FN(RandBernoulliClosure, basic::RandBernoulli, NO_IMPL, cuda::RandBernoulli, NO_IMPL);
+INSTALL_DATAGEN_FN(FillClosure, basic::Fill, NO_IMPL, cuda::Fill, NO_IMPL);
+INSTALL_COMPUTE_FN(LRNForwardClosure, NO_IMPL, NO_IMPL, cuda::LRNForward, NO_IMPL);
+INSTALL_COMPUTE_FN(LRNBackwardClosure, NO_IMPL, NO_IMPL, cuda::LRNBackward, NO_IMPL);
+INSTALL_COMPUTE_FN(ConcatClosure, NO_IMPL, NO_IMPL, cuda::Concat, NO_IMPL);
+INSTALL_COMPUTE_FN(SliceClosure, NO_IMPL, NO_IMPL, cuda::Slice, NO_IMPL);
+INSTALL_COMPUTE_FN(IndexClosure, basic::Index, NO_IMPL, NO_IMPL, NO_IMPL);
+INSTALL_COMPUTE_FN(SelectClosure, NO_IMPL, NO_IMPL, cuda::Select, NO_IMPL);
 }  // namespace minerva
