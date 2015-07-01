@@ -10,6 +10,10 @@
 #ifdef HAS_CUDA
 #include <cuda.h>
 #endif
+#ifdef HAS_MPI
+#include "mpi/mpi_handler.h"
+#include "mpi/mpi_server.h"
+#endif
 
 using namespace std;
 

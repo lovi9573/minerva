@@ -3,7 +3,7 @@
 #include "device/device.h"
 #include "device/device_listener.h"
 #include "common/common.h"
-#include "../mpi/mpi_server.h"
+
 
 namespace minerva {
 

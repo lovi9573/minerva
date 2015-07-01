@@ -18,7 +18,10 @@
 #include "common/cuda_utils.h"
 #include "device/pooled_data_store.h"
 #include "profiler/wall_timer.h"
-
+#ifdef HAS_MPI
+#include "mpi/mpi_handler.h"
+#include "mpi/mpi_server.h"
+#endif
 
 using namespace std;
 
@@ -107,10 +110,10 @@ CpuDevice::CpuDevice(int rank, uint64_t device_id, DeviceListener*l) : CpuDevice
  * 		GPU
  * ====================
  */
-#endif
 GpuDevice::GpuDevice(int rank, uint64_t device_id, DeviceListener* l, int gid) : GpuDevice(device_id, l, gid) {
 	rank_ = rank;
 }
+#endif
 
 #ifdef HAS_FPGA
 /**

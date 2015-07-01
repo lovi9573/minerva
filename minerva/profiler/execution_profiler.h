@@ -11,6 +11,7 @@ enum class TimerType {
   kMemory,
   kCalculation,
   kCount,
+  kMpi,
   kEnd
 };
 

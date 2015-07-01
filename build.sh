@@ -23,6 +23,7 @@ function run_clean {
 CXXFLAGS="$CXXFLAGS \
   -DCUDA_ROOT=$CUDA_ROOT \
   -DCUDNN_ROOT=$CUDNN_ROOT \
+  -DMPI_HEADER_ROOT=$MPI_HEADER_ROOT \
   -DBUILD_CXX_APPS=$BUILD_CXX_APPS \
   -DBUILD_TESTS=$BUILD_TESTS \
   -DBUILD_WITH_PS=$BUILD_WITH_PS \
@@ -67,7 +68,7 @@ if [ ! -d $BUILD_DIR ]; then
   mkdir $BUILD_DIR
 fi
 cd $BUILD_DIR
-CC=$CC CXX=$CXX cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CXXFLAGS .. && make -j4
+CC=$CC CXX=$CXX cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CXXFLAGS -I/home/jlovitt/open-mpi/include .. && make -j4
 cd ..
 
 if [ $BUILD_OWL -eq 1 ]; then

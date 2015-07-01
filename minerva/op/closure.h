@@ -3,9 +3,6 @@
 #include "common/scale.h"
 #include "narray/convolution_info.h"
 
-#ifdef HAS_MPI
-#include "mpi/mpi_common.h"
-#endif
 
 namespace minerva {
 

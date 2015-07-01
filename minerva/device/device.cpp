@@ -7,7 +7,6 @@
 
 #include <dmlc/logging.h>
 #include <gflags/gflags.h>
-
 #include "device.h"
 #include "device/task.h"
 #include "system/minerva_system.h"
@@ -20,6 +19,10 @@
 #include <cudnn.h>
 #include <cuda.h>
 #include <cublas_v2.h>
+#endif
+#ifdef HAS_MPI
+#include "mpi/mpi_handler.h"
+#include "mpi/mpi_server.h"
 #endif
 
 //#define DEFAULT_POOL_SIZE ((size_t) 5.8 * 1024 * 1024 * 1024)
@@ -85,7 +88,7 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 			DLOG(INFO) << Name() << " finished dispatch of mpi task #" << task->id << ": " << op.compute_fn->Name();
 		#ifndef NDEBUG
 			calculate_timer.Stop();
-			MinervaSystem::Instance().profiler().RecordTime(TimerType::kCalculation, op.compute_fn->Name(), calculate_timer);
+			MinervaSystem::Instance().profiler().RecordTime(TimerType::kMpi, op.compute_fn->Name(), calculate_timer);
 		#endif
 	  }
 #else

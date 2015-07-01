@@ -10,10 +10,7 @@
 #include "device/device.h"
 #include "profiler/execution_profiler.h"
 
-#ifdef HAS_MPI
-#include "mpi/mpi_handler.h"
-#include "mpi/mpi_server.h"
-#endif
+
 
 
 namespace minerva {
@@ -33,22 +30,11 @@ class MinervaSystem :
   MinervaSystem() = delete;
   DISALLOW_COPY_AND_ASSIGN(MinervaSystem);
   ~MinervaSystem();
-  PhysicalDag& physical_dag() {
-    return *physical_dag_;
-  }
-  Backend& backend() {
-    return *backend_;
-  }
-  void wait_for_all()
-  {
-    backend_->WaitForAll();
-  }
-  ExecutionProfiler& profiler() {
-    return *profiler_;
-  }
-  DeviceManager& device_manager() {
-    return *device_manager_;
-  }
+  PhysicalDag& physical_dag();
+  Backend& backend();
+  void wait_for_all();
+  ExecutionProfiler& profiler();
+  DeviceManager& device_manager();
 
 
   void Request_Data(char* buffer, size_t bytes, int rank, uint64_t device_id, uint64_t data_id);
@@ -64,38 +50,14 @@ class MinervaSystem :
 
 
   void SetDevice(uint64_t );
-  uint64_t current_device_id() const { return current_device_id_; }
+  uint64_t current_device_id() const ;
   // system
   void WaitForAll();
   int rank();
   void WorkerRun();
-
-
-#ifdef HAS_MPI
-  MpiServer& mpi_server(){
-	  return *mpiserver_;
-  }
-  MpiHandler& mpi_handler(){
-	  return *mpihandler_;
-  }
-  // device master
-#endif
-
  private:
   MinervaSystem(int*, char***);
-  PhysicalDag* physical_dag_;
-  Backend* backend_;
-  ExecutionProfiler* profiler_;
-  DeviceManager* device_manager_;
-  std::atomic<uint64_t> data_id_counter_;
-  std::atomic<uint64_t> task_id_counter_;
-  uint64_t current_device_id_;
-  int rank_;
-  bool worker_;
-#ifdef HAS_MPI
-  MpiHandler* mpihandler_;
-  MpiServer* mpiserver_;
-#endif
+
 };
 
 

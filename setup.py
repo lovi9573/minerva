@@ -27,8 +27,8 @@ extensions = [
             '-Wall',
             '-O2',
             '-g',
-            '-DHAS_MPI', #TODO: 2 Temporary hack
-            '-I/usr/include/mpich-x86_64/' #TODO: temporary hack
+            '-DHAS_MPI', #TODO: owl shouldn't need to know that mpi even exists.
+            '-I/usr/include/openmpi-x86_64' #TODO: owl shouldn't need to know that mpi even exists.
         ],
         libraries=[
             'minerva'

@@ -40,7 +40,24 @@ function(find_blas)
   endif()
 endfunction()
 
+function(check_mpi_cuda_support)  
+    EXECUTE_PROCESS(COMMAND ompi_info "--parsable" "-l" "9" "--all"
+                    COMMAND grep "mpi_built_with_cuda_support:value"
+                    COMMAND awk "BEGIN {FS = \":\"} ; {print $7}"
+                    OUTPUT_VARIABLE TEMP)            
+    if(TEMP EQUAL "true")
+        set(MPI_CUDA_SUPPORT 1)
+    else(TEMP EQUAL "true")
+        message(FATAL_ERROR "MPI implementation is not cuda-aware")
+    endif(TEMP EQUAL "true")
+endfunction()
+
 project(Minerva)
+
+function(check_rdma_support)
+    #TODO(jlovitt): mpi: ompi_info --all | grep btl_openib_have_cuda_gdr ==>   MCA btl: informational "btl_openib_have_cuda_gdr" (current value: "true", data source: default, level: 4 tuner/basic, type: bool)
+    #               OFED:   ompi_info --all | grep btl_openib_have_driver_gdr  ==>   MCA btl: informational "btl_openib_have_driver_gdr" (current value: "true", data source: default, level: 4 tuner/basic, type: bool)  
+endfunction()
 
 option(BUILD_CXX_APPS    "build C++ applications"                OFF)
 option(BUILD_TESTS       "build all unittests"                   OFF)
@@ -110,8 +127,17 @@ if(BUILD_WITH_FPGA)
 endif()
 
 if(BUILD_WITH_MPI AND MPI_CXX_FOUND)
+  #TODO(jlovitt): Check for cuda support in mpi
+  if (CUDA_FOUND)
+      check_mpi_cuda_support()
+      check_rdma_support()
+      if(RDMA_SUPPORT_FOUND)
+          #TODO(jlovitt):notify or set mpiexec to use: --mca btl_openib_want_cuda_gdr 1
+      endif(RDMA_SUPPORT_FOUND)
+  endif(CUDA_FOUND)
   add_definitions(-DHAS_MPI)
   include_directories(SYSTEM ${MPI_CXX_INCLUDE_PATH})
+  include_directories(SYSTEM ${MPI_HEADER_ROOT})
   #target_link_libraries(Minerva ${MPI_CXX_LIBRARIES})
 endif()
 

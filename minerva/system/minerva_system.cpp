@@ -146,11 +146,14 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
   }
 #endif
 #ifdef HAS_MPI
+
   	int provided;
   	MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
 	if( provided != MPI_THREAD_MULTIPLE){
 		LOG(FATAL) << "Multithreaded mpi support is needed.\n";
 	}
+
+	//MPI_Init(argc, argv);
 	rank_ = ::MPI::COMM_WORLD.Get_rank();
 	fflush(stdout);
 	if(rank_ != 0){
