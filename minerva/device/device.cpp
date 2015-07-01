@@ -22,7 +22,7 @@
 #include <cublas_v2.h>
 #endif
 
-#define DEFAULT_POOL_SIZE ((size_t) 5.8 * 1024 * 1024 * 1024)
+//#define DEFAULT_POOL_SIZE ((size_t) 5.8 * 1024 * 1024 * 1024)
 DEFINE_bool(no_execute, false, "Disable the actual computation (for performance debuggin)");
 
 using namespace std;

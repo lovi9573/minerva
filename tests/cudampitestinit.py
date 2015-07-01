@@ -17,7 +17,7 @@ if owl.has_mpi():
         id = owl.create_mpi_device(i,0)
         devices.append(id)
         if owl.has_cuda():
-            n = owl.get_mpi_device_count()
+            n = owl.get_mpi_device_count(i)
             for g in range(n):
                 gpu_devices.append(owl.create_mpi_device(i,g+1))     
 owl.set_device(gpu_devices[-1])

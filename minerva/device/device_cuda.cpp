@@ -9,6 +9,7 @@
 #include <gflags/gflags.h>
 
 #include "device.h"
+#include "device/device_cuda.h"
 #include "device/task.h"
 #include "system/minerva_system.h"
 #include "op/context.h"

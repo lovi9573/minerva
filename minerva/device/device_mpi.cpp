@@ -11,6 +11,7 @@
 #include "device.h"
 #include "device/device_mpi.h"
 #include "device/device_fpga.h"
+#include "device/device_cuda.h"
 #include "device/task.h"
 #include "system/minerva_system.h"
 #include "op/context.h"
@@ -107,7 +108,9 @@ CpuDevice::CpuDevice(int rank, uint64_t device_id, DeviceListener*l) : CpuDevice
  * ====================
  */
 #endif
-
+GpuDevice::GpuDevice(int rank, uint64_t device_id, DeviceListener* l, int gid) : GpuDevice(device_id, l, gid) {
+	rank_ = rank;
+}
 
 #ifdef HAS_FPGA
 /**

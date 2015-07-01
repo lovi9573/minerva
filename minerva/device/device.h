@@ -14,6 +14,8 @@
 #include "common/concurrent_unordered_set.h"
 #include "common/concurrent_unordered_map.h"
 
+#define DEFAULT_POOL_SIZE ((size_t) 5.8 * 1024 * 1024 * 1024)
+
 namespace minerva {
 
 /*
@@ -62,7 +64,7 @@ class ThreadedDevice : public Device {
   ThreadedDevice() = delete;
   ThreadedDevice(uint64_t device_id, DeviceListener* l, size_t parallelism);
 #ifdef HAS_MPI
-  ThreadedDevice(int rank, uint64_t device_id, DeviceListener*, size_t parallelism);
+  ThreadedDevice(int rank, uint64_t device_id, DeviceListener* l, size_t parallelism);
 #endif
   DISALLOW_COPY_AND_ASSIGN(ThreadedDevice);
   ~ThreadedDevice() = default;
