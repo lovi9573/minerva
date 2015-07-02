@@ -21,6 +21,7 @@ if __name__ == "__main__":
     /_/  |_/  |_| |_| |_| \\__| |_____| |_| \\_\\ |__/ /_/   |_|
     '''
     if owl.has_cuda():
+        print owl.get_gpu_device_count()
         gpu = [owl.create_gpu_device(i) for i in range(owl.get_gpu_device_count())]
         print '[INFO] You have %d GPU devices' % len(gpu)
         print '[INFO] Set device to gpu[0]'

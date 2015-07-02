@@ -105,6 +105,12 @@ The models can be found in the following link:
 
 You can download the trained models and try them on your own machine using [net_tester](https://github.com/dmlc/minerva/tree/master/scripts/learning) script.
 
+## MPI
+Currently distributed computation is supported with Open-Mpi.
+For this to work you must compile Open-Mpi with the --with-cuda configuration.  More details can be found at https://www.open-mpi.org/faq/?category=buildcuda
+Additionally, since libmpi.so is being loaded lazily by the minerva library, it's modules will fail.  To get around this it must be preloaded using LD_PRELOAD=<path to libmpi.so> for each mpirun invocation to load it in the global namespace.
+
+
 ## Next Plan
 * Get rid of boost library dependency by using Cython. (DONE)
 * Large scale [LSTM](http://en.wikipedia.org/wiki/Long_short_term_memory) example using Minerva.

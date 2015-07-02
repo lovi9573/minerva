@@ -65,7 +65,11 @@ GpuDevice::Impl::~Impl() {
 }
 
 void GpuDevice::Impl::ActivateDevice() const {
+	printf("Using cuda device # %d\n",device);
   CUDA_CALL(cudaSetDevice(device));
+  struct cudaDeviceProp props;
+  CUDA_CALL(cudaGetDeviceProperties(&props, device));
+  printf("Device %d: major %d, minor %d\n",device ,props.major, props.minor);
 }
 
 GpuDevice::GpuDevice(uint64_t device_id, DeviceListener* l, int gpu_id) : ThreadedDevice{device_id, l, Impl::kParallelism}, impl_{common::MakeUnique<Impl>(gpu_id)} {

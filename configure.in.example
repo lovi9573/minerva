@@ -15,6 +15,9 @@ CUDA_ROOT=
 # Root path to find cudnn
 CUDNN_ROOT=
 
+#Root path to find MPI headers
+MPI_HEADER_ROOT=
+
 # build type: (Release | Debug | RelWithDebInfo)
 BUILD_TYPE=Debug
 
