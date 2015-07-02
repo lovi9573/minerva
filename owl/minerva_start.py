@@ -35,29 +35,6 @@ if __name__ == "__main__":
         print '[INFO] Set device to cpu'
         owl.set_device(cpu)
     print "\nREADY FOR INPUT\n"
-    owl.set_device(1)
-    x = owl.ones([200,1000])
-    print x.to_numpy()
-    time.sleep(1)
-    print "====================="
-    
-    owl.set_device(0)
-    y = owl.ones([200,1000])
-    print y.to_numpy()
-    time.sleep(1)
-    print "====================="
-    
-    owl.set_device(2)
-    z = owl.randn([10,200],5,2)
-    print z.to_numpy()
-    time.sleep(1)
-    print "====================="
-    
-    owl.set_device(0)
-    l = z*(x+y)
-    print l.to_numpy()
-    time.sleep(1)
-    print "====================="
     
     #print z.to_numpy()
     #import IPython; IPython.start_ipython(argv=[])

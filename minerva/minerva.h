@@ -6,6 +6,6 @@
 #include "narray/image_batch.h"
 #include "narray/convolution.h"
 #include "narray/convolution_info.h"
-#include "system/minerva_system.h"
+#include "system/minerva_system_interface.h"
 
 

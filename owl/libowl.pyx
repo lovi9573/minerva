@@ -52,7 +52,7 @@ def initialize():
     for i in range(argc):
         argv[i] = <char*>(calloc(len(sys.argv[i]) + 1, sizeof(char)))
         strcpy(argv[i], sys.argv[i])
-    m.Initialize(&argc, &argv)
+    m.Init(&argc, &argv)
     for i in range(argc):
         free(argv[i])
     free(argv)

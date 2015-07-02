@@ -7,57 +7,57 @@
 namespace libowl {
 
 uint64_t CreateCpuDevice() {
-  auto&& ms = minerva::MinervaSystem::Instance();
+  auto&& ms = minerva::IMinervaSystem::Interface();
   return ms.CreateCpuDevice();
 }
 
 uint64_t CreateGpuDevice(int id) {
-  auto&& ms = minerva::MinervaSystem::Instance();
+  auto&& ms = minerva::IMinervaSystem::Interface();
   return ms.CreateGpuDevice(id);
 }
 
 uint64_t CreateFpgaDevice(int id) {
-  auto&& ms = minerva::MinervaSystem::Instance();
+  auto&& ms = minerva::IMinervaSystem::Interface();
   return ms.CreateFpgaDevice(id);
 }
 
 uint64_t CreateMpiDevice(int rank, int id) {
-  auto&& ms = minerva::MinervaSystem::Instance();
+  auto&& ms = minerva::IMinervaSystem::Interface();
   return ms.CreateMpiDevice(rank, id);
 }
 
 int GetGpuDeviceCount() {
-  auto&& ms = minerva::MinervaSystem::Instance();
+  auto&& ms = minerva::IMinervaSystem::Interface();
   return ms.device_manager().GetGpuDeviceCount();
 }
 
 int GetMpiNodeCount(){
-	auto&& ms = minerva::MinervaSystem::Instance();
+	auto&& ms = minerva::IMinervaSystem::Interface();
 	return ms.device_manager().GetMpiNodeCount();
 }
 
 int GetMpiDeviceCount(int rank){
-	auto&& ms = minerva::MinervaSystem::Instance();
+	auto&& ms = minerva::IMinervaSystem::Interface();
 	return ms.device_manager().GetMpiDeviceCount(rank);
 }
 
 int rank(){
-	auto&& ms = minerva::MinervaSystem::Instance();
+	auto&& ms = minerva::IMinervaSystem::Interface();
 	return ms.rank();
 }
 
 void WorkerRun(){
-	auto&& ms = minerva::MinervaSystem::Instance();
+	auto&& ms = minerva::IMinervaSystem::Interface();
 	ms.WorkerRun();
 }
 
 void WaitForAll() {
-  auto&& ms = minerva::MinervaSystem::Instance();
+  auto&& ms = minerva::IMinervaSystem::Interface();
   ms.backend().WaitForAll();
 }
 
 void SetDevice(uint64_t id) {
-  auto&& ms = minerva::MinervaSystem::Instance();
+  auto&& ms = minerva::IMinervaSystem::Interface();
   ms.SetDevice(id);
 }
 

@@ -87,7 +87,6 @@ set(CMAKE_CXX_FLAGS_RELEASE "${GENERAL_FLAGS_RELEASE} -std=c++11 -DNDEBUG")
 ############################################# find packages
 set(CORE_DEPS "")
 
-find_package(MPI REQUIRED)
 find_package(Threads REQUIRED)
 set(CORE_DEPS ${CORE_DEPS} ${CMAKE_THREAD_LIBS_INIT})
 
@@ -125,6 +124,9 @@ set(CORE_DEPS ${CORE_DEPS} ${THIRD_LIBS})
 if(BUILD_WITH_FPGA)
   add_definitions(-DHAS_FPGA)
 endif()
+if(BUILD_WITH_MPI)
+	find_package(MPI REQUIRED)
+endif(BUILD_WITH_MPI)
 
 if(BUILD_WITH_MPI AND MPI_CXX_FOUND)
   #TODO(jlovitt): Check for cuda support in mpi

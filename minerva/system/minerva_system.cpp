@@ -45,7 +45,7 @@ void MinervaSystem::UniversalMemcpy(
 
 
 
-int const MinervaSystem::has_cuda_ =
+int const IMinervaSystem::has_cuda_ =
 #ifdef HAS_CUDA
 1
 #else
@@ -53,7 +53,7 @@ int const MinervaSystem::has_cuda_ =
 #endif
 ;
 
-int const MinervaSystem::has_mpi_ =
+int const IMinervaSystem::has_mpi_ =
 #ifdef HAS_MPI
 1
 #else
@@ -61,7 +61,7 @@ int const MinervaSystem::has_mpi_ =
 #endif
 ;
 
-int const MinervaSystem::has_fpga_ =
+int const IMinervaSystem::has_fpga_ =
 #ifdef HAS_FPGA
 1
 #else
@@ -117,8 +117,12 @@ uint64_t MinervaSystem::CreateMpiDevice(int rank, int id ) {
 	if (worker_){
 		LOG(FATAL) << "Cannot create a unique device id on worker rank";
 	}
+	CHECK(has_mpi_) << "Cannot create MPI device.  Recompile with MPI support.";
+	uint64_t device_id = UINT64_C(0xffffffffffffffff) ;
+#ifdef HAS_MPI
 	uint64_t device_id =  MinervaSystem::Instance().device_manager().CreateMpiDevice(rank,id);
 	mpiserver_->CreateMpiDevice(rank, id, device_id);
+#endif
 	return device_id;
 }
 
@@ -134,6 +138,11 @@ int MinervaSystem::rank(){
 	return rank_;
 }
 
+void MinervaSystem::WorkerRun(){
+#ifdef HAS_MPI
+	mpihandler_->MainLoop();
+#endif
+}
 
 MinervaSystem::MinervaSystem(int* argc, char*** argv)
   : data_id_counter_(0), task_id_counter_(0), current_device_id_(0), rank_(0), worker_(false) {
@@ -183,9 +192,6 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
 
 #ifdef HAS_MPI
 
-void MinervaSystem::WorkerRun(){
-	mpihandler_->MainLoop();
-}
 
 void MinervaSystem::Request_Data(char* buffer, size_t bytes, int rank, uint64_t device_id, uint64_t data_id){
 	if(worker_){

@@ -9,6 +9,7 @@
 #include "device/device_manager.h"
 #include "device/device.h"
 #include "profiler/execution_profiler.h"
+#include "system/minerva_system_interface.h"
 
 #ifdef HAS_MPI
 #include "mpi/mpi_handler.h"
@@ -21,15 +22,13 @@ namespace minerva {
 //TODO(jlovitt): Consider making a MinervaSystem interface to keep mpi bits hidden from owl.
 
 class MinervaSystem :
+  public IMinervaSystem,
   public common::EverlastingSingleton<MinervaSystem> {
   friend class common::EverlastingSingleton<MinervaSystem>;
 
  public:
   static void UniversalMemcpy(std::pair<Device::MemType, float*>, std::pair<Device::MemType, float*>, size_t);
   static void UniversalMemcpy(void* ,void*, size_t);
-  static int const has_cuda_;
-  static int const has_mpi_;
-  static int const has_fpga_;
   MinervaSystem() = delete;
   DISALLOW_COPY_AND_ASSIGN(MinervaSystem);
   ~MinervaSystem();
@@ -68,7 +67,7 @@ class MinervaSystem :
   // system
   void WaitForAll();
   int rank();
-  void WorkerRun();
+  void WorkerRun() override;
 
 
 #ifdef HAS_MPI

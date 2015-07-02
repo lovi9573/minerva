@@ -19,8 +19,8 @@ cdef extern from './minerva_utils.h' namespace 'libowl':
   int rank() except +
   void WorkerRun() nogil 
 
-cdef extern from '../minerva/minerva.h' namespace 'minerva::MinervaSystem':
-  void Initialize(int*, char***) except +
+cdef extern from '../minerva/minerva.h' namespace 'minerva::IMinervaSystem':
+  void Init(int*, char***) except +
   int has_cuda_
   int has_mpi_
 

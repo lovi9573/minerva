@@ -41,4 +41,4 @@ BLAS_ROOT=
 BUILD_WITH_MPI=0
 
 # whether build with fpga support.
-BUILD_WITH_FPGA=1
+BUILD_WITH_FPGA=0
