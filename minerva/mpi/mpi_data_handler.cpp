@@ -30,6 +30,7 @@ void MpiDataHandler::Handle_Task_Data(MPI_Status& status){
 }
 
 void MpiDataHandler::Handle_Task_Data_Request(MPI_Status& status){
+	std::unique_lock<std::mutex> lock(mpi_mutex_);
 	int count ;
 	MPI_Get_count(&status, MPI_BYTE, &count);
 	char buffer[count];
@@ -60,6 +61,7 @@ void MpiDataHandler::Request_Data(char* devbuffer, size_t bytes, int rank, uint6
 	SERIALIZE(msgbuffer, offset, device_id, uint64_t);
 	SERIALIZE(msgbuffer, offset, data_id, uint64_t);
 	SERIALIZE(msgbuffer, offset, bytes, size_t);
+	std::unique_lock<std::mutex> lock(mpi_mutex_);
 	MPI_Send(msgbuffer, size, MPI_BYTE, rank, MPI_TASK_DATA_REQUEST, MPI_COMM_WORLD);
 	//printf("[%d] Mpi data handler recieving %lu floats\n", MinervaSystem::Instance().rank(),(bytes/sizeof(float)));
 	MPI_Recv(devbuffer, bytes, MPI_BYTE, rank, MPI_TASK_DATA_RESPONSE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);

@@ -28,10 +28,6 @@ private:
 	void Handle_Device_Count(MPI_Status& );
 	void Handle_Create_Device(MPI_Status&);
 	void Handle_Task(MPI_Status&);
-	//template<typename T> void Handle_Closure(MpiTask*, T* );
-
-	//void PushReadyTasks();
-
 	int rank_;
 };
 

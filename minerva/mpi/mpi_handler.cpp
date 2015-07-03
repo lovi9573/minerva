@@ -27,68 +27,62 @@ namespace minerva {
 extern MPI_Datatype MPI_TASKDATA;
 
 MpiHandler::MpiHandler(int rank) : rank_ (rank){
+	printf("MpiHandler initialized on rank %d\n",rank);
 //	MPI_Init(0,NULL);
 //	rank_  = ::MPI::COMM_WORLD.Getrank_ ();
 }
 
 void MpiHandler::MainLoop(){
 	bool term = false;
+	int pending_message = 0;
 	MPI_Status status;
 	//MPI_Status st;
 	while (!term){
-		DLOG(INFO) << "[" << rank_  << "] Top of mainloop.\n";
-		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-		//MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
-		switch(status.MPI_TAG){
-		case MPI_DEVICE_COUNT:
-			DLOG(INFO) << "[" << rank_  << "] Fetching device count\n";
-			Handle_Device_Count(status);
-			break;
-		case MPI_CREATE_DEVICE:
-			Handle_Create_Device(status);
-			break;
-		case MPI_TASK:
-			Handle_Task(status);
-			break;
-		case MPI_TASK_DATA:
-			Handle_Task_Data(status);
-			break;
-		case MPI_TASK_DATA_REQUEST:
-			Handle_Task_Data_Request(status);
-			break;
-		case MPI_TERMINATE:
-			term = true;
-			break;
+		{
+			//TODO: Don't tie up all the mpi time doing IProbes.
+			std::unique_lock<std::mutex> lock(mpi_mutex_);
+			MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &pending_message, &status);
 		}
-		//PushReadyTasks();
+		//MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
+		if(pending_message){
+			DLOG(INFO) << "[" << rank_  << "] Handling message" << status.MPI_TAG << ".\n";
+			switch(status.MPI_TAG){
+			case MPI_DEVICE_COUNT:
+				DLOG(INFO) << "[" << rank_  << "] Fetching device count\n";
+				Handle_Device_Count(status);
+				break;
+			case MPI_CREATE_DEVICE:
+				Handle_Create_Device(status);
+				break;
+			case MPI_TASK:
+				Handle_Task(status);
+				break;
+			case MPI_TASK_DATA:
+				Handle_Task_Data(status);
+				break;
+			case MPI_TASK_DATA_REQUEST:
+				Handle_Task_Data_Request(status);
+				break;
+			case MPI_TERMINATE:
+				term = true;
+				break;
+			}
+			pending_message = 0;
+		}
 	}
+	MPI_Finalize();
 }
 
 int MpiHandler::rank(){
 	return rank_ ;
 }
 
-/*void MpiHandler::PushReadyTasks(){
-	//task_storage.LockRead();
-	auto it = task_storage.begin();
-	while (it != task_storage.end()){
-		if ((it->second->readyness & READY) == READY){
-			uint64_t device_id = it->second->task.op.device_id;
-			MinervaSystemWorker::Instance().device_manager().GetDevice(device_id)->PushTask(&(it->second->task));
-			it = task_storage.erase(it);
-		}else{
-			it++;
-		}
-	}
-	//task_storage.UnLockRead();
-	 *
-}
-	 */
 
 void MpiHandler::Handle_Device_Count(MPI_Status& status){
 	int dummy;
-	MPI_Recv(&dummy, 0, ::MPI::INT, status.MPI_SOURCE, MPI_DEVICE_COUNT, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	int count = MinervaSystem::Instance().device_manager().GetGpuDeviceCount();
+	std::unique_lock<std::mutex> lock(mpi_mutex_);
+	MPI_Recv(&dummy, 0, ::MPI::INT, status.MPI_SOURCE, MPI_DEVICE_COUNT, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	MPI_Send(&count, 1, MPI_INT, status.MPI_SOURCE, MPI_DEVICE_COUNT, MPI_COMM_WORLD);
 }
 
@@ -96,6 +90,7 @@ void MpiHandler::Handle_Create_Device(MPI_Status& status){
 	int id;
 	uint64_t device_id;
 	int count;
+	std::unique_lock<std::mutex> lock(mpi_mutex_);
 	MPI_Get_count(&status,MPI_BYTE, &count);
 	char buffer[count];
 	int offset = 0;
@@ -114,6 +109,7 @@ void MpiHandler::Handle_Create_Device(MPI_Status& status){
 }
 
 void MpiHandler::Handle_Task(MPI_Status& status){
+	std::unique_lock<std::mutex> lock(mpi_mutex_);
 	int count;
 	MPI_Get_count(&status,MPI_BYTE, &count);
 	char bytes[count];
@@ -126,7 +122,11 @@ void MpiHandler::Handle_Task(MPI_Status& status){
 
 
 void MpiHandler::FinalizeTask(uint64_t task_id){
+	std::unique_lock<std::mutex> lock(mpi_mutex_);
+	DLOG(INFO) << "[" << rank_  << "] Sending Finalization message for task #" << task_id;
+	printf("mpi_handler a\n");
 	MPI_Send(&task_id, sizeof(uint64_t), MPI_CHAR, 0, MPI_FINALIZE_TASK, MPI_COMM_WORLD);
+	printf("mpi_handler b\n");
 }
 
 

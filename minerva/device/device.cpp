@@ -85,9 +85,11 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 			DLOG(INFO) << Name() << " dispatching mpi task #" << task->id << ": " << op.compute_fn->Name();
 			//printf("Dispatching task < %lu > with new data size | %lu | to rank %d\n",task->id, task->outputs.size(), _rank);
 			DoExecute(task, thrid);
-			DLOG(INFO) << Name() << " finished dispatch of mpi task #" << task->id << ": " << op.compute_fn->Name();
+			DLOG(INFO) << Name() << " notified of completion of mpi task #" << task->id << ": " << op.compute_fn->Name();
 		#ifndef NDEBUG
+			printf("a\n");
 			calculate_timer.Stop();
+			printf("b\n");
 			MinervaSystem::Instance().profiler().RecordTime(TimerType::kMpi, op.compute_fn->Name(), calculate_timer);
 		#endif
 	  }
@@ -107,13 +109,13 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 		auto& input_data = i.physical_data;
 		//printf("[%d] process task input\n",_rank);
 		if (input_data.device_id == device_id_) {  // Input is local
-		  DLOG(INFO) << Name() << " input task data #" << i.id << " is local";
+		  DLOG(INFO) << Name() << " input task data #" << input_data.data_id << " is local";
 		  //printf("[%d] Task < %lu > Local data [ %lu ] count: %lu\n",_rank,task->id,input_data.data_id, local_data_.Count(input_data.data_id));
 		  CHECK_EQ(local_data_.Count(input_data.data_id), 1); // << " rank: "<< _rank;
 		} else {
 		  lock_guard<mutex> lck(copy_locks_[input_data.data_id]);
 		  if (!remote_data_.Count(input_data.data_id)) {  // Input is remote and not copied
-			DLOG(INFO) << Name() << " input task data #" << i.id << " is remote and not copied";
+			DLOG(INFO) << Name() << " input task data #" << input_data.data_id << " is remote and not copied";
 			size_t size = input_data.size.Prod() * sizeof(float);
 			auto ptr = data_store_->CreateData(input_data.data_id, size);
 			//printf("[%d] Data ptr returned\n",rank_);
@@ -143,7 +145,7 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 	  for (auto& i : task->outputs) {
 		size_t size = i.physical_data.size.Prod() * sizeof(float);
 		//printf("[%d] Device creating output shard for %lu floats\n",_rank, size);
-		DLOG(INFO) << Name() << " create output for task data #" << i.id;
+		DLOG(INFO) << Name() << " create output for task data #" << i.physical_data.data_id;
 		//printf("[%d] Local data [ %lu ] created on rank %d\n",_rank,i.physical_data.data_id, _rank);
 		auto ptr = data_store_->CreateData(i.physical_data.data_id, size);
 		CHECK(local_data_.Insert(i.physical_data.data_id));
@@ -167,13 +169,20 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 		MinervaSystem::Instance().profiler().RecordTime(TimerType::kCalculation, op.compute_fn->Name(), calculate_timer);
 	#endif
 	  }
-#ifdef HAS_MPI
-	  if(MinervaSystem::has_mpi_ && rank_ != 0){
-		  MinervaSystem::Instance().mpi_handler().FinalizeTask(task->id);
-	  }
-#endif
   }//end kCpu || kGpu
+
+#ifdef HAS_MPI
+  if(MinervaSystem::has_mpi_ && rank_ != 0){
+	  printf("+++\n");
+	  MinervaSystem::Instance().mpi_handler().FinalizeTask(task->id);
+  }else{
+	  DLOG(INFO) << Name() << "\n";
 	  listener_->OnOperationComplete(task);
+  }
+#else
+  listener_->OnOperationComplete(task);
+#endif
+
 } // end Execute
 
 void ThreadedDevice::PreExecute() {

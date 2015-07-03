@@ -29,12 +29,15 @@ public:
 	int GetMpiDeviceCount(int rank);
 	void CreateMpiDevice(int rank, int id, uint64_t);
 	void MPI_Send_task(const Task& task,const Context& ctx );
-	void MPI_Send_task_data(const float* ptr, size_t size);
+	//void MPI_Send_task_data(const float* ptr, size_t size);
+	void MPI_Terminate();
 private:
 	int _rank;
 	ConcurrentUnorderedSet<uint64_t> pending_tasks_;
-	std::mutex mutex_;
+	std::mutex task_complete_mutex_;
 	std::condition_variable task_complete_condition_;
+	bool listen_ = true;
+	//std::condition_variable mpi_condition_;
 };
 
 

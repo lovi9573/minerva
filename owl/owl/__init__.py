@@ -19,6 +19,7 @@ on numpy such as IO and visualization.
 import numpy as np
 import libowl as _owl
 import sys
+import os
 import time
 NArray = _owl.NArray
 _owl.initialize()
@@ -29,6 +30,7 @@ worker nodes drop into forever loop.
 """
 if _owl.has_mpi() and _owl.rank() != 0:
     _owl.WorkerRun()
+    os._exit(0)
 
 
 # def initialize():

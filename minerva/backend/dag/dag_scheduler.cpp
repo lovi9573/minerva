@@ -28,7 +28,12 @@ vector<BackendChunk*> DagScheduler::Create(const vector<BackendChunk*>& params,
     const std::vector<Scale>& result_sizes, shared_ptr<ComputeFn> fn) {
   auto current_device_id = MinervaSystem::Instance().current_device_id();
   auto rst_data_nodes = Map<PhysicalDataNode*>(result_sizes, [&](const Scale& size) {
-    return dag_->NewDataNode(PhysicalData(size, current_device_id, MinervaSystem::Instance().GenerateDataId()));
+#ifdef HAS_MPI
+	  int currentrank = MinervaSystem::Instance().device_manager().GetDevice(current_device_id)->rank();
+	  return dag_->NewDataNode(PhysicalData(size, currentrank, current_device_id, MinervaSystem::Instance().GenerateDataId()));
+#else
+	  return dag_->NewDataNode(PhysicalData(size, current_device_id, MinervaSystem::Instance().GenerateDataId()));
+#endif
   });
   Iter(rst_data_nodes, [this](PhysicalDataNode* n) {
     OnCreateNode(n);
@@ -83,6 +88,14 @@ shared_ptr<float> DagScheduler::GetValue(BackendChunk* chunk) {
   shared_ptr<float> ret(new float[data.size.Prod()], [](float* p) {
     delete[] p;
   });
+#ifdef HAS_MPI
+  if (data.rank != MinervaSystem::Instance().rank()){
+	  size_t size = data.size.Prod()*sizeof(float);
+	  MinervaSystem::Instance().Request_Data(reinterpret_cast<char*>(ret.get()), size, data.rank,  data.device_id, data.data_id );
+	  return ret;
+  }
+#endif
+  printf("Getting data pointer for data id %lu on device %lu\n.", data.data_id, data.device_id);
   auto dev_pair = MinervaSystem::Instance().GetPtr(data.device_id, data.data_id);
   MinervaSystem::UniversalMemcpy(make_pair(Device::MemType::kCpu, ret.get()), dev_pair, data.size.Prod() * sizeof(float));
   return ret;
@@ -90,6 +103,7 @@ shared_ptr<float> DagScheduler::GetValue(BackendChunk* chunk) {
 
 // Device listener
 void DagScheduler::OnOperationComplete(Task* task) {
+	DLOG(INFO) << "operation complete\n";
   dispatcher_queue_.Push({TaskType::kToComplete, task->id});
   delete task;
 }
@@ -157,6 +171,7 @@ void DagScheduler::DispatcherRoutine() {
     DagNode* to_delete = 0;
     {
       auto node_id = task.second;
+      DLOG(INFO) << "Looking at node #" << node_id;
       auto node = dag_->GetNode(node_id);
       MultiNodeLock lock(dag_, node);
       auto& ri = rt_info_.At(node_id);

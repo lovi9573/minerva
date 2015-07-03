@@ -18,7 +18,7 @@
 #endif
 
 
-DEFINE_bool(use_dag, false, "Use dag engine");
+DEFINE_bool(use_dag, true, "Use dag engine");
 DEFINE_bool(no_init_glog, false, "Skip initializing Google Logging");
 
 using namespace std;
@@ -75,6 +75,11 @@ MinervaSystem::~MinervaSystem() {
   delete device_manager_;
   delete profiler_;
   delete physical_dag_;
+#ifdef HAS_MPI
+  if(!worker_){
+	  mpiserver_->MPI_Terminate();
+  }
+#endif
   //google::ShutdownGoogleLogging(); //XXX comment out since we switch to dmlc/logging
 }
 
@@ -157,16 +162,15 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
 #endif
 #ifdef HAS_MPI
 
-  	//int provided;
+  	int provided;
   	//TODO: Failure on init here in open-mpi.  See notes below
   	//TODO: making mpi handle the threading impacts performance.  Change it so we handle this.
-  	/*
-  	MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
-	if( provided != MPI_THREAD_MULTIPLE){
+  	MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
+	if( provided != MPI_THREAD_SERIALIZED){
 		LOG(FATAL) << "Multithreaded mpi support is needed.\n";
 	}
-	*/
-	MPI_Init(argc, argv);
+
+	//MPI_Init(argc, argv);
 	rank_ = ::MPI::COMM_WORLD.Get_rank();
 	fflush(stdout);
 	if(rank_ != 0){
@@ -183,12 +187,14 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
   physical_dag_ = new PhysicalDag();
   profiler_ = new ExecutionProfiler();
   device_manager_ = new DeviceManager(worker_);
-  if (FLAGS_use_dag && !worker_) {
-    DLOG(INFO) << "dag engine enabled";
-    backend_ = new DagScheduler(physical_dag_, device_manager_);
-  } else {
-    DLOG(INFO) << "dag engine disabled";
-    backend_ = new SimpleBackend(*device_manager_);
+  if(!worker_){
+	  if (FLAGS_use_dag) {
+		DLOG(INFO) << "dag engine enabled";
+		backend_ = new DagScheduler(physical_dag_, device_manager_);
+	  } else {
+		DLOG(INFO) << "dag engine disabled";
+		backend_ = new SimpleBackend(*device_manager_);
+	  }
   }
 }
 

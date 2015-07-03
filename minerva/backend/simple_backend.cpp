@@ -83,27 +83,13 @@ std::shared_ptr<float> SimpleBackend::GetValue(BackendChunk* chunk) {
     delete[] p;
   });
 #ifdef HAS_MPI
-  //TODO(jlovitt): Clean up this mess
-  std::pair<Device::MemType, float*> dev_pair;
-  //printf("\nSimple Backend fetching data for %d floats on rank %d\n",data.size.Prod(),data.rank);
   if (data.rank != MinervaSystem::Instance().rank()){
-	  //printf("fetching remote data\n");
 	  size_t size = data.size.Prod()*sizeof(float);
-	  char buffer[size];
-	  MinervaSystem::Instance().Request_Data(buffer, size, data.rank,  data.device_id, data.data_id );
-/*	  printf("\nSimple backend floats gotten at %p\n", buffer);
-		for(uint64_t i =0; i < size/sizeof(float); i ++){
-			printf("%f, ", *(  ((float*)buffer)+i        ));
-		}*/
-	  dev_pair = make_pair(Device::MemType::kCpu, (float*)buffer);
-	  MinervaSystem::UniversalMemcpy(make_pair(Device::MemType::kCpu, ret.get()), dev_pair, data.size.Prod() * sizeof(float));
+	  MinervaSystem::Instance().Request_Data(reinterpret_cast<char*>(ret.get()), size, data.rank,  data.device_id, data.data_id );
 	  return ret;
-  }else{
-	  dev_pair = MinervaSystem::Instance().GetPtr(data.device_id, data.data_id);
   }
-#else
-  auto dev_pair = MinervaSystem::Instance().GetPtr(data.device_id, data.data_id);
 #endif
+  auto dev_pair = MinervaSystem::Instance().GetPtr(data.device_id, data.data_id);
   MinervaSystem::UniversalMemcpy(make_pair(Device::MemType::kCpu, ret.get()), dev_pair, data.size.Prod() * sizeof(float));
   return ret;
 }
