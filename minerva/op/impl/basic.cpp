@@ -417,6 +417,26 @@ void ReluForward(const DataList& inputs, const DataList& outputs, ReluForwardClo
   }
 }
 
+void ReluBackward(const DataList& inputs, const DataList& outputs, ReluBackwardClosure&) {
+	  CHECK_EQ(inputs.size(), 3) << "relu backward #inputs wrong";
+	  CHECK_EQ(outputs.size(), 1) << "relu backward #outputs wrong";
+
+	  float* diff = inputs[0].data_;
+	  float* top = inputs[1].data_;
+	  //float* bottom = inputs[2].data_;
+	  float* bottom_diff = outputs[0].data_;
+
+	  size_t numbers = inputs[0].size_.Prod();
+
+	  for(size_t i = 0; i < numbers; i++){
+		  if(top[i] > 0){
+			  bottom_diff[i] = diff[i];
+		  }else{
+			  bottom_diff[i] = 0;
+		  }
+	  }
+}
+
 void TanhForward(const DataList& inputs, const DataList& outputs, TanhForwardClosure&) {
   CHECK_EQ(inputs.size(), 1) << "tanh forward #inputs wrong";
   CHECK_EQ(outputs.size(), 1) << "tanh forward #outputs wrong";
@@ -453,6 +473,70 @@ void ActivationForward(const DataList& inputs, const DataList& outputs, Activati
     default:
       LOG(FATAL) << "activation algorithm not supported";
   }
+}
+
+/*
+ * NOTE: This implementation is not designed to be fast.  If you want that, use a GPU.  It is meant to provide feature completeness and the ability to develop on a GPU-less machine.
+ */
+void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClosure& closure){
+	CHECK_EQ(inputs.size(), 3) << " Convolution #inputs are wrong.\n";
+	CHECK_EQ(outputs.size(), 1) << " Convolution #outputs are wrong.\n";
+
+	float* input = inputs[0].data_;
+	Scale insize = inputs[0].size_;
+	int in_column = insize[0];
+	int in_channel = insize[1]*insize[0];
+	int in_element = insize[2]*insize[1]*insize[0];
+
+	float* filters = inputs[1].data_;
+	Scale filtersize = inputs[1].size_;
+	int filter_column = filtersize[0];
+	int filter_channel = filtersize[1]*filtersize[0];
+	int filter_element = filtersize[2]*filtersize[1]*filtersize[0];
+
+	float* bias = inputs[2].data_;
+	float* activations = outputs[0].data_;
+	Scale outsize = outputs[0].size_;
+	int out_column = outsize[0];
+	int out_channel = outsize[1]*outsize[0];
+	int out_element = outsize[2]*outsize[1]*outsize[0];
+
+    int pad_height = closure.pad_height;
+    int pad_width = closure.pad_width;
+    int stride_vertical = closure.stride_vertical;
+    int stride_horizontal = closure.stride_horizontal;
+
+
+	for(int element = 0 ; element < insize[3]; element++){
+		printf("element\n");
+		for(int y = -pad_height; y < inputs[0].size_.get(1)-inputs[1].size_.get(1)+pad_height+1; y = y + stride_vertical){
+			printf("\trow %d / %d X %d\n",y,inputs[0].size_.get(1)-inputs[1].size_.get(1)+pad_height+1,stride_vertical);
+			for(int x = -pad_width; x < insize[0]-filtersize[0]+pad_width+1; x += stride_horizontal){
+				printf("\t\tcolumn %d / %d X %d\n",x,inputs[0].size_.get(0)-inputs[1].size_.get(0)+pad_width+1,stride_horizontal);
+				for(int filter = 0; filter < inputs[1].size_.get(3); filter++){
+					printf("\t\t\tfilter %d / %d\n",filter,inputs[1].size_.get(3));
+					for(int channel =0; channel < inputs[0].size_.get(2); channel++){
+						//printf("\t\t\t\tchannel %d / %d\n",channel,inputs[1].size_.get(3));
+						for(int filter_y = 0; filter_y < inputs[1].size_.get(1); filter_y++){
+							for(int filter_x = 0; filter_x < inputs[1].size_.get(0); filter_x++){
+								if(x >= 0 && x < inputs[0].size_.get(0) && y >= 0 && y < inputs[0].size_.get(1)){
+									//printf("\t\t\t\t\t\top x: %d, y: %d\n",filter_x,filter_y);
+									activations[x/stride_horizontal + out_column*(y/stride_vertical) + out_channel*filter + out_element*element ] +=
+											input[(x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*element] *
+											filters[1*(filter_x+filter_column*filter_y+filter_channel*channel+filter_element*filter)-1] ;
+									printf("\t\t\t\tinput:%f * filter:%f\n",
+											input[(x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*element],
+											filters[1*(filter_x+filter_column*filter_y+filter_channel*channel+filter_element*filter)-1] );
+
+								}
+							}
+						}
+					}//End full filter (filter_x*filter_y*channel)
+					activations[x/stride_horizontal +out_column*(y/stride_vertical) + out_channel*filter + out_element*element]  += bias[filter];
+				}
+			}
+		}
+	}
 }
 
 

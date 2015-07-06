@@ -33,6 +33,8 @@ void TanhBackward(const DataList&, const DataList&, TanhBackwardClosure&);
 void ActivationForward(const DataList&, const DataList&, ActivationForwardClosure&);
 void ActivationBackward(const DataList&, const DataList&, ActivationBackwardClosure&);
 
+void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClosure& closure);
+
 void SoftmaxForward(const DataList&, const DataList&, SoftmaxForwardClosure&);
 void Index(const DataList&, const DataList&, IndexClosure&);
 }  // end of namespace basic
