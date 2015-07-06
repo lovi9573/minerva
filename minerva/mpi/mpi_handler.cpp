@@ -27,7 +27,7 @@ namespace minerva {
 extern MPI_Datatype MPI_TASKDATA;
 
 MpiHandler::MpiHandler(int rank) : rank_ (rank){
-	printf("MpiHandler initialized on rank %d\n",rank);
+	//printf("MpiHandler initialized on rank %d\n",rank);
 //	MPI_Init(0,NULL);
 //	rank_  = ::MPI::COMM_WORLD.Getrank_ ();
 }
@@ -124,9 +124,7 @@ void MpiHandler::Handle_Task(MPI_Status& status){
 void MpiHandler::FinalizeTask(uint64_t task_id){
 	std::unique_lock<std::mutex> lock(mpi_mutex_);
 	DLOG(INFO) << "[" << rank_  << "] Sending Finalization message for task #" << task_id;
-	printf("mpi_handler a\n");
 	MPI_Send(&task_id, sizeof(uint64_t), MPI_CHAR, 0, MPI_FINALIZE_TASK, MPI_COMM_WORLD);
-	printf("mpi_handler b\n");
 }
 
 

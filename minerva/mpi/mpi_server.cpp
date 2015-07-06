@@ -115,7 +115,7 @@ void MpiServer::Handle_Finalize_Task(MPI_Status status){
 	MPI_Get_count(&status, MPI_BYTE, &count);
 	//char buffer[count];
 	MPI_Recv(&task_id, count, MPI_CHAR, status.MPI_SOURCE, MPI_FINALIZE_TASK, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-	printf("notified of finalization of task %lu\n",task_id);
+	//printf("notified of finalization of task %lu\n",task_id);
 	pending_tasks_.Erase(task_id);
 	std::unique_lock<std::mutex> task_lock(task_complete_mutex_);
 	task_complete_condition_.notify_all();

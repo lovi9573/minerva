@@ -95,7 +95,7 @@ shared_ptr<float> DagScheduler::GetValue(BackendChunk* chunk) {
 	  return ret;
   }
 #endif
-  printf("Getting data pointer for data id %lu on device %lu\n.", data.data_id, data.device_id);
+  //printf("Getting data pointer for data id %lu on device %lu\n.", data.data_id, data.device_id);
   auto dev_pair = MinervaSystem::Instance().GetPtr(data.device_id, data.data_id);
   MinervaSystem::UniversalMemcpy(make_pair(Device::MemType::kCpu, ret.get()), dev_pair, data.size.Prod() * sizeof(float));
   return ret;

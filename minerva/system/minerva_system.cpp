@@ -46,29 +46,7 @@ void MinervaSystem::UniversalMemcpy(
 
 
 
-int const IMinervaSystem::has_cuda_ =
-#ifdef HAS_CUDA
-1
-#else
-0
-#endif
-;
 
-int const IMinervaSystem::has_mpi_ =
-#ifdef HAS_MPI
-1
-#else
-0
-#endif
-;
-
-int const IMinervaSystem::has_fpga_ =
-#ifdef HAS_FPGA
-1
-#else
-0
-#endif
-;
 
 MinervaSystem::~MinervaSystem() {
   delete backend_;
@@ -167,7 +145,7 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
   	//TODO: making mpi handle the threading impacts performance.  Change it so we handle this.
   	MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
 	if( provided != MPI_THREAD_SERIALIZED){
-		LOG(FATAL) << "Multithreaded mpi support is needed.\n";
+		LOG(FATAL) << "Thread Serialized mpi support is needed.\n";
 	}
 
 	//MPI_Init(argc, argv);

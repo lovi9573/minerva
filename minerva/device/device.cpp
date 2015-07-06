@@ -87,9 +87,9 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 			DoExecute(task, thrid);
 			DLOG(INFO) << Name() << " notified of completion of mpi task #" << task->id << ": " << op.compute_fn->Name();
 		#ifndef NDEBUG
-			printf("a\n");
+			//printf("a\n");
 			calculate_timer.Stop();
-			printf("b\n");
+			//printf("b\n");
 			MinervaSystem::Instance().profiler().RecordTime(TimerType::kMpi, op.compute_fn->Name(), calculate_timer);
 		#endif
 	  }
@@ -172,11 +172,12 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
   }//end kCpu || kGpu
 
 #ifdef HAS_MPI
-  if(MinervaSystem::has_mpi_ && rank_ != 0){
-	  printf("+++\n");
+  //printf("MinervaSystem::has_mpi_: %d ; rank_: %d \n",MinervaSystem::has_mpi_, rank_);
+  if(MinervaSystem::has_mpi_ == 1 && MinervaSystem::Instance().rank() != 0){
+	  //printf("Worker rank notifying handler of task completion\n");
 	  MinervaSystem::Instance().mpi_handler().FinalizeTask(task->id);
   }else{
-	  DLOG(INFO) << Name() << "\n";
+	  //DLOG(INFO) << Name() << " notifying listener of completed task\n";
 	  listener_->OnOperationComplete(task);
   }
 #else
