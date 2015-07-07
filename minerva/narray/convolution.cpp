@@ -4,7 +4,6 @@
 namespace minerva {
 
 ImageBatch Convolution::ConvForward(ImageBatch src, Filter filter, NArray bias, ConvInfo info) {
-	printf("%d , %d\n,",src.GetNumFeatureMaps(), filter.GetNumInputs());
   CHECK_EQ(src.GetNumFeatureMaps(), filter.GetNumInputs()) << "#input channels mismatch";
   CHECK_EQ(bias.Size().NumDims(), 1) << "bias dimension mismatch";
   CHECK_EQ(bias.Size()[0], filter.GetNumOutputs()) << "bias size mismatch";

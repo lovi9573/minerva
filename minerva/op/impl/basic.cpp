@@ -508,26 +508,26 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 
 
 	for(int element = 0 ; element < insize[3]; element++){
-		printf("element\n");
+		//printf("element\n");
 		for(int y = -pad_height; y < inputs[0].size_.get(1)-inputs[1].size_.get(1)+pad_height+1; y = y + stride_vertical){
-			printf("\trow %d / %d X %d\n",y,inputs[0].size_.get(1)-inputs[1].size_.get(1)+pad_height+1,stride_vertical);
+			//printf("\trow %d / %d X %d\n",y,inputs[0].size_.get(1)-inputs[1].size_.get(1)+pad_height+1,stride_vertical);
 			for(int x = -pad_width; x < insize[0]-filtersize[0]+pad_width+1; x += stride_horizontal){
-				printf("\t\tcolumn %d / %d X %d\n",x,inputs[0].size_.get(0)-inputs[1].size_.get(0)+pad_width+1,stride_horizontal);
+				//printf("\t\tcolumn %d / %d X %d\n",x,inputs[0].size_.get(0)-inputs[1].size_.get(0)+pad_width+1,stride_horizontal);
 				for(int filter = 0; filter < inputs[1].size_.get(3); filter++){
-					printf("\t\t\tfilter %d / %d\n",filter,inputs[1].size_.get(3));
+					//printf("\t\t\tfilter %d / %d\n",filter,inputs[1].size_.get(3));
 					for(int channel =0; channel < inputs[0].size_.get(2); channel++){
 						//printf("\t\t\t\tchannel %d / %d\n",channel,inputs[1].size_.get(3));
 						for(int filter_y = 0; filter_y < inputs[1].size_.get(1); filter_y++){
 							for(int filter_x = 0; filter_x < inputs[1].size_.get(0); filter_x++){
 								if(x >= 0 && x < inputs[0].size_.get(0) && y >= 0 && y < inputs[0].size_.get(1)){
-									//printf("\t\t\t\t\t\top x: %d, y: %d\n",filter_x,filter_y);
+									////printf("\t\t\t\t\t\top x: %d, y: %d\n",filter_x,filter_y);
 									activations[x/stride_horizontal + out_column*(y/stride_vertical) + out_channel*filter + out_element*element ] +=
 											input[(x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*element] *
-											filters[1*(filter_x+filter_column*filter_y+filter_channel*channel+filter_element*filter)-1] ;
-									printf("\t\t\t\tinput:%f * filter:%f\n",
+											filters[filter_x+filter_column*filter_y+filter_channel*channel+filter_element*filter] ;
+									/*printf("\t\t\t\t\t(x: %d + %d , y: %d + %d) input:%f * filter:%f\n",x,filter_x,y,filter_y,
 											input[(x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*element],
-											filters[1*(filter_x+filter_column*filter_y+filter_channel*channel+filter_element*filter)-1] );
-
+											filters[filter_x+filter_column*filter_y+filter_channel*channel+filter_element*filter] );
+									 */
 								}
 							}
 						}

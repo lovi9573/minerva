@@ -15,8 +15,8 @@ class TestForiegnOps(unittest.TestCase):
         owldiff = owl.from_numpy(top_diff)
         owltop = owl.from_numpy(top)
         test = elewise.relu_back(owldiff,owltop)
-        print 'Expected\n',expected
-        print "Actual\n",test.to_numpy()
+        #print 'Expected\n',expected
+        #print "Actual\n",test.to_numpy()
         self.assertTrue(np.allclose(expected, test.to_numpy()))
 
 
