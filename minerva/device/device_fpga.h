@@ -8,11 +8,12 @@
 #ifndef MINERVA_DEVICE_DEVICE_FPGA_H_
 #define MINERVA_DEVICE_DEVICE_FPGA_H_
 
+#ifdef HAS_FPGA
 #include "device/device.h"
+#include "Ht.h"
 
 namespace minerva {
 
-#ifdef HAS_FPGA
 class FpgaDevice : public ThreadedDevice {
  public:
   FpgaDevice(uint64_t device_id, DeviceListener*, int sub_id);
@@ -33,9 +34,11 @@ class FpgaDevice : public ThreadedDevice {
   void DoCopyRemoteData(float*, float*, size_t, int) override;
   void DoExecute(const DataList&, const DataList&, PhysicalOp&, int) override;
   void DoExecute(Task* task, int thrid) override;
+  CHtHif *pHt_host_interface;
+  CHtAuUnit ** pAuUnits;
 };
-#endif // HAS_FPGA
 
 } //namespace minerva
+#endif // HAS_FPGA
 
 #endif /* MINERVA_DEVICE_DEVICE_FPGA_H_ */

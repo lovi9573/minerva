@@ -1,0 +1,76 @@
+////////////////////////////////////////////////////
+// Top-level control module
+
+dsnInfo.AddModule(name=ctl, htIdW=0);
+
+ctl.AddInst(name=CTL_ENTRY);
+ctl.AddInst(name=CTL_COMPUTE);
+ctl.AddInst(name=CTL_JOIN);
+ctl.AddInst(name=CTL_RTN);
+
+ctl.AddHostMsg(dir=in, name=VEC_LEN)
+	.AddDst(var=vecLen)
+	;
+
+
+ctl.AddShared()
+	.AddVar(type=uint64_t, name=vecLen)
+	;
+
+ctl.AddPrivate()
+	.AddVar(type=uint32_t, name=vecIdx)
+	.AddVar(type=uint32_t, name=vecStride)
+	;
+
+ctl.AddEntry(func=htmain, inst=CTL_ENTRY, host=true)
+	.AddParam(type=uint32_t, name=vecIdx)
+	.AddParam(type=uint32_t, name=vecStride)
+	;
+
+ctl.AddReturn(func=htmain)
+	;
+
+ctl.AddCall(func=relu, fork=true);
+
+
+////////////////////////////////////////////////////
+// Loads vector elements from op array, rectifies , stores results
+#define RELU_HTID_W 9
+typedef ht_uint48 MemAddr_t;
+
+dsnInfo.AddModule(name=relu, htIdW=RELU_HTID_W);
+
+relu.AddInst(name=RELU_LD1);
+relu.AddInst(name=RELU_ST);
+relu.AddInst(name=RELU_RTN);
+
+relu.AddHostMsg(dir=in, name=IN_ADDR)
+	.AddDst(var=op1Addr)
+	;
+relu.AddHostMsg(dir=in, name=OUT_ADDR)
+	.AddDst(var=resAddr)
+	;
+
+relu.AddPrivate()
+	.AddVar(type=uint32_t, name=vecIdx)
+	.AddVar(type=ht_int16, name=result)
+	.AddVar(type=ht_int16, name=op1)
+	;
+
+relu.AddShared()
+	.AddVar(type=MemAddr_t, name=op1Addr)
+	.AddVar(type=MemAddr_t, name=resAddr)
+	;
+
+relu.AddEntry(func=relu, inst=RELU_LD1)
+	.AddParam(type=uint32_t, name=vecIdx)
+	;
+
+relu.AddReturn(func=relu)
+	;
+
+relu.AddReadMem()
+	.AddDst(var=op1)
+	;
+
+relu.AddWriteMem();

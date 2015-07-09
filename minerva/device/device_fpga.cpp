@@ -35,6 +35,20 @@ namespace minerva {
  * ====================
  */
 FpgaDevice::FpgaDevice(uint64_t device_id, DeviceListener*, int sub_id){
+	// Get interfaces
+	pHt_host_interface = new CHtHif();
+	int unitCnt = pHt_host_interface->GetUnitCnt();
+	printf("#AUs = %d\n", unitCnt);
+
+	pAuUnits = new CHtAuUnit * [unitCnt];
+	for (int unit = 0; unit < unitCnt; unit++){
+		pAuUnits[unit] = new CHtAuUnit(pHt_host_interface);
+	}
+
+	/*
+	auto allocator = pHt_host_interface->MemAlloc;
+	auto deallocator = pHt_host_interface->MemFree;
+	*/
 	  auto allocator = [](size_t len) -> void* {
 	    void* ret = malloc(len);
 	    return ret;
@@ -42,7 +56,9 @@ FpgaDevice::FpgaDevice(uint64_t device_id, DeviceListener*, int sub_id){
 	  auto deallocator = [](void* ptr) {
 	    free(ptr);
 	  };
+
 	  data_store_ = common::MakeUnique<DataStore>(allocator, deallocator);
+
 }
 
 
@@ -58,21 +74,28 @@ std::string FpgaDevice::Name(){
 	return common::FString("FPGA device #%d", device_id_);
 }
 
-  //struct Impl;
-  //std::unique_ptr<Impl> impl_;
-  //void PreExecute() override;
-  //void Barrier(int) override;
-  void FpgaDevice::DoCopyRemoteData(float*, float*, size_t, int) {
-	//TODO(jlovitt): How to copy in / out of fpga?
-  }
-  void FpgaDevice::DoExecute(const DataList&, const DataList&, PhysicalOp&, int){
-	  Context ctx;
-	  ctx.impl_type = ImplType::kFpga;
-	  //TODO(jlovitt): Other needed FPGA context.
-	  op.compute_fn->Execute(in, out, ctx);
-  }
-  void FpgaDevice::DoExecute(Task* task, int thrid) override;
-};
+
+void FpgaDevice::DoCopyRemoteData(float* dst, float* src, size_t size, int) {
+	//pHt_host_interface->MemCpy(dst, src, size);
+#ifdef HAS_CUDA
+  CUDA_CALL(cudaMemcpy(dst, src, size, cudaMemcpyDefault));
+#else
+  memcpy(dst, src, size);
+#endif
+}
+
+void FpgaDevice::DoExecute(const DataList&, const DataList&, PhysicalOp&, int){
+  Context ctx;
+  ctx.impl_type = ImplType::kFpga;
+  ctx.pHT_interface = pHt_host_interface;
+  ctx.pAuUnits = pAuUnits;
+  op.compute_fn->Execute(in, out, ctx);
+}
+
+void FpgaDevice::DoExecute(Task* task, int thrid) {
+	LOG(FATAL) << "Cannot call DoExecute with Task* parameter on a CPU Device.";
+}
+
 #endif // HAS_FPGA
 
 }  // namespace minerva

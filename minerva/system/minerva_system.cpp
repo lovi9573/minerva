@@ -26,6 +26,7 @@ using namespace std;
 namespace minerva {
 
 //TODO(jlovitt): Perhaps this will be possible with RDMA
+//TODO(jlovitt): Make this work with FPGA
 void MinervaSystem::UniversalMemcpy(
     pair<Device::MemType, float*> to,
     pair<Device::MemType, float*> from,
