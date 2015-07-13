@@ -45,6 +45,7 @@ struct Context {
 #ifdef HAS_FPGA
   CHtHif *pHt_host_interface;
   CHtAuUnit ** pAuUnits;
+  int unitCnt;
 #endif
   virtual ~Context() {
   };

@@ -9,17 +9,17 @@
 #define MINERVA_OP_IMPL_FPGA_FPGA_UTIL_C_
 
 
-void float2q88(float* src, ht_int16* dest, size_t n ){
+void float2qxx(float* src, uint64_t* dest, size_t n , int integerdigits, int fractionaldigits){
 
 	for(size_t i = 0; i < n; i++){
-		dest[i] = static_cast<ht_int16>(src[i] * (1<<8));
+		dest[i] = static_cast<uint64_t>(src[i] * (1<<fractionaldigits));
 	}
 }
 
 
-void q882float(ht_int16* src, float* dest, size_t n){
+void qxx2float(uint64_t* src, float* dest, size_t n, int integerdigits, int fractionaldigits){
 	for (size_t i = 0; i < n; i++){
-		dest[i] = (static_cast<float>(src[i])) / (1>>8);
+		dest[i] = (static_cast<float>(src[i])) / (1>>fractionaldigits);
 	}
 }
 

@@ -10,7 +10,8 @@
 
 #include "fpga.h"
 #include "fpga_util.h"
-#include <Ht.h>
+#include "HTModels/HTModels.h"
+
 
 namespace minerva {
 namespace basic {
@@ -25,14 +26,16 @@ void ReluForward(const DataList& inputs, const DataList& outputs, ReluForwardClo
   float* output_data = outputs[0].data_;
   size_t numbers = inputs[0].size_.Prod();
 
-  ht_int16 *input_q88_data = malloc(numbers*sizeof(ht_int16));
-  ht_int16 *output_q88_data = malloc(numbers*sizeof(ht_int16));
+  uint64_t *input_q88_data = malloc(numbers*sizeof(ht_int16));
+  uint64_t *output_q88_data = malloc(numbers*sizeof(ht_int16));
 
-  float2q88(input_data, input_q88_data,numbers);
+  float2qxx(input_data, input_q88_data,numbers,8,8);
+
+  relu_forward(input_q88_data, output_q88_data, numbers, ctx.pHtHif, ctx.pAuUnits, ctx.unitCnt );
 
 /*
  * HT interface
- */
+ *
 	// Get interface from context
   	int unitCnt = ctx.pHt_host_interface->GetUnitCnt();
 
@@ -56,7 +59,8 @@ void ReluForward(const DataList& inputs, const DataList& outputs, ReluForwardClo
 
 	// Send calls to units
 	for (int unit = 0; unit < unitCnt; unit++)
-		ctx.pAuUnits[unit]->SendCall_htmain(unit /*offset*/, unitCnt /*stride*/);
+		//									offset, stride
+		ctx.pAuUnits[unit]->SendCall_htmain(unit , unitCnt );
 
 	// Wait for returns
 	for (int unit = 0; unit < unitCnt; unit++) {
@@ -66,11 +70,11 @@ void ReluForward(const DataList& inputs, const DataList& outputs, ReluForwardClo
 
 	//Copy results out.
 	ctx.pHt_host_interface->MemCpy(output_q88_data, ht_output_data, numbers * sizeof(ht_int16));
-/*
+*
  * End HT Interface
  */
 
-	q882float(output_q88_data, output_data, numbers);
+	qxx2float(output_q88_data, output_data, numbers,8,8);
 	free(input_q88_data);
 	free(output_q88_data);
 

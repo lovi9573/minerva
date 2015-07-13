@@ -21,6 +21,9 @@
 #include <cuda.h>
 #include <cublas_v2.h>
 #endif
+#ifdef HAS_FPGA
+#include <Ht.h>
+#endif
 
 
 using namespace std;
@@ -37,11 +40,11 @@ namespace minerva {
 FpgaDevice::FpgaDevice(uint64_t device_id, DeviceListener*, int sub_id){
 	// Get interfaces
 	pHt_host_interface = new CHtHif();
-	int unitCnt = pHt_host_interface->GetUnitCnt();
+	unitCnt_ = pHt_host_interface->GetUnitCnt();
 	printf("#AUs = %d\n", unitCnt);
 
-	pAuUnits = new CHtAuUnit * [unitCnt];
-	for (int unit = 0; unit < unitCnt; unit++){
+	pAuUnits = new CHtAuUnit * [unitCnt_];
+	for (int unit = 0; unit < unitCnt_; unit++){
 		pAuUnits[unit] = new CHtAuUnit(pHt_host_interface);
 	}
 
@@ -89,6 +92,7 @@ void FpgaDevice::DoExecute(const DataList&, const DataList&, PhysicalOp&, int){
   ctx.impl_type = ImplType::kFpga;
   ctx.pHT_interface = pHt_host_interface;
   ctx.pAuUnits = pAuUnits;
+  ctx.unitCnt = unitCnt_;
   op.compute_fn->Execute(in, out, ctx);
 }
 

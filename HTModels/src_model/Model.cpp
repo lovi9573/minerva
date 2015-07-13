@@ -36,7 +36,7 @@ void CHtModelAuUnit::UnitThread()
 					res = 0;
 				}
 				*(resAddr + vecIdx) = res;
-				vecIdx += stride;
+				vecIdx += vecStride;
 			}
 			while (!SendReturn_htmain());
 		}

@@ -36,6 +36,7 @@ class FpgaDevice : public ThreadedDevice {
   void DoExecute(Task* task, int thrid) override;
   CHtHif *pHt_host_interface;
   CHtAuUnit ** pAuUnits;
+  int unitCnt_;
 };
 
 } //namespace minerva
