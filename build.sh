@@ -32,6 +32,7 @@ CXXFLAGS="$CXXFLAGS \
   -DBUILD_WITH_MPI=$BUILD_WITH_MPI \
   -DBUILD_WITH_FPGA=$BUILD_WITH_FPGA \
   -DBLAS_ROOT=$BLAS_ROOT \
+  -DHT_MODEL_TYPE=$HT_MODEL_TYPE \
   "
 
 while [[ $# -gt 0 ]]; do
@@ -68,7 +69,8 @@ if [ ! -d $BUILD_DIR ]; then
   mkdir $BUILD_DIR
 fi
 cd $BUILD_DIR
-CC=$CC CXX=$CXX cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CXXFLAGS -I/home/jlovitt/open-mpi/include .. && make -j4
+cp -r ../HTModels . && make -C HTModels lib$HT_MODEL_TYPE
+CC=$CC CXX=$CXX cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CXXFLAGS -I/home/jlovitt/open-mpi/include .. && make -j2
 cd ..
 
 if [ $BUILD_OWL -eq 1 ]; then

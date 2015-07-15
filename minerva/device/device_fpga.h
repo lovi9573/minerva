@@ -10,7 +10,7 @@
 
 #ifdef HAS_FPGA
 #include "device/device.h"
-#include "Ht.h"
+//#include "Ht.h"
 
 namespace minerva {
 
@@ -19,7 +19,7 @@ class FpgaDevice : public ThreadedDevice {
   FpgaDevice(uint64_t device_id, DeviceListener*, int sub_id);
   DISALLOW_COPY_AND_ASSIGN(FpgaDevice);
   ~FpgaDevice();
-  MemType GetMemType() const override;
+  Device::MemType GetMemType() const override;
   std::string Name() const override;
 #ifdef HAS_MPI
 	FpgaDevice(int rank, uint64_t device_id, DeviceListener*, int sub_id);
@@ -34,9 +34,9 @@ class FpgaDevice : public ThreadedDevice {
   void DoCopyRemoteData(float*, float*, size_t, int) override;
   void DoExecute(const DataList&, const DataList&, PhysicalOp&, int) override;
   void DoExecute(Task* task, int thrid) override;
-  CHtHif *pHt_host_interface;
-  CHtAuUnit ** pAuUnits;
-  int unitCnt_;
+//  CHtHif *pHt_host_interface;
+//  CHtAuUnit ** pAuUnits;
+//  int unitCnt_;
 };
 
 } //namespace minerva

@@ -14,11 +14,11 @@
 #include "op/closure.h"
 
 namespace minerva {
-namespace basic {
+namespace fpga {
 
 void ReluForward(const DataList&, const DataList&, ReluForwardClosure&);
 
-} // namespace basic
+} // namespace fpga
 }// namespace minerva
 
 #endif

@@ -1,6 +1,7 @@
 #pragma once
 #include "op/impl/basic.h"
 #include "op/impl/cuda.h"
+#include "op/impl/fpga.h"
 #include "op/impl/impl.h"
 #include <dmlc/logging.h>
 
@@ -28,7 +29,7 @@ INSTALL_COMPUTE_FN(ReshapeClosure, basic::Reshape, NO_IMPL, cuda::Reshape, NO_IM
 INSTALL_COMPUTE_FN(ElewiseClosure, basic::Elewise, NO_IMPL, cuda::Elewise, NO_IMPL);
 INSTALL_COMPUTE_FN(SigmoidForwardClosure, basic::SigmoidForward, NO_IMPL, cuda::SigmoidForward, NO_IMPL);
 INSTALL_COMPUTE_FN(SigmoidBackwardClosure, NO_IMPL, NO_IMPL, cuda::SigmoidBackward, NO_IMPL);
-INSTALL_COMPUTE_FN(ReluForwardClosure, basic::ReluForward, NO_IMPL, cuda::ReluForward, NO_IMPL);
+INSTALL_COMPUTE_FN(ReluForwardClosure, basic::ReluForward, NO_IMPL, cuda::ReluForward, fpga::ReluForward);
 INSTALL_COMPUTE_FN(ReluBackwardClosure, basic::ReluBackward, NO_IMPL, cuda::ReluBackward, NO_IMPL);
 INSTALL_COMPUTE_FN(TanhForwardClosure, basic::TanhForward, NO_IMPL, cuda::TanhForward, NO_IMPL);
 INSTALL_COMPUTE_FN(TanhBackwardClosure, NO_IMPL, NO_IMPL, cuda::TanhBackward, NO_IMPL);

@@ -20,7 +20,9 @@ void CHtModelAuUnit::UnitThread()
 		uint64_t msgData;
 		if (RecvHostMsg(msgType, msgData)) {
 			switch (msgType) {
-			case IN_ADDR: op1Addr = (uint64_t *)msgData; break;
+			case IN_ADDR: op1Addr = (uint64_t *)msgData;
+							printf("op1Addr: %lu\n",(uint64_t)op1Addr);
+							break;
 			case OUT_ADDR: resAddr = (uint64_t *)msgData; break;
 			case VEC_LEN:  vecLen = msgData; break;
 			default: assert(0);
@@ -30,13 +32,14 @@ void CHtModelAuUnit::UnitThread()
 		uint32_t vecIdx, vecStride;
 		if (RecvCall_htmain(vecIdx, vecStride)) {
 			while (vecIdx < vecLen) {
-				uint64_t op1 = *(op1Addr + vecIdx);
-				uint64_t res = op1 ;
+				int64_t op1 = *(op1Addr + vecIdx);
+				int64_t res = op1 ;
 				if(op1 <=0){
 					res = 0;
 				}
 				*(resAddr + vecIdx) = res;
 				vecIdx += vecStride;
+				printf("[%d] %ld => %ld\n",vecIdx,op1, res);
 			}
 			while (!SendReturn_htmain());
 		}

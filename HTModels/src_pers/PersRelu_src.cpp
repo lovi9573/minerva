@@ -58,30 +58,32 @@ CPersRelu::PersRelu()
 			BUSY_RETRY(ReadMemBusy());
 
 			// Memory read request
-			MemAddr_t memRdAddr = SR_op1Addr + (P_vecIdx << 1);
+			MemAddr_t memRdAddr = SR_op1Addr + (P_vecIdx << 3);
+			printf("Preread  op1<%lu>: %ld\n",memRdAddr.to_uint64(),PR_op1);
 			ReadMem_op1(memRdAddr);
+			printf("Postread op1<%lu>: %ld\n",memRdAddr.to_uint64(),PR_op1);
 			HtContinue(RELU_ST);
 		}
 		break;
 		case RELU_ST: {
 			BUSY_RETRY(WriteMemBusy());
-
 			if(PR_op1 > 0){
 				P_result = PR_op1;
 			}else{
 				P_result = 0;
 			}
+			printf("ST op1: %ld => %ld\n",PR_op1, P_result);
 
 			// Memory write request
-			MemAddr_t memWrAddr = SR_resAddr + (P_vecIdx << 1);
+			MemAddr_t memWrAddr = SR_resAddr + (P_vecIdx << 3);
 			WriteMem(memWrAddr, P_result);
-			WriteMemPause(ADD_RTN);
+			WriteMemPause(RELU_RTN);
 		}
 		break;
-		case ADD_RTN: {
+		case RELU_RTN: {
 			BUSY_RETRY(SendReturnBusy_relu());
 
-			SendReturn_relu(P_result);
+			SendReturn_relu();
 		}
 		break;
 		default:

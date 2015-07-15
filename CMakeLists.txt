@@ -161,6 +161,7 @@ message(STATUS "build with BLAS library for CPU     -- ${BUILD_WITH_BLAS}")
 message(STATUS "build with MPI support              -- ${BUILD_WITH_MPI}")
 message(STATUS "MPI libraries found.                -- ${MPI_CXX_FOUND}")
 message(STATUS "build with FPGA support             -- ${BUILD_WITH_FPGA}")
+message(STATUS "FPGA model type                     -- ${HT_MODEL_TYPE}")
 
 add_subdirectory(minerva)
 
