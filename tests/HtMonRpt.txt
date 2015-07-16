@@ -1,24 +1,24 @@
-Simulated Cycles	:    16944
+Simulated Cycles	:    14419
 Platform		:    wx690
 Unit Count		:        1
 
 #
 # Memory Summary
 #
-Host Latency (cyc)	:      399 /       423 /      505  (Min / Avg / Max)
-CP Latency (cyc)	:       68 /       128 /      451  (Min / Avg / Max)
-Host Operations		:       35 /        30		   (Read / Write)
+Host Latency (cyc)	:      399 /       422 /      505  (Min / Avg / Max)
+CP Latency (cyc)	:       72 /       266 /      541  (Min / Avg / Max)
+Host Operations		:       33 /        29		   (Read / Write)
 CP Operations		:       20 /        20		   (Read / Write)
-Host Efficiency		:   15.00% /    12.50%		   (Read / Write)
+Host Efficiency		:   15.15% /    12.50%		   (Read / Write)
 CP Efficiency		:   12.50% /    12.50%		   (Read / Write)
-Host Utiliztion		:     inf% /      inf%		   (Req / Resp)
-CP Utiliztion		:     inf% /      inf%		   (Req / Resp)
+Host Utiliztion		:    8.86% /     9.86%		   (Req / Resp)
+CP Utiliztion		:    5.71% /     5.71%		   (Req / Resp)
 
 #
 # Memory Operations                    Read      ReadMw      Write     WriteMw 
 #                                   ---------- ---------- ---------- ----------
-<total>                                     54          1         50          0
-HIF                                         34          1         30          0
+<total>                                     52          1         49          0
+HIF                                         33          1         30          0
 CTL                                          0          0          0          0
 ctl/RELU                                    20          0         20          0
 
@@ -27,18 +27,18 @@ ctl/RELU                                    20          0         20          0
 #                                   ---------- ---------- ---------- ----------
 HIF                                          0          0          0          1
 CTL                                          0          0          0          1
-ctl/RELU                                     0          0          0          1
+ctl/RELU                                     0         15         20        512
 
 #
 # Module Utilization                   Valid      Retry   Active Cyc  Act. Util
 #                                   ---------- ---------- ---------- ----------
 HIF                                          0          0          0      0.00%
-CTL                                         43          0       3033     17.90%
+CTL                                         43          0        710      4.92%
   CTL_ENTRY                                  1          0
   CTL_COMPUTE                               21          0
   CTL_JOIN                                  20          0
   CTL_RTN                                    1          0
-ctl/RELU                                    60          0       3004     17.73%
+ctl/RELU                                    60          0        700      4.85%
   RELU_LD1                                  20          0
   RELU_ST                                   20          0
   RELU_RTN                                  20          0

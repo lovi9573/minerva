@@ -6,47 +6,10 @@
  */
 
 #include "Ht.h"
-#include "PersCtl.h"
 #include "PersRelu.h"
 
 #define BUSY_RETRY(b) { if (b) { HtRetry(); break; } }
 
-
-void
-CPersCtl::PersCtl()
-{
-	if (PR_htValid) {
-		switch (PR_htInst) {
-		case CTL_ENTRY: {
-			HtContinue(CTL_COMPUTE);
-		}
-		break;
-		case CTL_COMPUTE: {
-			BUSY_RETRY(SendCallBusy_relu());
-
-			if (P_vecIdx < SR_vecLen) {
-				SendCallFork_relu(CTL_JOIN, P_vecIdx);
-				HtContinue(CTL_COMPUTE);
-				P_vecIdx += P_vecStride;
-			} else {
-				RecvReturnPause_relu(CTL_RTN);
-			}
-		}
-		break;
-		case CTL_JOIN: {
-			RecvReturnJoin_relu();
-		}
-		break;
-		case CTL_RTN: {
-			BUSY_RETRY(SendReturnBusy_htmain());
-			SendReturn_htmain();
-		}
-		break;
-		default:
-			assert(0);
-		}
-	}
-}
 
 
 void
@@ -58,11 +21,12 @@ CPersRelu::PersRelu()
 			BUSY_RETRY(ReadMemBusy());
 
 			// Memory read request
-			MemAddr_t memRdAddr = SR_op1Addr + (P_vecIdx << 3);
-			printf("Preread  op1<%lu>: %ld\n",memRdAddr.to_uint64(),PR_op1);
+			//printf("calculate address  idx: %u", P_vecIdx);
+			fflush(stdout);
+			MemAddr_t memRdAddr = SR_op1Addr + (P_vecIdx << 2);
+			//printf("About to read ");
 			ReadMem_op1(memRdAddr);
-			printf("Postread op1<%lu>: %ld\n",memRdAddr.to_uint64(),PR_op1);
-			HtContinue(RELU_ST);
+			ReadMemPause(RELU_ST);
 		}
 		break;
 		case RELU_ST: {
@@ -75,7 +39,7 @@ CPersRelu::PersRelu()
 			printf("ST op1: %ld => %ld\n",PR_op1, P_result);
 
 			// Memory write request
-			MemAddr_t memWrAddr = SR_resAddr + (P_vecIdx << 3);
+			MemAddr_t memWrAddr = SR_resAddr + (P_vecIdx << 2	);
 			WriteMem(memWrAddr, P_result);
 			WriteMemPause(RELU_RTN);
 		}

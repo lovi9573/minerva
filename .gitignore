@@ -26,6 +26,7 @@ deps
 lib
 tags
 vendor
+HTModels/ht
 
 # Cmake files
 cmake_install.cmake

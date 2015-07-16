@@ -1,5 +1,6 @@
 #pragma once
 #include <minerva.h>
+#include <system/minerva_system.h>
 #include <cstdint>
 #include <gtest/gtest.h>
 

@@ -1,7 +1,7 @@
 #include <Ht.h>
 using namespace Ht;
 
-void relu_forward(int64_t *input_q88_data, int64_t *output_q88_data, size_t numbers)
+void relu_forward(int32_t *input_q88_data, int32_t *output_q88_data, size_t numbers)
 {
 
 	// Get interfaces
@@ -15,13 +15,13 @@ void relu_forward(int64_t *input_q88_data, int64_t *output_q88_data, size_t numb
 	}
 
 	// Set up memory
-	int64_t* ht_input_data = (int64_t*)pHtHif->MemAlloc(numbers * sizeof(int64_t));;
-	int64_t* ht_output_data = (int64_t*)pHtHif->MemAlloc(numbers * sizeof(int64_t));
+	int32_t* ht_input_data = (int32_t*)pHtHif->MemAlloc(numbers * sizeof(int32_t));;
+	int32_t* ht_output_data = (int32_t*)pHtHif->MemAlloc(numbers * sizeof(int32_t));
 	if(!ht_input_data){
 		printf("HT MemAlloc failed.\n");
 		exit(1);
 	}
-	pHtHif->MemCpy(ht_input_data, input_q88_data, numbers * sizeof(int64_t));
+	pHtHif->MemCpy(ht_input_data, input_q88_data, numbers * sizeof(int32_t));
 
 	// avoid bank aliasing for performance
 	if (unitCnt > 16 && !(unitCnt & 1)) unitCnt -= 1;
@@ -29,10 +29,9 @@ void relu_forward(int64_t *input_q88_data, int64_t *output_q88_data, size_t numb
 	fflush(stdout);
 
 	// Initialize modules with messages
-	printf("Device Allocated input data at %lu\n",(uint64_t)ht_input_data);
-	pHtHif->SendAllHostMsg(IN_ADDR, (int64_t)ht_input_data);
-	pHtHif->SendAllHostMsg(OUT_ADDR, (int64_t)ht_output_data);
-	pHtHif->SendAllHostMsg(VEC_LEN, (uint64_t)numbers);
+	pHtHif->SendAllHostMsg(IN_ADDR, (uint64_t)ht_input_data);
+	pHtHif->SendAllHostMsg(OUT_ADDR, (uint64_t)ht_output_data);
+	pHtHif->SendAllHostMsg(VEC_LEN, (uint32_t)numbers);
 
 	// Send calls to units
 	for (int unit = 0; unit < unitCnt; unit++)
@@ -45,7 +44,7 @@ void relu_forward(int64_t *input_q88_data, int64_t *output_q88_data, size_t numb
 	}
 
 	//Copy results out.
-	pHtHif->MemCpy(output_q88_data, ht_output_data, numbers * sizeof(int64_t));
+	pHtHif->MemCpy(output_q88_data, ht_output_data, numbers * sizeof(int32_t));
 
 }
 

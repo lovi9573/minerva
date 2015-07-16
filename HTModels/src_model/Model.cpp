@@ -12,7 +12,7 @@ using namespace Ht;
 
 void CHtModelAuUnit::UnitThread()
 {
-	uint64_t *op1Addr = NULL, *resAddr = NULL;
+	sc_FixedPnt *op1Addr = NULL, *resAddr = NULL;
 	uint64_t vecLen = 0;
 
 	do {
@@ -20,10 +20,10 @@ void CHtModelAuUnit::UnitThread()
 		uint64_t msgData;
 		if (RecvHostMsg(msgType, msgData)) {
 			switch (msgType) {
-			case IN_ADDR: op1Addr = (uint64_t *)msgData;
+			case IN_ADDR: op1Addr = (int16_t *)msgData;
 							printf("op1Addr: %lu\n",(uint64_t)op1Addr);
 							break;
-			case OUT_ADDR: resAddr = (uint64_t *)msgData; break;
+			case OUT_ADDR: resAddr = (int16_t *)msgData; break;
 			case VEC_LEN:  vecLen = msgData; break;
 			default: assert(0);
 			}
@@ -32,8 +32,8 @@ void CHtModelAuUnit::UnitThread()
 		uint32_t vecIdx, vecStride;
 		if (RecvCall_htmain(vecIdx, vecStride)) {
 			while (vecIdx < vecLen) {
-				int64_t op1 = *(op1Addr + vecIdx);
-				int64_t res = op1 ;
+				sc_FixedPnt op1 = *(op1Addr + vecIdx);
+				sc_FixedPnt res = op1 ;
 				if(op1 <=0){
 					res = 0;
 				}

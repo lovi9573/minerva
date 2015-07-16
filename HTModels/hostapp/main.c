@@ -2,15 +2,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-extern void relu_forward(uint64_t *input_q88_data, uint64_t *output_q88_data, size_t numbers );
+extern void relu_forward(int32_t *input_q88_data, int32_t *output_q88_data, size_t numbers );
 void usage (char *);
 
 int main(int argc, char **argv)
 {
 
-    uint64_t i;
-    uint64_t vecLen;
-    uint64_t *a1, *a2, *a3;
+    uint32_t i;
+    uint32_t vecLen;
+    int32_t *a1, *a2;
 
     // check command line args
     if (argc == 1)
@@ -28,11 +28,11 @@ int main(int argc, char **argv)
 	return 0;
     }
 
-    a1 = (uint64_t *) malloc(vecLen*sizeof(uint64_t));
-    a2 = (uint64_t *) malloc(vecLen*sizeof(uint64_t));
+    a1 = (int32_t *) malloc(vecLen*sizeof(int32_t));
+    a2 = (int32_t *) malloc(vecLen*sizeof(int32_t));
 
     for (i = 0; i < vecLen; i++) {
-    	a1[i] = i;
+    	a1[i] = i-vecLen/2;
     }
 
     relu_forward(a1, a2, vecLen);
@@ -42,11 +42,19 @@ int main(int argc, char **argv)
     int err_cnt = 0;
 
     for (i = 0; i < vecLen; i++) {
-		if (a2[i] != a1[i]) {
-			printf("a3[%llu] is %llu, should be %llu\n",
-			(long long)i, (long long)a2[i], (long long)a1[i]);
-			err_cnt++;
-		}
+    	if(a1[i] > 0){
+			if (a2[i] != a1[i]) {
+				printf("a3[%llu] is %llu, should be %llu\n",
+				(long long)i, (long long)a2[i], (long long)a1[i]);
+				err_cnt++;
+			}
+    	}else{
+			if (a2[i] != 0) {
+				printf("a3[%llu] is %llu, should be %llu\n",
+				(long long)i, (long long)a2[i], (long long)0);
+				err_cnt++;
+			}
+    	}
     }
 
     if (err_cnt)
