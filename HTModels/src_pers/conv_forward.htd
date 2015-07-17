@@ -1,0 +1,115 @@
+	
+
+
+////////////////////////////////////////////////////
+// Top-level control module
+
+dsnInfo.AddModule(name=ctl, htIdW=0);
+
+ctl.AddInst(name=CTL_ENTRY);
+ctl.AddInst(name=CTL_COMPUTE);
+ctl.AddInst(name=CTL_JOIN);
+ctl.AddInst(name=CTL_RTN);
+
+ctl.AddHostMsg(dir=in, name=IMG_ADDR)
+	.AddDst(var=imgAddr)
+	;
+ctl.AddHostMsg(dir=in, name=IMG_NUM)
+	.AddDst(var=img_num)
+	;
+ctl.AddHostMsg(dir=in, name=IMG_DIM)
+	.AddDst(var=img_dim)
+	;
+ctl.AddHostMsg(dir=in, name=IMG_CHANNELS)
+	.AddDst(var=img_channels)
+	;
+ctl.AddHostMsg(dir=in, name=FILTER_NUM)
+	.AddDst(var=filter_num)
+	;
+ctl.AddHostMsg(dir=in, name=FILTER_DIM)
+	.AddDst(var=filter_dim)
+	;
+ctl.AddHostMsg(dir=in, name=STRIDE)
+	.AddDst(var=stride)
+	;
+ctl.AddHostMsg(dir=in, name=OUT_ADDR)
+	.AddDst(var=outAddr)
+	;
+
+
+ctl.AddShared()
+	.AddVar(type=uint64_t, name=img_num)
+	.AddVar(type=uint64_t, name=img_dim)
+	.AddVar(type=uint64_t, name=img_channels)
+	.AddVar(type=uint64_t, name=filter_num)
+	.AddVar(type=uint64_t, name=filter_dim)
+	.AddVar(type=uint64_t, name=stride)
+	.AddVar(type=uint64_t, name=imgAddr)
+	.AddVar(type=uint64_t, name=outAddr)
+	;
+
+ctl.AddPrivate()
+	.AddVar(type=uint32_t, name=rank)
+	.AddVar(type=uint32_t, name=applicationIdx_X)
+	.AddVar(type=uint32_t, name=applicationIdx_Y)
+	.AddVar(type=uint32_t, name=applicationIdx_F)
+	.AddVar(type=uint32_t, name=applicationStride)
+	;
+
+ctl.AddEntry(func=htmain, inst=CTL_ENTRY, host=true)
+	.AddParam(type=uint32_t, name=rank)
+	.AddParam(type=uint32_t, name=applicationStride)
+	;
+
+ctl.AddReturn(func=htmain)
+	;
+
+ctl.AddCall(func=applyfilter, fork=true);
+
+
+////////////////////////////////////////////////////
+// Loads vector elements from op array, rectifies , stores results
+#define APPLYFILTER_HTID_W 1
+typedef ht_uint48 MemAddr_t;
+
+dsnInfo.AddModule(name=applyfilter, htIdW=APPLYFILTER_HTID_W);
+
+applyfilter.AddInst(name=RELU_LD_FILTER);
+applyfilter.AddInst(name=RELU_LD_IMG_PATCH);
+applyfilter.AddInst(name=RELU_APPLY);
+applyfilter.AddInst(name=RELU_WRITE);
+applyfilter.AddInst(name=RELU_RTN);
+
+
+applyfilter.AddHostMsg(dir=in, name=FILTER_ADDR)
+	.AddDst(var=filterAddr)
+	;
+
+applyfilter.AddPrivate()
+	.AddVar(type=int32_t, name=accum)
+	.AddVar(type=int16_t, name=img_val)
+	.AddVar(type=uint32_t, name=filterNum)
+	.AddVar(type=uint32_t, name=xIdx)
+	.AddVar(type=uint32_t, name=yIdx)
+	;
+
+applyfilter.AddShared()
+	.AddVar(type=int16_t, name=filter, addr1W=10, blockRam=true)
+	.AddVar(type=uint64_t, name=filterAddr)
+	;
+
+applyfilter.AddEntry(func=applyfilter, inst=RELU_LD_FILTER)
+	.AddParam(type=uint32_t, name=filterNum)
+	.AddParam(type=uint32_t, name=xIdx)
+	.AddParam(type=uint32_t, name=yIdx)
+	;
+
+applyfilter.AddReturn(func=applyfilter)
+	;
+
+applyfilter.AddReadMem()
+	.AddDst(var=filter, name=filter )
+	;
+	//, rdType=int32_t)
+
+applyfilter.AddWriteMem();

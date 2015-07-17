@@ -23,7 +23,7 @@ CPersRelu::PersRelu()
 			// Memory read request
 			//printf("calculate address  idx: %u", P_vecIdx);
 			fflush(stdout);
-			MemAddr_t memRdAddr = SR_op1Addr + (P_vecIdx << 2);
+			MemAddr_t memRdAddr = SR_op1Addr + (P_vecIdx << 3);
 			//printf("About to read ");
 			ReadMem_op1(memRdAddr);
 			ReadMemPause(RELU_ST);
@@ -31,15 +31,20 @@ CPersRelu::PersRelu()
 		break;
 		case RELU_ST: {
 			BUSY_RETRY(WriteMemBusy());
-			if(PR_op1 > 0){
-				P_result = PR_op1;
-			}else{
-				P_result = 0;
+			uint64_t basemask = 0x000000000000FFFF;
+			P_result = 0;
+			for(int i = 0; i < 64; i+=16){
+				if((int16_t)(PR_op1 >> i) > 0){
+					P_result = P_result | (PR_op1 & (basemask << i));
+				}else{
+					//Rectify the i'th element to 0
+					//P_result = 0;
+				}
 			}
-			printf("ST op1: %ld => %ld\n",PR_op1, P_result);
+			//printf("ST op1: %ld => %ld\n",PR_op1, P_result);
 
 			// Memory write request
-			MemAddr_t memWrAddr = SR_resAddr + (P_vecIdx << 2	);
+			MemAddr_t memWrAddr = SR_resAddr + (P_vecIdx << 3);
 			WriteMem(memWrAddr, P_result);
 			WriteMemPause(RELU_RTN);
 		}

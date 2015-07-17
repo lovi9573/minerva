@@ -18,23 +18,39 @@ CPersCtl::PersCtl()
 	if (PR_htValid) {
 		switch (PR_htInst) {
 		case CTL_ENTRY: {
+			printf("Control Entry\n");
+			P_applicationIdx_X=(P_rank*SR_stride)%SR_img_dim;
+			P_applicationIdx_Y=((P_rank*SR_stride)/SR_img_dim*SR_stride)%SR_img_dim;
+			P_applicationIdx_F=(((P_rank*SR_stride)/SR_img_dim*SR_stride)/SR_img_dim)%SR_filter_num;
 			HtContinue(CTL_COMPUTE);
 		}
 		break;
 		case CTL_COMPUTE: {
-			BUSY_RETRY(SendCallBusy_relu());
+			BUSY_RETRY(SendCallBusy_applyfilter());
+			printf("Compute Entry\n");
+			if(P_applicationIdx_F  < SR_filter_num){
+				if(P_applicationIdx_Y + SR_filter_dim < SR_img_dim){
+					if (P_applicationIdx_X <  SR_img_dim - SR_filter_dim) {
+						printf("pre-fork");
+						SendCallFork_applyfilter(CTL_JOIN, P_applicationIdx_F, P_applicationIdx_X, P_applicationIdx_Y);
+						HtContinue(CTL_COMPUTE);
+						P_applicationIdx_X += P_applicationStride*SR_stride;
+					}else{
+						P_applicationIdx_Y += P_applicationIdx_X/(SR_img_dim - SR_filter_dim)*SR_stride;
+						P_applicationIdx_X += P_applicationIdx_X%(SR_img_dim - SR_filter_dim);
+					}
+				} else {
+					P_applicationIdx_F += P_applicationIdx_Y/((SR_img_dim - SR_filter_dim)*(SR_img_dim - SR_filter_dim));
+					P_applicationIdx_Y += P_applicationIdx_Y%((SR_img_dim - SR_filter_dim)*(SR_img_dim - SR_filter_dim));
+				}
+			}else{
 
-			if (P_vecIdx < SR_vecLen) {
-				SendCallFork_relu(CTL_JOIN, P_vecIdx);
-				HtContinue(CTL_COMPUTE);
-				P_vecIdx += P_vecStride;
-			} else {
-				RecvReturnPause_relu(CTL_RTN);
+					RecvReturnPause_applyfilter(CTL_RTN);
 			}
 		}
 		break;
 		case CTL_JOIN: {
-			RecvReturnJoin_relu();
+			RecvReturnJoin_applyfilter();
 		}
 		break;
 		case CTL_RTN: {

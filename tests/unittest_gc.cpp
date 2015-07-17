@@ -4,6 +4,7 @@
 using namespace minerva;
 using namespace std;
 
+/*
 TEST(GCCorrectness, EvalInLoop) {
   MinervaSystem& ms = MinervaSystem::Instance();
   NArray narr = NArray::Constant({10, 8}, 0.0);
@@ -79,3 +80,4 @@ TEST(GCCorrectness, ChangeBothRCAfterEval) {
     ASSERT_EQ(bptr.get()[i], 2);
   }
 }
+*/

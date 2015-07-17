@@ -1,9 +1,4 @@
-#define FIXED_PNT_W 32
-#define FRACTION_W 16
-
-//typedef sc_int<FIXED_PNT_W> sc_FixedPnt;
-typedef int64_t sc_FixedPnt;
-
+	
 
 
 ////////////////////////////////////////////////////
@@ -61,8 +56,8 @@ relu.AddHostMsg(dir=in, name=OUT_ADDR)
 
 relu.AddPrivate()
 	.AddVar(type=uint32_t, name=vecIdx)
-	.AddVar(type=int32_t, name=result)
-	.AddVar(type=int32_t, name=op1)
+	.AddVar(type=uint64_t, name=result)
+	.AddVar(type=uint64_t, name=op1)
 	;
 
 relu.AddShared()

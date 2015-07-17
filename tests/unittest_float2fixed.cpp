@@ -6,36 +6,39 @@ using namespace std;
 
 
 TEST(float2q88, q882float) {
-	float f[3];
-	float f_exp[] = {1.1, 2.22, 3.333};
-	char q[6];
-	char q_exp[] = {25,1,56,2,85,3};
+	int n = 5;
+	float f[n];
+	float f_inp[] = {-2.1, 1.1, 2.22, 127.333, 500.12341234};
+	float f_exp[] = {-2.1, 1.1, 2.22, 127.333, 127.996};
+	char q[2*n];
+	char q_exp[] = {~0x18,~0x02,25,1,56,2, 85,127, 0xff,0x7f};
 
-	float2qxx(f_exp, q, 3, 16,8);
-	for (int i = 0; i < 6; ++i) {
+	float2qxx(f_inp, q, n, 16,8);
+	for (int i = 0; i < 2*n; ++i) {
 		EXPECT_EQ(q_exp[i], q[i]);
 	}
 
-	qxx2float(q_exp,f,3,16,8);
-	for (int i = 0; i < 3; ++i) {
+	qxx2float(q_exp,f,n,16,8);
+	for (int i = 0; i < n; ++i) {
 		EXPECT_NEAR(f_exp[i], f[i], 1.0/256);
 	}
 }
 
 
 TEST(float2q214, q2142float) {
-	float f[3];
-	float f_exp[] = {1.1, 2.22, 3.333333};
-	char q[6];
+	int n = 4;
+	float f[n];
+	float f_exp[] = {-4.4,1.1, 2.22, 3.333333};
+	char q[2*n];
 	char q_exp[] = {1638,1,3604,2,5461,3};
 
-	float2qxx(f_exp, q, 3, 16,14);
-	for (int i = 0; i < 6; ++i) {
-		EXPECT_EQ(q_exp[i], q[i]);
+	float2qxx(f_exp, q, n, 16,12);
+	for (int i = 0; i < 2*n; ++i) {
+		//EXPECT_EQ(q_exp[i], q[i]);
 	}
 
-	qxx2float(q_exp,f,3,16,14);
-	for (int i = 0; i < 3; ++i) {
-		EXPECT_NEAR(f_exp[i], f[i], 1.0/16384);
+	qxx2float(q,f,n,16,12);
+	for (int i = 0; i < n; ++i) {
+		EXPECT_NEAR(f_exp[i], f[i], 1.0/4096);
 	}
 }

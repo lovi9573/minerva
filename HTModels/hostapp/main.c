@@ -2,59 +2,66 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-extern void relu_forward(int32_t *input_q88_data, int32_t *output_q88_data, size_t numbers );
+extern void conv_forward(void *input_q88_data, size_t num_img, size_t img_dim, size_t img_channels, size_t img_alloc,
+						 void *filters_q88_data, size_t num_filters, size_t filter_dim, size_t stride, size_t filter_alloc,
+						 void *output_q88_data, size_t output_alloc );
 void usage (char *);
 
 int main(int argc, char **argv)
 {
 
-    uint32_t i;
-    uint32_t vecLen;
-    int32_t *a1, *a2;
-
-    // check command line args
-    if (argc == 1)
-	vecLen = 100;         // default vecLen
-    else if (argc == 2) {
-	vecLen = atoi(argv[1]);
-	if (vecLen > 0) {
-	    printf("Running UserApp.exe with vecLen = %llu\n", (long long) vecLen);
-	} else {
-	    usage (argv[0]);
-	    return 0;
+	size_t num_img =4;
+	size_t img_dim = 11;
+	size_t img_channels = 2;
+	size_t img_size = num_img*img_dim*img_dim*img_channels;
+	size_t img_alloc = img_size;
+	if(img_alloc%4 != 0){
+		img_alloc = (img_alloc/4+1)*4;
 	}
-    } else {
-	usage (argv[0]);
-	return 0;
+	int16_t input_q88_data[img_alloc];
+
+	size_t num_filters = 5;
+	size_t filter_dim = 3;
+	size_t stride = 2;
+	size_t filter_size = num_filters*filter_dim*filter_dim*img_channels;
+	size_t filter_alloc = filter_size;
+	if(filter_alloc%4 != 0){
+		filter_alloc = (filter_alloc/4+1)*4;
+	}
+	int16_t filters_q88_data[filter_alloc];
+
+	size_t output_elements = num_img*((img_dim-filter_dim)/stride+1)*((img_dim-filter_dim)/stride+1)*num_filters;
+	size_t output_alloc = output_elements;
+	if(output_alloc%4 != 0){
+		output_alloc = (output_alloc/4+1)*4;
+	}
+	int16_t output_q88_data[output_alloc];
+
+
+    for (size_t i = 0; i < img_size; i++) {
+    	input_q88_data[i] = 1;
     }
 
-    a1 = (int32_t *) malloc(vecLen*sizeof(int32_t));
-    a2 = (int32_t *) malloc(vecLen*sizeof(int32_t));
 
-    for (i = 0; i < vecLen; i++) {
-    	a1[i] = i-vecLen/2;
+    for (size_t i = 0; i < filter_size; i++) {
+    	filters_q88_data[i] = 1;
     }
 
-    relu_forward(a1, a2, vecLen);
-    printf("Relu done\n");
+
+    conv_forward(input_q88_data,  num_img,  img_dim,  img_channels, img_alloc,
+    			 filters_q88_data,  num_filters,  filter_dim,  stride, filter_alloc,
+    			 output_q88_data, output_alloc );
+    printf("Conv done\n");
 
     // check results
     int err_cnt = 0;
 
-    for (i = 0; i < vecLen; i++) {
-    	if(a1[i] > 0){
-			if (a2[i] != a1[i]) {
-				printf("a3[%llu] is %llu, should be %llu\n",
-				(long long)i, (long long)a2[i], (long long)a1[i]);
+    for (size_t i = 0; i < output_elements; i++) {
+			if (output_q88_data[i] != filter_dim*filter_dim*img_channels) {
+				printf("output[%llu] is %llu, should be %llu\n",
+				(long long)i, (long long)output_q88_data[i], (long long)filter_dim*filter_dim*img_channels);
 				err_cnt++;
 			}
-    	}else{
-			if (a2[i] != 0) {
-				printf("a3[%llu] is %llu, should be %llu\n",
-				(long long)i, (long long)a2[i], (long long)0);
-				err_cnt++;
-			}
-    	}
     }
 
     if (err_cnt)

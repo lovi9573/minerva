@@ -27,13 +27,17 @@ void ReluForward(const DataList& inputs, const DataList& outputs, ReluForwardClo
   float* output_data = outputs[0].data_;
   size_t numbers = inputs[0].size_.Prod();
   size_t bytes = numbers*2;
+  //Ensure that the allocation can be interpreted as uint64_t
+  if (bytes % 8 != 0){
+	  bytes = (bytes/8+1)*8;
+  }
 
   char *input_q88_data = (char *)malloc(bytes);
   char *output_q88_data = (char *)malloc(bytes);
 
   float2qxx(input_data, input_q88_data,numbers,16,8);
 
-  //relu_forward(input_q88_data, output_q88_data, numbers );
+  relu_forward(input_q88_data, output_q88_data, numbers );
 
 /*
  * HT interface
