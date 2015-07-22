@@ -10,9 +10,9 @@ void usage (char *);
 int main(int argc, char **argv)
 {
 
-	size_t num_img =4;
-	size_t img_dim = 11;
-	size_t img_channels = 2;
+	size_t num_img =1;
+	size_t img_dim = 44;
+	size_t img_channels = 3;
 	size_t img_size = num_img*img_dim*img_dim*img_channels;
 	size_t img_alloc = img_size;
 	if(img_alloc%4 != 0){
@@ -20,8 +20,8 @@ int main(int argc, char **argv)
 	}
 	int16_t input_q88_data[img_alloc];
 
-	size_t num_filters = 5;
-	size_t filter_dim = 3;
+	size_t num_filters = 4;
+	size_t filter_dim = 5;
 	size_t stride = 2;
 	size_t filter_size = num_filters*filter_dim*filter_dim*img_channels;
 	size_t filter_alloc = filter_size;
@@ -39,12 +39,12 @@ int main(int argc, char **argv)
 
 
     for (size_t i = 0; i < img_size; i++) {
-    	input_q88_data[i] = 1;
+    	input_q88_data[i] = 1 ;
     }
 
 
     for (size_t i = 0; i < filter_size; i++) {
-    	filters_q88_data[i] = 1;
+    	filters_q88_data[i] = 1 ;
     }
 
 
@@ -61,6 +61,8 @@ int main(int argc, char **argv)
 				printf("output[%llu] is %llu, should be %llu\n",
 				(long long)i, (long long)output_q88_data[i], (long long)filter_dim*filter_dim*img_channels);
 				err_cnt++;
+			}else{
+				//printf("output[%llu] is %llu!!!!\n",(long long)i, (long long)output_q88_data[i]);
 			}
     }
 

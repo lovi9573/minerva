@@ -17,34 +17,75 @@ CPersApplyfilter::PersApplyfilter()
 {
 	if (PR_htValid) {
 		switch (PR_htInst) {
-		case RELU_LD_FILTER: {
+		case CONV_INIT: {
+			//BUSY_RETRY(ReadMemBusy());
+			//printf("filter %d,%d,%d\n",PR_filter_fIdx,PR_img_xIdx,PR_img_yIdx);
+			//Initialize and Get the filter data.
+			P_cIdx = 0;
+			P_xIdx = 0;
+			P_yIdx = 0;
+			P_accum=0;
+			//ReadMem_filter(SR_filterAddr,0, 18); //18 is #elements.  Filter is 2x3x3=> 18
+			HtContinue(CONV_LOOP_TOP);
+		}
+		break;
+		case CONV_LOOP_TOP: {
+			//printf("loop top\n");
+			HtContinue(CONV_LD_IMG_SAMPLE);
+		}
+		break;
+		case CONV_LD_IMG_SAMPLE: {
 			BUSY_RETRY(ReadMemBusy());
-			printf("filter");
-			ReadMem_filter(SR_filterAddr,0, 9);
-			ReadMemPause(RELU_LD_IMG_PATCH);
+			//printf("img read\n");
+			ReadMem_img_val(PR_imgAddr+2*(PR_yIdx*SR_img_dim*SR_img_channels+
+										  PR_xIdx*SR_img_channels+
+										  PR_cIdx)); //2* for 16-bit align
+			ReadMemPause(CONV_LD_FILTER_SAMPLE);
 		}
 		break;
-		case RELU_LD_IMG_PATCH: {
-			BUSY_RETRY(WriteMemBusy());
-			HtContinue(RELU_RTN);
+		case CONV_LD_FILTER_SAMPLE: {
+			BUSY_RETRY(ReadMemBusy());
+			//printf("filter read address set to %d\n",PR_filter_yIdx*SR_filter_dim*SR_img_channels+PR_filter_xIdx*SR_img_channels+PR_filter_cIdx);
+			ReadMem_filter_val(PR_filterAddr+2*(PR_yIdx*SR_filter_dim*SR_img_channels+
+											    PR_xIdx*SR_img_channels+
+											    PR_cIdx));
+			ReadMemPause(CONV_APPLY);
 		}
 		break;
-		case RELU_APPLY: {
+		case CONV_APPLY: {
+			//printf("filter read\n");
+			P_accum+= (int16_t)(((int32_t)PR_img_val*(int32_t)PR_filter_val)); // for fixed point>>16);
+			P_cIdx++;
+			//printf("accum %d,%d,%d => %d * %d = %d\n",PR_filter_fIdx,PR_img_xIdx,PR_img_yIdx,PR_img_val,PR_filter_val,P_accum);
+			HtContinue(CONV_LOOP_BRANCH);
+		}
+		break;
+		case CONV_LOOP_BRANCH: {
+			if(P_cIdx >= SR_img_channels){
+				P_cIdx -= SR_img_channels;
+				P_xIdx++;
+				if(P_xIdx >= SR_filter_dim){
+					P_xIdx -= SR_filter_dim;
+					P_yIdx++;
+				}
+			}
+			//Still need to reduce the channel offset
+			if(PR_cIdx >= SR_img_channels){
+				HtContinue(CONV_LOOP_BRANCH);
+			}
+			//Still need to process
+			else if(PR_yIdx < SR_filter_dim){
+				HtContinue(CONV_LOOP_TOP);
+			}
+			//Done
+			else{
+				HtContinue(CONV_RTN);
+			}
+		}
+		break;
+		case CONV_RTN: {
 			BUSY_RETRY(SendReturnBusy_applyfilter());
-
-			SendReturn_applyfilter();
-		}
-		break;
-		case RELU_WRITE: {
-			BUSY_RETRY(SendReturnBusy_applyfilter());
-
-			SendReturn_applyfilter();
-		}
-		break;
-		case RELU_RTN: {
-			BUSY_RETRY(SendReturnBusy_applyfilter());
-
-			SendReturn_applyfilter();
+			SendReturn_applyfilter(PR_out_index,PR_accum);
 		}
 		break;
 		default:
