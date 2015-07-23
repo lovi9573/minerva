@@ -4,11 +4,13 @@
 
 extern void conv_forward(void *input_q88_data, size_t num_img, size_t img_dim, size_t img_channels, size_t img_alloc,
 						 void *filters_q88_data, size_t num_filters, size_t filter_dim, size_t stride, size_t filter_alloc,
-						 void *output_q88_data, size_t output_alloc );
+						 void *output_q88_data, size_t output_alloc,
+						 uint16_t fraction_width);
 void usage (char *);
 
 int main(int argc, char **argv)
 {
+	uint16_t FRACW = 8;
 
 	size_t num_img =1;
 	size_t img_dim = 44;
@@ -39,27 +41,28 @@ int main(int argc, char **argv)
 
 
     for (size_t i = 0; i < img_size; i++) {
-    	input_q88_data[i] = 1 ;
+    	input_q88_data[i] = 1 << (FRACW-1);
     }
 
 
     for (size_t i = 0; i < filter_size; i++) {
-    	filters_q88_data[i] = 1 ;
+    	filters_q88_data[i] = 1*(1 << (FRACW-1));
     }
 
 
     conv_forward(input_q88_data,  num_img,  img_dim,  img_channels, img_alloc,
     			 filters_q88_data,  num_filters,  filter_dim,  stride, filter_alloc,
-    			 output_q88_data, output_alloc );
+    			 output_q88_data, output_alloc,
+				 FRACW);
     printf("Conv done\n");
 
     // check results
     int err_cnt = 0;
 
     for (size_t i = 0; i < output_elements; i++) {
-			if (output_q88_data[i] != filter_dim*filter_dim*img_channels) {
-				printf("output[%llu] is %llu, should be %llu\n",
-				(long long)i, (long long)output_q88_data[i], (long long)filter_dim*filter_dim*img_channels);
+			if (output_q88_data[i] != (int16_t)((filter_dim*filter_dim*img_channels)<< (FRACW-2))) {
+				printf("output[%llu] is %x, should be %x\n",
+				(long long)i, output_q88_data[i], (int16_t)((filter_dim*filter_dim*img_channels)<< (FRACW-2)));
 				err_cnt++;
 			}else{
 				//printf("output[%llu] is %llu!!!!\n",(long long)i, (long long)output_q88_data[i]);

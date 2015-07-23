@@ -54,9 +54,9 @@ CPersApplyfilter::PersApplyfilter()
 		break;
 		case CONV_APPLY: {
 			//printf("filter read\n");
-			P_accum+= (int16_t)(((int32_t)PR_img_val*(int32_t)PR_filter_val)); // for fixed point>>16);
+			P_accum+= (int16_t)(( ((int32_t)PR_img_val) * ((int32_t)PR_filter_val) ) >> SR_fractionW); // for fixed point>>16);
 			P_cIdx++;
-			//printf("accum %d,%d,%d => %d * %d = %d\n",PR_filter_fIdx,PR_img_xIdx,PR_img_yIdx,PR_img_val,PR_filter_val,P_accum);
+			//printf("accum  %d * %d  >> %d = %d\n",PR_img_val,PR_filter_val, GR_fractionW,P_accum);
 			HtContinue(CONV_LOOP_BRANCH);
 		}
 		break;
@@ -85,6 +85,7 @@ CPersApplyfilter::PersApplyfilter()
 		break;
 		case CONV_RTN: {
 			BUSY_RETRY(SendReturnBusy_applyfilter());
+			//printf("Accum: %d\n",PR_accum);
 			SendReturn_applyfilter(PR_out_index,PR_accum);
 		}
 		break;

@@ -3,7 +3,8 @@ using namespace Ht;
 
 void conv_forward(void *input_q88_data, size_t num_img, size_t img_dim, size_t img_channels, size_t img_alloc,
 		 void *filters_q88_data, size_t num_filters, size_t filter_dim, size_t stride, size_t filter_alloc,
-		 void *output_q88_data, size_t output_alloc ){
+		 void *output_q88_data, size_t output_alloc,
+		 uint16_t fraction_width){
 
 	// Get interfaces
 	CHtHif *pHtHif = new CHtHif();
@@ -41,6 +42,7 @@ void conv_forward(void *input_q88_data, size_t num_img, size_t img_dim, size_t i
 	pHtHif->SendAllHostMsg(FILTER_DIM, (uint64_t)filter_dim);
 	pHtHif->SendAllHostMsg(STRIDE, (uint64_t)stride);
 	pHtHif->SendAllHostMsg(OUT_ADDR, (uint64_t)ht_output_data);
+	pHtHif->SendAllHostMsg(FRACTION_WIDTH, (uint64_t)fraction_width);
 
 
 	// Send calls to units

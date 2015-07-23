@@ -44,6 +44,10 @@ ctl.AddHostMsg(dir=in, name=STRIDE)
 ctl.AddHostMsg(dir=in, name=OUT_ADDR)
 	.AddDst(var=outAddr)
 	;
+ctl.AddHostMsg(dir=in, name=FRACTION_WIDTH)
+	.AddDst(var=fractionW)
+	;
+
 
 
 //All in units of image pixels(ignores # channels)
@@ -53,7 +57,7 @@ ctl.AddPrivate()
 	.AddVar(type=uint32_t, name=applicationIdx_X)
 	.AddVar(type=uint32_t, name=applicationIdx_Y)
 	.AddVar(type=uint32_t, name=applicationIdx_I)
-	.AddVar(type=uint32_t, name=rankStride)
+	.AddVar(type=uint16_t, name=rankStride)
 	.AddVar(type=uint64_t, name=Addresses, dimen1=8)
 	.AddVar(type=ht_uint3,  name=count)
 	.AddVar(type=uint64_t,  name=outAddrOffset)
@@ -69,34 +73,43 @@ ctl.AddShared()
 	.AddVar(type=uint64_t, name=filter_dim)
 	.AddVar(type=uint64_t, name=stride)
 	.AddVar(type=uint64_t, name=outAddr)
+	.AddVar(type=uint16_t, name=fractionW)
+	.AddVar(type=uint32_t, name=dCoordinates)
+	.AddVar(type=uint32_t, name=dimY)
+	.AddVar(type=uint32_t, name=dimX)
+	.AddVar(type=uint32_t, name=dimF)
 	;
 
 
+ctl.AddGlobal()
+		.AddVar(type=uint16_t, name=fractionW)
+		;
+
 ctl.AddEntry(func=htmain, inst=CTL_ENTRY, host=true)
 	.AddParam(type=uint32_t, name=rank)
-	.AddParam(type=uint32_t, name=rankStride)
+	.AddParam(type=uint16_t, name=rankStride)
 	;
 
 ctl.AddReturn(func=htmain)
 	;
 
-ctl.AddCall(func=scattergatherfiltergroup, fork=true);
+ctl.AddCall(func=cluster, fork=true);
 
 ////////////////////////////////////////////////////
 // Scatters a group of 4 filter applications to seperate threads
 // Gathers the resulting activations and merges them into a single quad-word write.
-#define SCATTER_GATHER_FILTER_GROUP_HTID_W 6
+#define CLUSTER_HTID_W 9
 
-dsnInfo.AddModule(name=scattergatherfiltergroup, htIdW=SCATTER_GATHER_FILTER_GROUP_HTID_W);
+dsnInfo.AddModule(name=cluster, htIdW=CLUSTER_HTID_W);
 
-scattergatherfiltergroup.AddInst(name=SG_FILTER_GROUP_INIT);
-scattergatherfiltergroup.AddInst(name=SG_FILTER_GROUP_DISPATCH);
-scattergatherfiltergroup.AddInst(name=SG_FILTER_GROUP_MERGE);
-scattergatherfiltergroup.AddInst(name=SG_FILTER_GROUP_WRITE);
-scattergatherfiltergroup.AddInst(name=SG_FILTER_GROUP_RTN);
+cluster.AddInst(name=SG_FILTER_GROUP_INIT);
+cluster.AddInst(name=SG_FILTER_GROUP_DISPATCH);
+cluster.AddInst(name=SG_FILTER_GROUP_MERGE);
+cluster.AddInst(name=SG_FILTER_GROUP_WRITE);
+cluster.AddInst(name=SG_FILTER_GROUP_RTN);
 
 
-scattergatherfiltergroup.AddPrivate()
+cluster.AddPrivate()
 		.AddVar(type=uint64_t, name=img_Addr1)
 		.AddVar(type=uint64_t, name=filter_Addr1)
 		.AddVar(type=uint64_t, name=img_Addr2)
@@ -113,7 +126,7 @@ scattergatherfiltergroup.AddPrivate()
 		;
 
 
-scattergatherfiltergroup.AddEntry(func=scattergatherfiltergroup, inst=SG_FILTER_GROUP_INIT)
+cluster.AddEntry(func=cluster, inst=SG_FILTER_GROUP_INIT)
 		.AddParam(type=uint64_t, name=img_Addr1)
 		.AddParam(type=uint64_t, name=filter_Addr1)
 		.AddParam(type=uint64_t, name=img_Addr2)
@@ -125,18 +138,18 @@ scattergatherfiltergroup.AddEntry(func=scattergatherfiltergroup, inst=SG_FILTER_
 		.AddParam(type=uint64_t, name=out_Addr)
 	;
 
-scattergatherfiltergroup.AddReturn(func=scattergatherfiltergroup)
+cluster.AddReturn(func=cluster)
 		;
 
-scattergatherfiltergroup.AddCall(func=applyfilter, fork=true)
+cluster.AddCall(func=applyfilter, fork=true)
 		;
 
-scattergatherfiltergroup.AddWriteMem()
+cluster.AddWriteMem()
 		;
 
 ////////////////////////////////////////////////////
 // Loads vector elements from op array, rectifies , stores results
-#define APPLYFILTER_HTID_W 8
+#define APPLYFILTER_HTID_W 9
 
 dsnInfo.AddModule(name=applyfilter, htIdW=APPLYFILTER_HTID_W);
 
@@ -161,6 +174,9 @@ applyfilter.AddHostMsg(dir=in, name=IMG_CHANNELS)
 applyfilter.AddHostMsg(dir=in, name=FILTER_DIM)
 	.AddDst(var=filter_dim)
 	;
+applyfilter.AddHostMsg(dir=in, name=FRACTION_WIDTH)
+	.AddDst(var=fractionW)
+	;
 
 applyfilter.AddPrivate()
 	.AddVar(type=int16_t, name=accum)
@@ -178,7 +194,9 @@ applyfilter.AddShared()
 	.AddVar(type=uint64_t, name=img_dim)
 	.AddVar(type=uint64_t, name=img_channels)
 	.AddVar(type=uint64_t, name=filter_dim)
+	.AddVar(type=uint16_t, name=fractionW)
 	;
+
 
 applyfilter.AddEntry(func=applyfilter, inst=CONV_INIT)
 	.AddParam(type=ht_uint3, name=out_index)
