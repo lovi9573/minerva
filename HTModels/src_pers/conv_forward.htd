@@ -1,10 +1,3 @@
-
-//TODO: Strategy: load image into global BRAM
-//TODO: Strategy: load 4 consecutive filters into BRAM[0]
-//TODO: Strategy: apply modules compute all applications of the 4 filters on image
-//TODO: Strategy: asyncronously load next 4 consecutive filters in to BRAM[1]
-			repeat.
-
 	
 typedef ht_uint48 MemAddr_t;
 
