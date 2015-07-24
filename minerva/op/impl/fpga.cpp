@@ -37,53 +37,66 @@ void ReluForward(const DataList& inputs, const DataList& outputs, ReluForwardClo
 
   float2qxx(input_data, input_q88_data,numbers,16,8);
 
-  relu_forward(input_q88_data, output_q88_data, numbers );
-
-/*
- * HT interface
- *
-	// Get interface from context
-  	int unitCnt = ctx.pHt_host_interface->GetUnitCnt();
-
-	// Set up memory
-	float* ht_input_data = (ht_int16*)ctx.pHt_host_interface->MemAlloc(numbers * sizeof(ht_int16));;
-	float* ht_output_data = (ht_int16*)ctx.pHt_host_interface->MemAlloc(numbers * sizeof(ht_int16));
-	if(!ht_intput_data){
-		LOG(FATAL) << "HT MemAlloc failed.";
-	}
-	ctx.pHt_host_interface->MemCpy(ht_input_data, input_q88_data, numbers * sizeof(ht_int16));
-
-	// avoid bank aliasing for performance
-	if (unitCnt > 16 && !(unitCnt & 1)) unitCnt -= 1;
-	printf("stride = %d\n", unitCnt);
-	fflush(stdout);
-
-	// Initialize modules with messages
-	ctx.pHt_host_interface->SendAllHostMsg(IN_ADDR, (uint64_t)ht_input_data);
-	ctx.pHt_host_interface->SendAllHostMsg(OUT_ADDR, (uint64_t)ht_output_data);
-	ctx.pHt_host_interface->SendAllHostMsg(VEC_LEN, (uint64_t)numbers);
-
-	// Send calls to units
-	for (int unit = 0; unit < unitCnt; unit++)
-		//									offset, stride
-		ctx.pAuUnits[unit]->SendCall_htmain(unit , unitCnt );
-
-	// Wait for returns
-	for (int unit = 0; unit < unitCnt; unit++) {
-		while (!ctx.pAuUnits[unit]->RecvReturn_htmain())
-			usleep(1000);
-	}
-
-	//Copy results out.
-	ctx.pHt_host_interface->MemCpy(output_q88_data, ht_output_data, numbers * sizeof(ht_int16));
-*
- * End HT Interface
- */
+  //relu_forward(input_q88_data, output_q88_data, numbers );
 
 	qxx2float(output_q88_data, output_data, numbers,8,8);
 	free(input_q88_data);
 	free(output_q88_data);
 
+}
+
+void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClosure& closure){
+	float* input_data = inputs[0].data_;
+	float* filter_data = inputs[1].data_;
+	float* output_data = outputs[0].data_;
+	size_t img_numbers = inputs[0].size_.Prod();
+	size_t img_bytes = img_numbers*2;
+	size_t filter_numbers = inputs[1].size_.Prod();
+	size_t filter_bytes = filter_numbers*2;
+	size_t output_numbers = outputs[0].size_.Prod();
+	size_t output_bytes = output_numbers*2;
+
+	//Ensure that the allocation can be interpreted as uint64_t
+	if (img_bytes % 8 != 0){
+		img_bytes = (img_bytes/8+1)*8;
+	}
+	if (filter_bytes % 8 != 0){
+		filter_bytes = (filter_bytes/8+1)*8;
+	}
+	if (output_bytes % 8 != 0){
+		output_bytes = (output_bytes/8+1)*8;
+	}
+
+	char *input_q88_data = (char *)malloc(img_bytes);
+	char *filter_q88_data = (char *)malloc(filter_bytes);
+	char *output_q88_data = (char *)malloc(output_bytes);
+
+	float2qxx(input_data, input_q88_data,img_numbers,16,8);
+	float2qxx(filter_data, filter_q88_data,filter_numbers,16,8);
+	/*
+	  closure.pad_height;
+	  int pad_width;
+	  closure.stride_vertical;
+	  int stride_horizontal;
+
+	conv_forward(input_q88_data, size_t num_img, size_t img_dim, size_t img_channels, size_t img_alloc,
+			 void *filters_q88_data, size_t num_filters, closure.pad_height, closure.stride_vertical, size_t filter_alloc,
+			 void *output_q88_data, size_t output_alloc,
+			 uint16_t fraction_width);
+	*/
+
+	conv_forward(input_q88_data, inputs[0].size_[3], inputs[0].size_[1], inputs[0].size_[2], img_bytes,
+				 filter_q88_data, inputs[1].size_[3], inputs[1].size_[1], closure.stride_vertical, filter_bytes,
+				 output_q88_data, output_bytes,
+				 8);
+
+	qxx2float(output_q88_data, output_data, output_numbers,16,8);
+	for(size_t i = 0; i < output_numbers; i++){
+		printf("%f\n",output_data[i]);
+	}
+	free(input_q88_data);
+	free(filter_q88_data);
+	//free(output_q88_data);
 }
 
 

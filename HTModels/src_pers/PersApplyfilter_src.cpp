@@ -54,9 +54,21 @@ CPersApplyfilter::PersApplyfilter()
 		break;
 		case CONV_APPLY: {
 			//printf("filter read\n");
-			P_accum+= (int16_t)(( ((int32_t)PR_img_val) * ((int32_t)PR_filter_val) ) >> SR_fractionW); // for fixed point>>16);
+			int32_t result = (( ((int32_t)PR_img_val) * ((int32_t)PR_filter_val) ) >> SR_fractionW) +(int32_t)PR_accum;
+
+			if(result >= 0x00007FFFL){
+				P_accum = 0x7FFF;
+			}
+			//printf("result %d vs %d\n",result,-0x00007FFF);
+			else if(result <= (int16_t)0x8000){
+				P_accum = (int16_t)0x8000;
+			}
+			else{
+
+				P_accum = (int16_t)result;
+			}
 			P_cIdx++;
-			//printf("accum  %d * %d  >> %d = %d\n",PR_img_val,PR_filter_val, GR_fractionW,P_accum);
+			printf("accum  %d * %d  >> %d = %d\n",PR_img_val,PR_filter_val, SR_fractionW,P_accum);
 			HtContinue(CONV_LOOP_BRANCH);
 		}
 		break;

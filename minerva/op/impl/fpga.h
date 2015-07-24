@@ -17,6 +17,7 @@ namespace minerva {
 namespace fpga {
 
 void ReluForward(const DataList&, const DataList&, ReluForwardClosure&);
+void ConvForward(const DataList&, const DataList&, ConvForwardClosure&);
 
 } // namespace fpga
 }// namespace minerva

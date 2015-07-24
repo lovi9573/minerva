@@ -1,44 +1,131 @@
-Simulated Cycles	:    17391
+Simulated Cycles	:    19085
 Platform		:    wx690
 Unit Count		:        1
 
 #
 # Memory Summary
 #
-Host Latency (cyc)	:       69 /       341 /      505  (Min / Avg / Max)
-CP Latency (cyc)	:       69 /       156 /      475  (Min / Avg / Max)
-Host Operations		:       49 /        42		   (Read / Write)
-CP Operations		:        6 /         8		   (Read / Write)
-Host Efficiency		:   14.29% /    12.50%		   (Read / Write)
+Host Latency (cyc)	:      399 /       431 /      540  (Min / Avg / Max)
+CP Latency (cyc)	:       68 /       133 /      468  (Min / Avg / Max)
+Host Operations		:       40 /        36		   (Read / Write)
+CP Operations		:      128 /         2		   (Read / Write)
+Host Efficiency		:   14.69% /    12.50%		   (Read / Write)
 CP Efficiency		:   12.50% /    12.50%		   (Read / Write)
-Host Utiliztion		:    3.07% /     3.31%		   (Req / Resp)
-CP Utiliztion		:    0.47% /     0.47%		   (Req / Resp)
+Host Utiliztion		:    2.70% /     2.95%		   (Req / Resp)
+CP Utiliztion		:    4.61% /     4.61%		   (Req / Resp)
 
 #
 # Memory Operations                    Read      ReadMw      Write     WriteMw 
 #                                   ---------- ---------- ---------- ----------
-<total>                                     54          1         50          0
-HIF                                         34          1         30          0
+<total>                                    167          1         38          0
+HIF                                         40          1         36          0
+ctl/cluster/APPLYFILTER[0]                  16          0          0          0
+ctl/cluster/APPLYFILTER[1]                  16          0          0          0
+ctl/cluster/APPLYFILTER[2]                  16          0          0          0
+ctl/cluster/APPLYFILTER[3]                  16          0          0          0
+ctl/cluster/APPLYFILTER[4]                  16          0          0          0
+ctl/cluster/APPLYFILTER[5]                  16          0          0          0
+ctl/cluster/APPLYFILTER[6]                  16          0          0          0
+ctl/cluster/APPLYFILTER[7]                  16          0          0          0
+ctl/CLUSTER                                  0          0          2          0
 CTL                                          0          0          0          0
-ctl/RELU                                    20          0         20          0
 
 #
 # Thread Utilization                 Avg. Run  Avg. Alloc Max. Alloc  Available
 #                                   ---------- ---------- ---------- ----------
 HIF                                          0          0          0          1
+ctl/cluster/APPLYFILTER[0]                   0          1          1        512
+ctl/cluster/APPLYFILTER[1]                   0          1          1        512
+ctl/cluster/APPLYFILTER[2]                   0          1          1        512
+ctl/cluster/APPLYFILTER[3]                   0          1          1        512
+ctl/cluster/APPLYFILTER[4]                   0          1          1        512
+ctl/cluster/APPLYFILTER[5]                   0          1          1        512
+ctl/cluster/APPLYFILTER[6]                   0          1          1        512
+ctl/cluster/APPLYFILTER[7]                   0          1          1        512
+ctl/CLUSTER                                  0          1          2        512
 CTL                                          0          0          0          1
-ctl/RELU                                     0          1          2          2
 
 #
 # Module Utilization                   Valid      Retry   Active Cyc  Act. Util
 #                                   ---------- ---------- ---------- ----------
 HIF                                          0          0          0      0.00%
-CTL                                         43          0       2973     17.10%
+ctl/cluster/APPLYFILTER[0]                  46          0       2370     12.42%
+  CONV_INIT                                  1          0
+  CONV_LOOP_TOP                              8          0
+  CONV_LD_IMG_SAMPLE                         8          0
+  CONV_LD_FILTER_SAMPLE                      8          0
+  CONV_APPLY                                 8          0
+  CONV_LOOP_BRANCH                          12          0
+  CONV_RTN                                   1          0
+ctl/cluster/APPLYFILTER[1]                  46          0       2404     12.60%
+  CONV_INIT                                  1          0
+  CONV_LOOP_TOP                              8          0
+  CONV_LD_IMG_SAMPLE                         8          0
+  CONV_LD_FILTER_SAMPLE                      8          0
+  CONV_APPLY                                 8          0
+  CONV_LOOP_BRANCH                          12          0
+  CONV_RTN                                   1          0
+ctl/cluster/APPLYFILTER[2]                  46          0       2620     13.73%
+  CONV_INIT                                  1          0
+  CONV_LOOP_TOP                              8          0
+  CONV_LD_IMG_SAMPLE                         8          0
+  CONV_LD_FILTER_SAMPLE                      8          0
+  CONV_APPLY                                 8          0
+  CONV_LOOP_BRANCH                          12          0
+  CONV_RTN                                   1          0
+ctl/cluster/APPLYFILTER[3]                  46          0       2273     11.91%
+  CONV_INIT                                  1          0
+  CONV_LOOP_TOP                              8          0
+  CONV_LD_IMG_SAMPLE                         8          0
+  CONV_LD_FILTER_SAMPLE                      8          0
+  CONV_APPLY                                 8          0
+  CONV_LOOP_BRANCH                          12          0
+  CONV_RTN                                   1          0
+ctl/cluster/APPLYFILTER[4]                  46          0       2562     13.42%
+  CONV_INIT                                  1          0
+  CONV_LOOP_TOP                              8          0
+  CONV_LD_IMG_SAMPLE                         8          0
+  CONV_LD_FILTER_SAMPLE                      8          0
+  CONV_APPLY                                 8          0
+  CONV_LOOP_BRANCH                          12          0
+  CONV_RTN                                   1          0
+ctl/cluster/APPLYFILTER[5]                  46          0       2366     12.40%
+  CONV_INIT                                  1          0
+  CONV_LOOP_TOP                              8          0
+  CONV_LD_IMG_SAMPLE                         8          0
+  CONV_LD_FILTER_SAMPLE                      8          0
+  CONV_APPLY                                 8          0
+  CONV_LOOP_BRANCH                          12          0
+  CONV_RTN                                   1          0
+ctl/cluster/APPLYFILTER[6]                  46          0       2396     12.55%
+  CONV_INIT                                  1          0
+  CONV_LOOP_TOP                              8          0
+  CONV_LD_IMG_SAMPLE                         8          0
+  CONV_LD_FILTER_SAMPLE                      8          0
+  CONV_APPLY                                 8          0
+  CONV_LOOP_BRANCH                          12          0
+  CONV_RTN                                   1          0
+ctl/cluster/APPLYFILTER[7]                  46          0       2439     12.78%
+  CONV_INIT                                  1          0
+  CONV_LOOP_TOP                              8          0
+  CONV_LD_IMG_SAMPLE                         8          0
+  CONV_LD_FILTER_SAMPLE                      8          0
+  CONV_APPLY                                 8          0
+  CONV_LOOP_BRANCH                          12          0
+  CONV_RTN                                   1          0
+ctl/CLUSTER                                 24          0       2817     14.76%
+  SG_FILTER_GROUP_INIT                       2          0
+  SG_FILTER_GROUP_DISPATCH                  10          0
+  SG_FILTER_GROUP_MERGE                      8          0
+  SG_FILTER_GROUP_WRITE                      2          0
+  SG_FILTER_GROUP_RTN                        2          0
+CTL                                         43          0       2859     14.98%
   CTL_ENTRY                                  1          0
-  CTL_COMPUTE                               21          0
-  CTL_JOIN                                  20          0
+  CTL_CHECK_I                                2          0
+  CTL_CHECK_Y                                3          0
+  CTL_CHECK_X                                6          0
+  CTL_CHECK_F                               12          0
+  CTL_COLLECT                                8          0
+  CTL_COMPUTE                                8          0
+  CTL_JOIN                                   2          0
   CTL_RTN                                    1          0
-ctl/RELU                                    60          0       2963     17.04%
-  RELU_LD1                                  20          0
-  RELU_ST                                   20          0
-  RELU_RTN                                  20          0
