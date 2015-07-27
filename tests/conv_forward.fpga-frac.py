@@ -9,9 +9,9 @@ class TestForiegnOps(unittest.TestCase):
     
     def test(self):
         # Expected
-        img = np.arange(0,32, dtype=np.float32)
+        img = np.arange(0,32, dtype=np.float32)/16
         img = np.reshape(img,[1,2,4,4])
-        filter = np.arange(0,2*2*2*2, dtype=np.float32)
+        filter = np.arange(0,2*2*2*2, dtype=np.float32)/16
         filter = np.reshape(filter,[2,2,2,2])
         bias = np.ones([2])
         expected = np.asarray([[[441,497],
@@ -27,8 +27,8 @@ class TestForiegnOps(unittest.TestCase):
 	fpga.setfpga()
 	test = convolver.ff(owlimg, owlfilter, owlbias)
         
-        print 'Expected\n',expected
-        print "Actual\n",test.to_numpy()
+        #print 'Expected\n',expected
+        #print "Actual\n",test.to_numpy()
         self.assertTrue(np.allclose(expected, test.to_numpy()))
 
 

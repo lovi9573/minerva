@@ -80,6 +80,8 @@ class MinervaSystem :
   // device master
 #endif
 
+
+
  private:
   MinervaSystem(int*, char***);
   PhysicalDag* physical_dag_;
@@ -95,6 +97,7 @@ class MinervaSystem :
   MpiHandler* mpihandler_;
   MpiServer* mpiserver_;
 #endif
+
 };
 
 

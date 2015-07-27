@@ -55,6 +55,7 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 	size_t filter_bytes = filter_numbers*2;
 	size_t output_numbers = outputs[0].size_.Prod();
 	size_t output_bytes = output_numbers*2;
+	int frac_width = MinervaSystem::Instance().fraction_width();
 
 	//Ensure that the allocation can be interpreted as uint64_t
 	if (img_bytes % 8 != 0){
@@ -71,8 +72,8 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 	char *filter_q88_data = (char *)malloc(filter_bytes);
 	char *output_q88_data = (char *)malloc(output_bytes);
 
-	float2qxx(input_data, input_q88_data,img_numbers,16,8);
-	float2qxx(filter_data, filter_q88_data,filter_numbers,16,8);
+	float2qxx(input_data, input_q88_data,img_numbers,16,2);
+	float2qxx(filter_data, filter_q88_data,filter_numbers,16,2);
 	/*
 	  closure.pad_height;
 	  int pad_width;
@@ -88,9 +89,9 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 	conv_forward(input_q88_data, inputs[0].size_[3], inputs[0].size_[1], inputs[0].size_[2], img_bytes,
 				 filter_q88_data, inputs[1].size_[3], inputs[1].size_[1], closure.stride_vertical, filter_bytes,
 				 output_q88_data, output_bytes,
-				 8);
+				 2);
 
-	qxx2float(output_q88_data, output_data, output_numbers,16,8);
+	qxx2float(output_q88_data, output_data, output_numbers,16,2);
 	for(size_t i = 0; i < output_numbers; i++){
 		printf("%f\n",output_data[i]);
 	}
