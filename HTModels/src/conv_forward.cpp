@@ -58,5 +58,6 @@ void conv_forward(void *input_q88_data, size_t num_img, size_t img_dim, size_t i
 	//Copy results out.
 	pHtHif->MemCpy(output_q88_data, ht_output_data, output_alloc/4 * sizeof(uint64_t));
 
+
 }
 

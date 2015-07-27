@@ -10,7 +10,7 @@ void usage (char *);
 
 int main(int argc, char **argv)
 {
-	uint16_t FRACW = 14;
+	uint16_t FRACW = 8;
 
 	size_t num_img =1;
 	size_t img_dim = 17;

@@ -11,13 +11,13 @@
 
 //TODO: does not take machine endianness into account.
 void float2qxx(float* src, char* dest, size_t n , int width, int fractionaldigits){
-	int16_t maxint = 1<<(width - fractionaldigits -1);
+	int32_t maxint = 1<<(width - fractionaldigits -1);
 
 	for(size_t i = 0; i < n; i++){
 		if(src[i] >= maxint){
 			reinterpret_cast<int16_t*>(dest)[i] = 0x7FFF;
 		}
-		else if(src[i] < -maxint){
+		else if(src[i] <= -maxint){
 			reinterpret_cast<int16_t*>(dest)[i] = 0x1000;
 		}
 		else{
@@ -32,7 +32,7 @@ void qxx2float(char* src, float* dest, size_t n, int width, int fractionaldigits
 	for (size_t i = 0; i < n; i++){
 		int16_t intval = reinterpret_cast<int16_t*>(src)[i];
 		dest[i] = static_cast<float>(intval)/ (1<<fractionaldigits);
-		printf("q%d.%d_2float %d /256 => %f\n",width, fractionaldigits, reinterpret_cast<int16_t*>(src)[i],dest[i]);
+		printf("q%d.%d_2float %d /%d => %f\n",width, fractionaldigits, reinterpret_cast<int16_t*>(src)[i], (1 << fractionaldigits),dest[i]);
 	}
 }
 

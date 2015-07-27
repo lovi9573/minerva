@@ -23,14 +23,14 @@ CPersCtl::PersCtl()
 			P_outAddrOffset = 0;
 			GW_fractionW = SR_fractionW;
 			S_dCoordinates = SR_img_dim - SR_filter_dim + SR_stride;
-			S_dimY = SR_img_dim*SR_img_dim*SR_img_channels;
-			S_dimX = SR_img_dim*SR_img_channels;
-			S_dimF = SR_filter_dim*SR_filter_dim*SR_img_channels;
+			S_dimY = (uint32_t)(SR_img_dim*SR_img_dim*SR_img_channels);
+			S_dimX = (uint32_t)(SR_img_dim*SR_img_channels);
+			S_dimF = (uint32_t)(SR_filter_dim*SR_filter_dim*SR_img_channels);
 			//Determine MY coordinate in X,Y,Filter space based on MY unit rank.
-			P_applicationIdx_F=P_rank*4%SR_filter_num;  //Each takes 4 filters
+			P_applicationIdx_F=(uint32_t)(P_rank*4%SR_filter_num);  //Each takes 4 filters
 			P_applicationIdx_X=((P_rank*4/SR_filter_num)*SR_stride)%SR_img_dim;
 			P_applicationIdx_Y=(((P_rank*4/SR_filter_num)*SR_stride)/SR_img_dim)*SR_stride%SR_img_dim;
-			P_applicationIdx_I=(((P_rank*4/SR_filter_num)*SR_stride)/SR_img_dim)*SR_stride/SR_img_dim;
+			P_applicationIdx_I=(uint32_t)((((P_rank*4/SR_filter_num)*SR_stride)/SR_img_dim)*SR_stride/SR_img_dim);
 			HtContinue(CTL_CHECK_I);
 		}
 		break;
@@ -45,7 +45,7 @@ CPersCtl::PersCtl()
 		break;
 		case CTL_CHECK_Y: {
 			if(P_applicationIdx_Y  < SR_dCoordinates){
-				printf("Y: %d\n",PR_applicationIdx_Y);
+				//printf("Y: %d\n",PR_applicationIdx_Y);
 				HtContinue(CTL_CHECK_X);
 			}else{//overflow Y index
 				P_applicationIdx_I = PR_applicationIdx_I + 1;
@@ -56,7 +56,7 @@ CPersCtl::PersCtl()
 		break;
 		case CTL_CHECK_X: {
 			if (PR_applicationIdx_X <  SR_dCoordinates) {
-				printf("\tX: %d\n",PR_applicationIdx_X);
+				//printf("\tX: %d\n",PR_applicationIdx_X);
 				HtContinue(CTL_CHECK_F);
 			} else {//overflow X index
 				P_applicationIdx_Y = PR_applicationIdx_Y + SR_stride;
@@ -78,18 +78,17 @@ CPersCtl::PersCtl()
 		case CTL_COLLECT: {
 			//printf("adress collect count:%d F:%d X:%d Y:%d I:%d\n",PR_count.to_int(),PR_applicationIdx_F,PR_applicationIdx_X,PR_applicationIdx_Y,PR_applicationIdx_I );
 			//Valid application of a filter
-			P_Addresses[PR_count*2] = SR_imgAddr + 2*(
+			P_Addresses[PR_count*2] = SR_imgAddr + (MemAddr_t)(2*(
 													P_applicationIdx_I*SR_dimY +
 													P_applicationIdx_Y*SR_dimX +
-													P_applicationIdx_X*SR_img_channels
+													P_applicationIdx_X*SR_img_channels)
 													); //Image patch base address
-			P_Addresses[PR_count*2+1] = SR_filterAddr + 2*(PR_applicationIdx_F *SR_dimF ); //Filter base address
-			P_count = PR_count +1;
+			P_Addresses[PR_count*2+1] = SR_filterAddr + (MemAddr_t)(2*(PR_applicationIdx_F *SR_dimF )); //Filter base address
 			HtContinue(CTL_COMPUTE);
 		}
 		break;
 		case CTL_COMPUTE: {
-			if(PR_count >= 4){
+			if(PR_count == 3){
 				//printf("Compute        count:%d F:%d X:%d Y:%d I:%d %lu to %lu\n",PR_count.to_int(),PR_applicationIdx_F,PR_applicationIdx_X,PR_applicationIdx_Y,PR_applicationIdx_I,P_Addresses[1],P_Addresses[0] );
 				//printf("fork %lu; %lu\n",P_Addresses[1],P_Addresses[0]);
 				BUSY_RETRY(SendCallBusy_cluster());
@@ -104,6 +103,7 @@ CPersCtl::PersCtl()
 				//rankStride leapfrog's me over other units to MY next application.
 				P_applicationIdx_F =  PR_applicationIdx_F + (PR_rankStride-1)*4+1;
 			}else{
+				P_count = PR_count +1;
 				P_applicationIdx_F = PR_applicationIdx_F + 1;
 				//printf("increment F:%d X:%d Y:%d I:%d\n",PR_applicationIdx_F,PR_applicationIdx_X,PR_applicationIdx_Y,PR_applicationIdx_I);
 			}
