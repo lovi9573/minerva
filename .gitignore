@@ -66,6 +66,6 @@ cscope.out
 
 #generated files
 owl/libowl.cpp
-HTModels/HtDsnRpt.html
-HTModels/hostapp/HtMonRpt.txt
+*/HtDsnRpt.html
+*/HtMonRpt.txt
 HTModels/hostapp/conv_sysc
