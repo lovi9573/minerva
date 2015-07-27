@@ -69,7 +69,6 @@ class MinervaSystem :
   int rank();
   void WorkerRun() override;
 
-
 #ifdef HAS_MPI
   MpiServer& mpi_server(){
 	  return *mpiserver_;
@@ -78,6 +77,15 @@ class MinervaSystem :
 	  return *mpihandler_;
   }
   // device master
+#endif
+
+#if defined(FIXED_POINT) || defined(HAS_FPGA)
+  int get_fraction_width(){
+	  return fraction_width;
+  }
+  void set_fraction_width(int w){
+	  fraction_width = w;
+  }
 #endif
 
 
@@ -96,6 +104,9 @@ class MinervaSystem :
 #ifdef HAS_MPI
   MpiHandler* mpihandler_;
   MpiServer* mpiserver_;
+#endif
+#if defined(FIXED_POINT) || defined(HAS_FPGA)
+  int fraction_width;
 #endif
 
 };
