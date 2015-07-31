@@ -30,7 +30,7 @@ extensions = [
             '-g'
 #            '-DHAS_MPI', #TODO: owl shouldn't need to know that mpi even exists.
  #           '-I/usr/include/openmpi-x86_64' #TODO: owl shouldn't need to know that mpi even exists.
-        ] + [x for x in sys.argv[3:]],
+        ] + [x for x in sys.argv[3:] if (len(x.strip().split("=")) > 1 and x.strip().split("=")[1] != "0")],
         libraries=[
             'minerva'
         ],
