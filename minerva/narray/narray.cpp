@@ -12,7 +12,7 @@ using namespace std;
 namespace minerva {
 
 // Static constructors
-NArray NArray::Constant(const Scale& size, float val) {
+NArray NArray::Constant(const Scale& size, element_t val) {
   FillOp* fill_op = new FillOp();
   fill_op->closure = {val};
   return NArray::GenerateOne(size, fill_op);
@@ -40,7 +40,7 @@ NArray NArray::Ones(const Scale& size) {
   return NArray::Constant(size, 1.0);
 }
 
-NArray NArray::MakeNArray(const Scale& size, shared_ptr<float> array) {
+NArray NArray::MakeNArray(const Scale& size, shared_ptr<element_t> array) {
   ArrayLoaderOp* loader_op = new ArrayLoaderOp();
 #ifdef HAS_MPI
   loader_op->closure = {size.Prod(), array};
@@ -222,16 +222,16 @@ void NArray::Wait() const {
   MinervaSystem::Instance().backend().Wait(CHECK_NOTNULL(data_));
 }
 
-shared_ptr<float> NArray::Get() const {
+shared_ptr<element_t> NArray::Get() const {
   Wait();
   return MinervaSystem::Instance().backend().GetValue(CHECK_NOTNULL(data_));
 }
 
 void NArray::ToStream(ostream& out, const FileFormat& format) const {
-  shared_ptr<float> ptr = Get();
-  float* value = ptr.get();
+  shared_ptr<element_t> ptr = Get();
+  element_t* value = ptr.get();
   if (format.binary) {
-    out.write(reinterpret_cast<char*>(value), Size().Prod() * sizeof(float));
+    out.write(reinterpret_cast<char*>(value), Size().Prod() * sizeof(element_t));
   } else {
     for (int i = 0; i < Size().Prod(); ++i) {
       if (i != 0 && i % 10 == 0)

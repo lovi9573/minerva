@@ -76,21 +76,21 @@ void SimpleBackend::WaitForAll() {
   // do nothing
 }
 
-std::shared_ptr<float> SimpleBackend::GetValue(BackendChunk* chunk) {
+std::shared_ptr<element_t> SimpleBackend::GetValue(BackendChunk* chunk) {
   auto& data = CHECK_NOTNULL(dynamic_cast<SimpleChunk*>(chunk))->data();
   //printf("PhysicalData reference retrieved\n");
-  shared_ptr<float> ret(new float[data.size.Prod()], [](float* p) {
+  shared_ptr<element_t> ret(new element_t[data.size.Prod()], [](element_t* p) {
     delete[] p;
   });
 #ifdef HAS_MPI
   if (data.rank != MinervaSystem::Instance().rank()){
-	  size_t size = data.size.Prod()*sizeof(float);
+	  size_t size = data.size.Prod()*sizeof(element_t);
 	  MinervaSystem::Instance().Request_Data(reinterpret_cast<char*>(ret.get()), size, data.rank,  data.device_id, data.data_id );
 	  return ret;
   }
 #endif
   auto dev_pair = MinervaSystem::Instance().GetPtr(data.device_id, data.data_id);
-  MinervaSystem::UniversalMemcpy(make_pair(Device::MemType::kCpu, ret.get()), dev_pair, data.size.Prod() * sizeof(float));
+  MinervaSystem::UniversalMemcpy(make_pair(Device::MemType::kCpu, ret.get()), dev_pair, data.size.Prod() * sizeof(element_t));
   return ret;
 }
 

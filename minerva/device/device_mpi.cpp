@@ -76,7 +76,7 @@ string MpiDevice::Name() const {
  * @param dst  The write pointer. Local to this device
  * @param src  The read pointer. Remote data.
  */
-void MpiDevice::DoCopyRemoteData(float* dst, float* src, size_t size, int) {
+void MpiDevice::DoCopyRemoteData(element_t* dst, element_t* src, size_t size, int) {
 	//TODO(jlovitt): Perhaps this will be possible with RDMA
 	LOG(FATAL) << "Cannot copy over Mpi using pointers.";
 }

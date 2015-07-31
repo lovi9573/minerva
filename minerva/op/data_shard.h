@@ -5,9 +5,9 @@
 namespace minerva {
 
 struct DataShard {
-  DataShard(float* data, Scale const& size) : data_(data), size_(size) {
+  DataShard(element_t* data, Scale const& size) : data_(data), size_(size) {
   }
-  float* const data_;
+  element_t* const data_;
   Scale const& size_;
 };
 

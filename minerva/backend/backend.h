@@ -19,7 +19,7 @@ class Backend {
       std::shared_ptr<ComputeFn>);
   virtual void Wait(BackendChunk*) = 0;
   virtual void WaitForAll() = 0;
-  virtual std::shared_ptr<float> GetValue(BackendChunk*) = 0;
+  virtual std::shared_ptr<element_t> GetValue(BackendChunk*) = 0;
 };
 
 }  // namespace minerva

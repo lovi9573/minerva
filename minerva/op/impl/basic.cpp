@@ -23,9 +23,9 @@ namespace basic {
 void Arithmetic(const DataList& inputs, const DataList& outputs, ArithmeticClosure& closure) {
   CHECK_EQ(inputs.size(), 2) << "(arithmetic) #inputs is wrong!";
   CHECK_EQ(outputs.size(), 1) << "(arithmetic) #outputs is wrong!";
-  float* left_data = inputs[0].data_;
-  float* right_data = inputs[1].data_;
-  float* res_data = outputs[0].data_;
+  element_t* left_data = inputs[0].data_;
+  element_t* right_data = inputs[1].data_;
+  element_t* res_data = outputs[0].data_;
   int length = outputs[0].size_.Prod();
   switch (closure.type) {
     case ArithmeticType::kAdd:
@@ -54,9 +54,9 @@ void Arithmetic(const DataList& inputs, const DataList& outputs, ArithmeticClosu
 void ArithmeticConst(const DataList& inputs, const DataList& outputs, ArithmeticConstClosure& closure) {
   CHECK_EQ(inputs.size(), 1) << "(arithmetic const) #inputs is wrong!";
   CHECK_EQ(outputs.size(), 1) << "(arithmetic const) #outputs is wrong!";
-  float val = closure.val;
-  float* in_data = inputs[0].data_;
-  float* res_data = outputs[0].data_;
+  element_t val = closure.val;
+  element_t* in_data = inputs[0].data_;
+  element_t* res_data = outputs[0].data_;
   int length = outputs[0].size_.Prod();
   switch (closure.type) {
     case ArithmeticType::kAdd:
@@ -109,8 +109,8 @@ void ArithmeticConst(const DataList& inputs, const DataList& outputs, Arithmetic
 void Elewise(const DataList& inputs, const DataList& outputs, ElewiseClosure& closure) {
   CHECK_EQ(inputs.size(), 1) << "(elewise) #inputs is wrong!";
   CHECK_EQ(outputs.size(), 1) << "(elewise) #outputs is wrong!";
-  float* in_data = inputs[0].data_;
-  float* res_data = outputs[0].data_;
+  element_t* in_data = inputs[0].data_;
+  element_t* res_data = outputs[0].data_;
   int length = outputs[0].size_.Prod();
   switch (closure.type) {
     case ElewiseType::kExp:
@@ -134,15 +134,15 @@ void Elewise(const DataList& inputs, const DataList& outputs, ElewiseClosure& cl
 void MatMult(const DataList& inputs, const DataList& outputs, MatMultClosure& closure) {
   CHECK_EQ(inputs.size(), 2) << "(matmult) #inputs is wrong!";
   CHECK_EQ(outputs.size(), 1) << "(matmult) #outputs is wrong!";
-  float* left_data = inputs[0].data_;
-  float* right_data = inputs[1].data_;
-  float* res_data = outputs[0].data_;
+  element_t* left_data = inputs[0].data_;
+  element_t* right_data = inputs[1].data_;
+  element_t* res_data = outputs[0].data_;
   int m = outputs[0].size_[0];
   int n = outputs[0].size_[1];
   int o = inputs[0].size_[1];
   // ATTENTION: the data is column major !!
 #ifdef HAS_CBLAS
-  memset(res_data, 0, sizeof(float) * m * n);
+  memset(res_data, 0, sizeof(element_t) * m * n);
   cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, m, n, o, 1.0, left_data, m, right_data, o, 0.0, res_data, m);
 #else
   for (int i = 0; i < m; ++i) {
@@ -159,8 +159,8 @@ void MatMult(const DataList& inputs, const DataList& outputs, MatMultClosure& cl
 void Transpose(const DataList& inputs, const DataList& outputs, TransposeClosure& closure) {
   CHECK_EQ(inputs.size(), 1) << "(transpose) #inputs is wrong!";
   CHECK_EQ(outputs.size(), 1) << "(transpose) #outputs is wrong!";
-  float* in_data = inputs[0].data_;
-  float* res_data = outputs[0].data_;
+  element_t* in_data = inputs[0].data_;
+  element_t* res_data = outputs[0].data_;
   int m = outputs[0].size_[0];
   int n = outputs[0].size_[1];
   for (int i = 0; i < m; ++i) {
@@ -173,8 +173,8 @@ void Transpose(const DataList& inputs, const DataList& outputs, TransposeClosure
 void Reduction(const DataList& inputs, const DataList& outputs, ReductionClosure& closure) {
   CHECK_EQ(inputs.size(), 1) << "(reduction) #inputs is wrong!";
   CHECK_EQ(outputs.size(), 1) << "(reduction) #outputs is wrong!";
-  float* in_data = inputs[0].data_;
-  float* res_data = outputs[0].data_;
+  element_t* in_data = inputs[0].data_;
+  element_t* res_data = outputs[0].data_;
   auto in_max = inputs[0].size_;
   auto in_range = ScaleRange::MakeRangeFromOrigin(in_max);
   auto res_max = outputs[0].size_;
@@ -182,9 +182,9 @@ void Reduction(const DataList& inputs, const DataList& outputs, ReductionClosure
   auto accumulator = Scale::Origin(in_max.NumDims());
   do {
     auto cur = accumulator;
-    float tmp = in_data[in_range.Flatten(cur)];
+    element_t tmp = in_data[in_range.Flatten(cur)];
     while (cur.IncrDimensions(in_max, closure.dims_to_reduce)) {
-      float tmp2 = in_data[in_range.Flatten(cur)];
+      element_t tmp2 = in_data[in_range.Flatten(cur)];
       switch (closure.type) {
         case ReductionType::kSum:
           tmp += tmp2;
@@ -204,8 +204,8 @@ void SoftmaxForward(const DataList& inputs, const DataList& outputs, SoftmaxForw
   //TODO: Currently CPU only support kInstance softmax 
   CHECK_EQ(inputs.size(), 1) << "(reduction) #inputs is wrong!";
   CHECK_EQ(outputs.size(), 1) << "(reduction) #outputs is wrong!";
-  float* in_data = inputs[0].data_;
-  float* res_data = outputs[0].data_;
+  element_t* in_data = inputs[0].data_;
+  element_t* res_data = outputs[0].data_;
   auto in_max = inputs[0].size_;
   auto in_range = ScaleRange::MakeRangeFromOrigin(in_max);
   auto res_max = outputs[0].size_;
@@ -218,17 +218,17 @@ void SoftmaxForward(const DataList& inputs, const DataList& outputs, SoftmaxForw
   //sub the max to prevent numerical problem
   do {
     auto cur = accumulator;
-    float tmp = in_data[in_range.Flatten(cur)];
+    element_t tmp = in_data[in_range.Flatten(cur)];
     //get max
     while (cur.IncrDimensions(in_max, dim_to_norm)) {
-      float tmp2 = in_data[in_range.Flatten(cur)];
+      element_t tmp2 = in_data[in_range.Flatten(cur)];
       if (tmp < tmp2) {
         tmp = tmp2;
       }
     }
     //exp(x - max), also sum the result
     cur = accumulator;
-    float sum_exp = 0;
+    element_t sum_exp = 0;
     do {
       res_data[in_range.Flatten(cur)] = expf(in_data[in_range.Flatten(cur)] - tmp);
       sum_exp += res_data[in_range.Flatten(cur)];
@@ -249,14 +249,14 @@ void SoftmaxForward(const DataList& inputs, const DataList& outputs, SoftmaxForw
 void ArrayLoader(const DataList& outputs, ArrayLoaderClosure& closure) {
   CHECK_EQ(outputs.size(), 1) << "(array loader) #outputs wrong";
   CHECK(closure.data) << "probably already executed";
-  memcpy(outputs[0].data_, closure.data.get(), outputs[0].size_.Prod() * sizeof(float));
+  memcpy(outputs[0].data_, closure.data.get(), outputs[0].size_.Prod() * sizeof(element_t));
   closure.data.reset();
 }
 
 void Randn(const DataList& output, RandnClosure& closure) {
   CHECK_EQ(output.size(), 1) << "wrong number of randn output";
   int length = output[0].size_.Prod();
-  float* data = output[0].data_;
+  element_t* data = output[0].data_;
   default_random_engine generator(chrono::system_clock::now().time_since_epoch().count());
   normal_distribution<float> distribution(closure.mu, closure.var);
   for (int i = 0; i < length; ++i) {
@@ -267,7 +267,7 @@ void Randn(const DataList& output, RandnClosure& closure) {
 void RandBernoulli(const DataList& outputs, RandBernoulliClosure& closure) {
   CHECK_EQ(outputs.size(), 1) << "(bernoulli) #outputs wrong";
   int length = outputs[0].size_.Prod();
-  float* data = outputs[0].data_;
+  element_t* data = outputs[0].data_;
   default_random_engine generator(chrono::system_clock::now().time_since_epoch().count());
   bernoulli_distribution distribution(closure.p);
   for (int i = 0; i < length; ++i) {
@@ -278,7 +278,7 @@ void RandBernoulli(const DataList& outputs, RandBernoulliClosure& closure) {
 void Fill(const DataList& output, FillClosure& closure) {
   CHECK_EQ(output.size(), 1) << "wrong number of fill constant output";
   int length = output[0].size_.Prod();
-  float* data = output[0].data_;
+  element_t* data = output[0].data_;
   for (int i = 0; i < length; ++i) {
     data[i] = closure.val;
   }
@@ -314,7 +314,7 @@ void NormArithmetic(const DataList& inputs, const DataList& outputs, NormArithme
   auto normalizer_data = inputs[1].data_;
   auto res_data = outputs[0].data_;
   // Memory copy
-  memcpy(res_data, normalizee_data, normalizee_size.Prod() * sizeof(float));
+  memcpy(res_data, normalizee_data, normalizee_size.Prod() * sizeof(element_t));
   // Reuse of single element per iteration
   size_t single_iteration_size = 1;
   for (size_t i = 0; i < normalizee_size.NumDims(); ++i) {
@@ -330,7 +330,7 @@ void NormArithmetic(const DataList& inputs, const DataList& outputs, NormArithme
     for (auto i: closure.dims_to_replicate) {
       iterator_normalizer[i] = 0;
     }
-    float cur = normalizer_data[normalizer_range.Flatten(iterator_normalizer)];
+    element_t cur = normalizer_data[normalizer_range.Flatten(iterator_normalizer)];
     size_t flatten = normalizee_range.Flatten(iterator);
     for (size_t i = 0; i < single_iteration_size; ++i) {
       switch (closure.type) {
@@ -355,8 +355,8 @@ void NormArithmetic(const DataList& inputs, const DataList& outputs, NormArithme
 void MaxIndex(const DataList& inputs, const DataList& outputs, MaxIndexClosure& closure) {
   CHECK_EQ(inputs.size(), 1) << "basic::MaxIndex #input wrong";
   CHECK_EQ(outputs.size(), 1) << "basic::MaxIndex #output wrong";
-  float* in_data = inputs[0].data_;
-  float* res_data = outputs[0].data_;
+  element_t* in_data = inputs[0].data_;
+  element_t* res_data = outputs[0].data_;
   auto in_max = inputs[0].size_;
   auto in_range = ScaleRange::MakeRangeFromOrigin(in_max);
   auto res_max = outputs[0].size_;
@@ -371,7 +371,7 @@ void MaxIndex(const DataList& inputs, const DataList& outputs, MaxIndexClosure& 
   auto iterator = Scale::Origin(in_max.NumDims());
   do {
     size_t offset = in_range.Flatten(iterator);
-    float cur_max = in_data[offset];
+    element_t cur_max = in_data[offset];
     int index = 0;
     for (int i = 0; i < strike; ++i) {
       if (cur_max < in_data[offset + i * interval]) {
@@ -386,15 +386,15 @@ void MaxIndex(const DataList& inputs, const DataList& outputs, MaxIndexClosure& 
 void Reshape(const DataList& inputs, const DataList& outputs, ReshapeClosure&) {
   CHECK_EQ(inputs.size(), 1);
   CHECK_EQ(outputs.size(), 1);
-  memcpy(outputs[0].data_, inputs[0].data_, inputs[0].size_.Prod() * sizeof(float));
+  memcpy(outputs[0].data_, inputs[0].data_, inputs[0].size_.Prod() * sizeof(element_t));
 }
 
 void SigmoidForward(const DataList& inputs, const DataList& outputs, SigmoidForwardClosure&) {
   CHECK_EQ(inputs.size(), 1) << "sigmoid forward #inputs wrong";
   CHECK_EQ(outputs.size(), 1) << "sigmoid forward #outputs wrong";
 
-  float* input_data = inputs[0].data_;
-  float* output_data = outputs[0].data_;
+  element_t* input_data = inputs[0].data_;
+  element_t* output_data = outputs[0].data_;
 
   size_t numbers = inputs[0].size_.Prod();
 
@@ -407,13 +407,17 @@ void ReluForward(const DataList& inputs, const DataList& outputs, ReluForwardClo
   CHECK_EQ(inputs.size(), 1) << "relu forward #inputs wrong";
   CHECK_EQ(outputs.size(), 1) << "relu forward #outputs wrong";
 
-  float* input_data = inputs[0].data_;
-  float* output_data = outputs[0].data_;
+  element_t* input_data = inputs[0].data_;
+  element_t* output_data = outputs[0].data_;
 
   size_t numbers = inputs[0].size_.Prod();
 
   for (size_t i = 0; i < numbers; i++) {
-    output_data[i] = input_data[i] > 0 ? input_data[i] : 0;
+    if( input_data[i] > 0.0) {
+    	output_data[i] = input_data[i];
+    }else{
+    	output_data[i] = 0.0;
+    }
   }
 }
 
@@ -421,18 +425,18 @@ void ReluBackward(const DataList& inputs, const DataList& outputs, ReluBackwardC
 	  CHECK_EQ(inputs.size(), 3) << "relu backward #inputs wrong";
 	  CHECK_EQ(outputs.size(), 1) << "relu backward #outputs wrong";
 
-	  float* diff = inputs[0].data_;
-	  float* top = inputs[1].data_;
-	  //float* bottom = inputs[2].data_;
-	  float* bottom_diff = outputs[0].data_;
+	  element_t* diff = inputs[0].data_;
+	  element_t* top = inputs[1].data_;
+	  //element_t* bottom = inputs[2].data_;
+	  element_t* bottom_diff = outputs[0].data_;
 
 	  size_t numbers = inputs[0].size_.Prod();
 
 	  for(size_t i = 0; i < numbers; i++){
-		  if(top[i] > 0){
+		  if(top[i] > 0.0){
 			  bottom_diff[i] = diff[i];
 		  }else{
-			  bottom_diff[i] = 0;
+			  bottom_diff[i] = 0.0;
 		  }
 	  }
 }
@@ -441,8 +445,8 @@ void TanhForward(const DataList& inputs, const DataList& outputs, TanhForwardClo
   CHECK_EQ(inputs.size(), 1) << "tanh forward #inputs wrong";
   CHECK_EQ(outputs.size(), 1) << "tanh forward #outputs wrong";
 
-  float* input_data = inputs[0].data_;
-  float* output_data = outputs[0].data_;
+  element_t* input_data = inputs[0].data_;
+  element_t* output_data = outputs[0].data_;
 
   size_t numbers = inputs[0].size_.Prod();
 
@@ -482,20 +486,20 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 	CHECK_EQ(inputs.size(), 3) << " Convolution #inputs are wrong.\n";
 	CHECK_EQ(outputs.size(), 1) << " Convolution #outputs are wrong.\n";
 
-	float* input = inputs[0].data_;
+	element_t* input = inputs[0].data_;
 	Scale insize = inputs[0].size_;
 	int in_column = insize[0];
 	int in_channel = insize[1]*insize[0];
 	int in_element = insize[2]*insize[1]*insize[0];
 
-	float* filters = inputs[1].data_;
+	element_t* filters = inputs[1].data_;
 	Scale filtersize = inputs[1].size_;
 	int filter_column = filtersize[0];
 	int filter_channel = filtersize[1]*filtersize[0];
 	int filter_element = filtersize[2]*filtersize[1]*filtersize[0];
 
-	float* bias = inputs[2].data_;
-	float* activations = outputs[0].data_;
+	element_t* bias = inputs[2].data_;
+	element_t* activations = outputs[0].data_;
 	Scale outsize = outputs[0].size_;
 	int out_column = outsize[0];
 	int out_channel = outsize[1]*outsize[0];
@@ -524,10 +528,12 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 									activations[x/stride_horizontal + out_column*(y/stride_vertical) + out_channel*filter + out_element*element ] +=
 											input[(x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*element] *
 											filters[filter_x+filter_column*filter_y+filter_channel*channel+filter_element*filter] ;
-									/*printf("\t\t\t\t\t(x: %d + %d , y: %d + %d) input:%f * filter:%f\n",x,filter_x,y,filter_y,
-											input[(x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*element],
-											filters[filter_x+filter_column*filter_y+filter_channel*channel+filter_element*filter] );
-									 */
+									printf("\t\t\t\t\t(c: %d , x: %d + %d , y: %d + %d) input:%f * filter:%f => [ %d ] %f\n",channel,x,filter_x,y,filter_y,
+											(float)input[(x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*element],
+											(float)filters[filter_x+filter_column*filter_y+filter_channel*channel+filter_element*filter],
+											x/stride_horizontal + out_column*(y/stride_vertical) + out_channel*filter + out_element*element,
+											(float)activations[x/stride_horizontal + out_column*(y/stride_vertical) + out_channel*filter + out_element*element ]);
+
 								}
 							}
 						}
@@ -543,8 +549,8 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 void Index(const DataList& inputs, const DataList& outputs, IndexClosure& closure) {
 	CHECK_EQ(inputs.size(), 1) << "(activation forward) #inputs wrong";
 	CHECK_EQ(outputs.size(), 1) << "(activation forward) #outputs wrong";
-	float* input_data = inputs[0].data_;
-	float* output_data = outputs[0].data_;
+	element_t* input_data = inputs[0].data_;
+	element_t* output_data = outputs[0].data_;
 
 	size_t output_length = outputs[0].size_.Prod();
 	auto idx = closure.idx;

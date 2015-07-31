@@ -36,7 +36,7 @@ Device::Device(uint64_t device_id, DeviceListener* l) : device_id_(device_id), d
 }
 
 
-pair<Device::MemType, float*> Device::GetPtr(uint64_t data_id) {
+pair<Device::MemType, element_t*> Device::GetPtr(uint64_t data_id) {
 	//printf("[%d] Getting pointer to data id %lu\n",_rank, data_id);
   return make_pair(GetMemType(), data_store_->GetData(data_id));
 }
@@ -116,15 +116,15 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 		  lock_guard<mutex> lck(copy_locks_[input_data.data_id]);
 		  if (!remote_data_.Count(input_data.data_id)) {  // Input is remote and not copied
 			DLOG(INFO) << Name() << " input task data #" << input_data.data_id << " is remote and not copied";
-			size_t size = input_data.size.Prod() * sizeof(float);
+			size_t size = input_data.size.Prod() * sizeof(element_t);
 			auto ptr = data_store_->CreateData(input_data.data_id, size);
 			//printf("[%d] Data ptr returned\n",rank_);
 #ifdef HAS_MPI
 			if(MinervaSystem::has_mpi_ == 1 && input_data.rank != MinervaSystem::Instance().rank()){
-				//printf("[%d] Device requesting data for %lu floats\n",rank_, size);
+				//printf("[%d] Device requesting data for %lu element_ts\n",rank_, size);
 				MinervaSystem::Instance().Request_Data(reinterpret_cast<char*>(ptr), size, input_data.rank,  input_data.device_id, input_data.data_id );
 			}else{
-				//printf("[%d] Copying Intra-rank data for %lu floats\n",rank_, size);
+				//printf("[%d] Copying Intra-rank data for %lu element_ts\n",rank_, size);
 				DoCopyRemoteData(ptr, MinervaSystem::Instance().GetPtr(input_data.device_id, input_data.data_id).second, size, thrid);
 			}
 #else
@@ -143,8 +143,8 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 	  //printf("[%d] creating output shards for task < %lu > with | %lu | outputs\n",rank_, task->id, task->outputs.size());
 	  DataList output_shards;
 	  for (auto& i : task->outputs) {
-		size_t size = i.physical_data.size.Prod() * sizeof(float);
-		//printf("[%d] Device creating output shard for %lu floats\n",_rank, size);
+		size_t size = i.physical_data.size.Prod() * sizeof(element_t);
+		//printf("[%d] Device creating output shard for %lu element_ts\n",_rank, size);
 		DLOG(INFO) << Name() << " create output for task data #" << i.physical_data.data_id;
 		//printf("[%d] Local data [ %lu ] created on rank %d\n",_rank,i.physical_data.data_id, _rank);
 		auto ptr = data_store_->CreateData(i.physical_data.data_id, size);
@@ -222,7 +222,7 @@ string CpuDevice::Name() const {
   return common::FString("CPU device #%d", device_id_);
 }
 
-void CpuDevice::DoCopyRemoteData(float* dst, float* src, size_t size, int) {
+void CpuDevice::DoCopyRemoteData(element_t* dst, element_t* src, size_t size, int) {
 #ifdef HAS_CUDA
   CUDA_CALL(cudaMemcpy(dst, src, size, cudaMemcpyDefault));
 #else

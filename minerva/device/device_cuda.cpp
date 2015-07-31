@@ -111,7 +111,7 @@ void GpuDevice::Barrier(int thrid) {
   CUDA_CALL(cudaStreamSynchronize(impl_->stream[thrid]));
 }
 
-void GpuDevice::DoCopyRemoteData(float* dst, float* src, size_t size, int thrid) {
+void GpuDevice::DoCopyRemoteData(element_t* dst, element_t* src, size_t size, int thrid) {
   CUDA_CALL(cudaMemcpyAsync(dst, src, size, cudaMemcpyDefault, impl_->stream[thrid]));
   CUDA_CALL(cudaStreamSynchronize(impl_->stream[thrid]));
 }

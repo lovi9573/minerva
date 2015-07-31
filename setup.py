@@ -3,6 +3,7 @@ from setuptools import setup, Extension
 from Cython.Build import cythonize
 import os
 import numpy
+import sys
 
 # Hack to use specified compiler
 os.environ['CC'] = 'g++'
@@ -26,10 +27,10 @@ extensions = [
             '-std=c++11',
             '-Wall',
             '-O2',
-            '-g',
-            '-DHAS_MPI', #TODO: owl shouldn't need to know that mpi even exists.
-            '-I/usr/include/openmpi-x86_64' #TODO: owl shouldn't need to know that mpi even exists.
-        ],
+            '-g'
+#            '-DHAS_MPI', #TODO: owl shouldn't need to know that mpi even exists.
+ #           '-I/usr/include/openmpi-x86_64' #TODO: owl shouldn't need to know that mpi even exists.
+        ] + [x for x in sys.argv[3:]],
         libraries=[
             'minerva'
         ],

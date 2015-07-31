@@ -30,7 +30,7 @@ class IMinervaSystem {
   virtual ExecutionProfiler& profiler() = 0;
   virtual DeviceManager& device_manager() = 0;
 
-  virtual std::pair<Device::MemType, float*> GetPtr(uint64_t, uint64_t) = 0;
+  virtual std::pair<Device::MemType, element_t*> GetPtr(uint64_t, uint64_t) = 0;
   virtual uint64_t GenerateDataId() = 0;
   virtual uint64_t GenerateTaskId() = 0;
 

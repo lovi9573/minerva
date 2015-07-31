@@ -14,7 +14,7 @@ DataStore::~DataStore() {
   }
 }
 
-float* DataStore::CreateData(uint64_t id, size_t length) {
+element_t* DataStore::CreateData(uint64_t id, size_t length) {
   lock_guard<mutex> lck(access_mutex_);
   DLOG(INFO) << "create data #" << id << " length " << length;
   auto it = data_states_.emplace(id, DataState());
@@ -22,14 +22,14 @@ float* DataStore::CreateData(uint64_t id, size_t length) {
   auto& ds = it.first->second;
   ds.length = length;
   ds.ptr = allocator_(length);
-  return static_cast<float*>(ds.ptr);
+  return static_cast<element_t*>(ds.ptr);
 }
 
-float* DataStore::GetData(uint64_t id) {
+element_t* DataStore::GetData(uint64_t id) {
   lock_guard<mutex> lck(access_mutex_);
   CHECK_EQ(data_states_.count(id), 1) << " rank: " << MinervaSystem::Instance().rank();
   auto& ds = data_states_.at(id);
-  return static_cast<float*>(ds.ptr);
+  return static_cast<element_t*>(ds.ptr);
 }
 
 bool DataStore::ExistData(uint64_t id) const {

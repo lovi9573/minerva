@@ -75,7 +75,11 @@ TEST(Activation, CpuReluForward) {
   auto input_ptr = input.Get();
   auto output_ptr = output.Get();
   for (int i = 0; i < input_size.Prod(); ++i) {
-    EXPECT_FLOAT_EQ(output_ptr.get()[i], 0 < input_ptr.get()[i] ? input_ptr.get()[i] : 0);
+	  if(0 < input_ptr.get()[i]){
+		  EXPECT_FLOAT_EQ(output_ptr.get()[i], input_ptr.get()[i] );
+	  }else{
+		  EXPECT_FLOAT_EQ(output_ptr.get()[i], 0);
+	  }
   }
 }
 

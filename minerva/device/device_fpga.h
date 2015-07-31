@@ -31,7 +31,7 @@ class FpgaDevice : public ThreadedDevice {
   //void PreExecute() override;
   //void Barrier(int) override;
   static size_t constexpr kParallelism = 4;
-  void DoCopyRemoteData(float*, float*, size_t, int) override;
+  void DoCopyRemoteData(element_t*, element_t*, size_t, int) override;
   void DoExecute(const DataList&, const DataList&, PhysicalOp&, int) override;
   void DoExecute(Task* task, int thrid) override;
 //  CHtHif *pHt_host_interface;

@@ -23,8 +23,8 @@ void ReluForward(const DataList& inputs, const DataList& outputs, ReluForwardClo
   CHECK_EQ(inputs.size(), 1) << "relu forward #inputs wrong";
   CHECK_EQ(outputs.size(), 1) << "relu forward #outputs wrong";
 
-  float* input_data = inputs[0].data_;
-  float* output_data = outputs[0].data_;
+  element_t* input_data = inputs[0].data_;
+  element_t* output_data = outputs[0].data_;
   size_t numbers = inputs[0].size_.Prod();
   size_t bytes = numbers*2;
   //Ensure that the allocation can be interpreted as uint64_t
@@ -35,27 +35,26 @@ void ReluForward(const DataList& inputs, const DataList& outputs, ReluForwardClo
   char *input_q88_data = (char *)malloc(bytes);
   char *output_q88_data = (char *)malloc(bytes);
 
-  float2qxx(input_data, input_q88_data,numbers,16,8);
+  element_t2qxx(input_data, input_q88_data,numbers,16,8);
 
   //relu_forward(input_q88_data, output_q88_data, numbers );
 
-	qxx2float(output_q88_data, output_data, numbers,8,8);
+	qxx2element_t(output_q88_data, output_data, numbers,8,8);
 	free(input_q88_data);
 	free(output_q88_data);
 
 }
 
 void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClosure& closure){
-	float* input_data = inputs[0].data_;
-	float* filter_data = inputs[1].data_;
-	float* output_data = outputs[0].data_;
+	element_t* input_data = inputs[0].data_;
+	element_t* filter_data = inputs[1].data_;
+	element_t* output_data = outputs[0].data_;
 	size_t img_numbers = inputs[0].size_.Prod();
 	size_t img_bytes = img_numbers*2;
 	size_t filter_numbers = inputs[1].size_.Prod();
 	size_t filter_bytes = filter_numbers*2;
 	size_t output_numbers = outputs[0].size_.Prod();
 	size_t output_bytes = output_numbers*2;
-	int frac_width = MinervaSystem::Instance().fraction_width();
 
 	//Ensure that the allocation can be interpreted as uint64_t
 	if (img_bytes % 8 != 0){
@@ -72,8 +71,8 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 	char *filter_q88_data = (char *)malloc(filter_bytes);
 	char *output_q88_data = (char *)malloc(output_bytes);
 
-	float2qxx(input_data, input_q88_data,img_numbers,16,2);
-	float2qxx(filter_data, filter_q88_data,filter_numbers,16,2);
+	element_t2qxx(input_data, input_q88_data,img_numbers,16,FIXED_POINT_FRACTION_WIDTH);
+	element_t2qxx(filter_data, filter_q88_data,filter_numbers,16,FIXED_POINT_FRACTION_WIDTH);
 	/*
 	  closure.pad_height;
 	  int pad_width;
@@ -91,7 +90,7 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 				 output_q88_data, output_bytes,
 				 2);
 
-	qxx2float(output_q88_data, output_data, output_numbers,16,2);
+	qxx2element_t(output_q88_data, output_data, output_numbers,16,FIXED_POINT_FRACTION_WIDTH);
 	for(size_t i = 0; i < output_numbers; i++){
 		printf("%f\n",output_data[i]);
 	}

@@ -34,7 +34,7 @@ class Device {
   Device(uint64_t device_id, DeviceListener*);
   virtual ~Device() = default;
   virtual void PushTask(Task*) = 0;
-  virtual std::pair<MemType, float*> GetPtr(uint64_t data_id);
+  virtual std::pair<MemType, element_t*> GetPtr(uint64_t data_id);
   virtual void FreeDataIfExist(uint64_t data_id);
   virtual std::string GetMemUsage() const;
   virtual std::string Name() const = 0;
@@ -75,7 +75,7 @@ class ThreadedDevice : public Device {
   virtual void Execute(Task*, int thrid);
   virtual void PreExecute();
   virtual void Barrier(int);
-  virtual void DoCopyRemoteData(float*, float*, size_t, int) = 0;
+  virtual void DoCopyRemoteData(element_t*, element_t*, size_t, int) = 0;
   virtual void DoExecute(const DataList&, const DataList&, PhysicalOp&, int) = 0;
   virtual void DoExecute(Task* task, int thrid) = 0;
   ConcurrentUnorderedMap<uint64_t, std::mutex> copy_locks_;
@@ -96,7 +96,7 @@ class CpuDevice : public ThreadedDevice {
 
  private:
   static size_t constexpr kDefaultThreadNum = 4;
-  void DoCopyRemoteData(float*, float*, size_t, int) override;
+  void DoCopyRemoteData(element_t*, element_t*, size_t, int) override;
   void DoExecute(const DataList&, const DataList&, PhysicalOp&, int) override;
   void DoExecute(Task* task, int thrid) override;
 };

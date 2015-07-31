@@ -19,7 +19,7 @@ class SimpleBackend : public Backend, public DeviceListener {
   std::vector<BackendChunk*> Create(const std::vector<BackendChunk*>&, const std::vector<Scale>&, std::shared_ptr<ComputeFn>) override;
   void Wait(BackendChunk*) override;
   void WaitForAll() override;
-  std::shared_ptr<float> GetValue(BackendChunk*) override;
+  std::shared_ptr<element_t> GetValue(BackendChunk*) override;
 
   void OnOperationComplete(Task*) override;
 

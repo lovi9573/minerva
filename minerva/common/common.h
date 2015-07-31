@@ -7,6 +7,7 @@
 #include <unordered_set>
 #include <algorithm>
 #include "./make_unique.h"
+#include "common/element.h"
 
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName&) = delete; \

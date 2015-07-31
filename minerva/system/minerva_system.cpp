@@ -28,17 +28,17 @@ namespace minerva {
 //TODO(jlovitt): Perhaps this will be possible with RDMA
 //TODO(jlovitt): Make this work with FPGA
 void MinervaSystem::UniversalMemcpy(
-    pair<Device::MemType, float*> to,
-    pair<Device::MemType, float*> from,
+    pair<Device::MemType, element_t*> to,
+    pair<Device::MemType, element_t*> from,
     size_t size) {
 #ifdef HAS_CUDA
   CUDA_CALL(cudaMemcpy(to.second, from.second, size, cudaMemcpyDefault));
 #else
   CHECK_EQ(static_cast<int>(to.first), static_cast<int>(Device::MemType::kCpu));
   CHECK_EQ(static_cast<int>(from.first), static_cast<int>(Device::MemType::kCpu));
-/*  printf("\nUniversal memcopy copying %lu floats at %p\n", size/sizeof(float), from.second);
-	for(size_t i =0; i < size/sizeof(float); i ++){
-		printf("%f, ", *(  ((float*)from.second)+i        ));
+/*  printf("\nUniversal memcopy copying %lu element_ts at %p\n", size/sizeof(element_t), from.second);
+	for(size_t i =0; i < size/sizeof(element_t); i ++){
+		printf("%f, ", *(  ((element_t*)from.second)+i        ));
 	}*/
   memcpy(to.second, from.second, size);
 #endif
@@ -63,7 +63,7 @@ MinervaSystem::~MinervaSystem() {
 }
 
 //TODO: 1 Translate symbolic mpi ptr ids to local data ptr.
-pair<Device::MemType, float*> MinervaSystem::GetPtr(uint64_t device_id, uint64_t data_id) {
+pair<Device::MemType, element_t*> MinervaSystem::GetPtr(uint64_t device_id, uint64_t data_id) {
   return device_manager_->GetDevice(device_id)->GetPtr(data_id);
 }
 

@@ -51,13 +51,13 @@ NArray NArray::MaxIndex(int dim) const {
 }
 
 // Non-lazy reductions
-float NArray::Sum() const {
+element_t NArray::Sum() const {
   // TODO
   LOG(FATAL) << "not implemented";
   return 0;
 }
 
-float NArray::Max() const {
+element_t NArray::Max() const {
   // TODO
   LOG(FATAL) << "not implemented";
   return 0;

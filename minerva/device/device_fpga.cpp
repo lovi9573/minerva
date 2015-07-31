@@ -81,7 +81,7 @@ std::string FpgaDevice::Name() const{
 }
 
 
-void FpgaDevice::DoCopyRemoteData(float* dst, float* src, size_t size, int) {
+void FpgaDevice::DoCopyRemoteData(element_t* dst, element_t* src, size_t size, int) {
 	//pHt_host_interface->MemCpy(dst, src, size);
 #ifdef HAS_CUDA
   CUDA_CALL(cudaMemcpy(dst, src, size, cudaMemcpyDefault));

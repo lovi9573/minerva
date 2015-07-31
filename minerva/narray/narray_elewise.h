@@ -20,14 +20,14 @@ class Elewise {
 NArray operator+(const NArray&, const NArray&);
 NArray operator-(const NArray&, const NArray&);
 NArray operator/(const NArray&, const NArray&);
-NArray operator+(float, const NArray&);
-NArray operator-(float, const NArray&);
-NArray operator*(float, const NArray&);
-NArray operator/(float, const NArray&);
-NArray operator+(const NArray&, float);
-NArray operator-(const NArray&, float);
-NArray operator*(const NArray&, float);
-NArray operator/(const NArray&, float);
+NArray operator+(element_t, const NArray&);
+NArray operator-(element_t, const NArray&);
+NArray operator*(element_t, const NArray&);
+NArray operator/(element_t, const NArray&);
+NArray operator+(const NArray&, element_t);
+NArray operator-(const NArray&, element_t);
+NArray operator*(const NArray&, element_t);
+NArray operator/(const NArray&, element_t);
 
 }
 
