@@ -17,6 +17,7 @@ void NO_IMPL(const I & i, const O & o, C & c, Args&&...) {
 }
 //TODO(jlovitt): 1 Replace fpga NO_IMPL's with proper function calls as implemented.
 
+
 INSTALL_COMPUTE_FN(ArithmeticClosure, basic::Arithmetic, NO_IMPL, cuda::Arithmetic, NO_IMPL);
 INSTALL_COMPUTE_FN(ArithmeticConstClosure, basic::ArithmeticConst, NO_IMPL, cuda::ArithmeticConst, NO_IMPL);
 INSTALL_COMPUTE_FN(MatMultClosure, basic::MatMult, NO_IMPL, cuda::MatMult, NO_IMPL);
@@ -53,4 +54,5 @@ INSTALL_COMPUTE_FN(ConcatClosure, NO_IMPL, NO_IMPL, cuda::Concat, NO_IMPL);
 INSTALL_COMPUTE_FN(SliceClosure, NO_IMPL, NO_IMPL, cuda::Slice, NO_IMPL);
 INSTALL_COMPUTE_FN(IndexClosure, basic::Index, NO_IMPL, NO_IMPL, NO_IMPL);
 INSTALL_COMPUTE_FN(SelectClosure, NO_IMPL, NO_IMPL, cuda::Select, NO_IMPL);
+
 }  // namespace minerva

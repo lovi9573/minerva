@@ -106,6 +106,22 @@ void ArithmeticConst(const DataList& inputs, const DataList& outputs, Arithmetic
   }
 }
 
+
+void ThresholdNorm(const DataList& inputs, const DataList& outputs, ThresholdNormClosure& closure) {
+  CHECK_EQ(inputs.size(), 1) << "(elewise) #inputs is wrong!";
+  CHECK_EQ(outputs.size(), 1) << "(elewise) #outputs is wrong!";
+  float* in_data = inputs[0].data_;
+  float* res_data = outputs[0].data_;
+  int length = outputs[0].size_.Prod();
+  for (int i = 0; i < length; ++i) {
+	//Suppose threshold can't be zero
+	if(std::abs(in_data[i]) > closure.threshold)
+		res_data[i] = std::abs(in_data[i]) / in_data[i] * closure.threshold;
+	else
+		res_data[i] = in_data[i];
+  }
+}
+
 void Elewise(const DataList& inputs, const DataList& outputs, ElewiseClosure& closure) {
   CHECK_EQ(inputs.size(), 1) << "(elewise) #inputs is wrong!";
   CHECK_EQ(outputs.size(), 1) << "(elewise) #outputs is wrong!";
@@ -201,7 +217,7 @@ void Reduction(const DataList& inputs, const DataList& outputs, ReductionClosure
 }
 
 void SoftmaxForward(const DataList& inputs, const DataList& outputs, SoftmaxForwardClosure& closure) {
-  //TODO: Currently CPU only support kInstance softmax 
+  //TODO: Currently CPU only support kInstance softmax
   CHECK_EQ(inputs.size(), 1) << "(reduction) #inputs is wrong!";
   CHECK_EQ(outputs.size(), 1) << "(reduction) #outputs is wrong!";
   float* in_data = inputs[0].data_;
@@ -228,23 +244,21 @@ void SoftmaxForward(const DataList& inputs, const DataList& outputs, SoftmaxForw
     }
     //exp(x - max), also sum the result
     cur = accumulator;
-    float sum_exp = 0;
-    do {
-      res_data[in_range.Flatten(cur)] = expf(in_data[in_range.Flatten(cur)] - tmp);
-      sum_exp += res_data[in_range.Flatten(cur)];
-    }while (cur.IncrDimensions(in_max, dim_to_norm));
 
-    //devide the sum
-    cur = accumulator;
-    do {
-      res_data[in_range.Flatten(cur)] /= sum_exp; 
-    }while (cur.IncrDimensions(in_max, dim_to_norm));
+    if (cur != in_max) {
+      float sum_exp = 0;
+      do {
+        res_data[in_range.Flatten(cur)] = expf(in_data[in_range.Flatten(cur)] - tmp);
+        sum_exp += res_data[in_range.Flatten(cur)];
+      } while (cur.IncrDimensions(in_max, dim_to_norm));
+      // devide the sum
+      cur = accumulator;
+      do {
+        res_data[in_range.Flatten(cur)] /= sum_exp;
+      } while (cur.IncrDimensions(in_max, dim_to_norm));
+    }
   } while (accumulator.IncrWithDimensionsFixed(res_max, dim_to_norm));
 }
-
-
-
-
 
 void ArrayLoader(const DataList& outputs, ArrayLoaderClosure& closure) {
   CHECK_EQ(outputs.size(), 1) << "(array loader) #outputs wrong";
@@ -559,4 +573,3 @@ void Index(const DataList& inputs, const DataList& outputs, IndexClosure& closur
 
 }  // end of namespace basic
 }  // end of namespace minerva
-

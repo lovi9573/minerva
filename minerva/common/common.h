@@ -36,6 +36,12 @@
 	Item = static_cast<Type>(*(Buff+Off)); \
 	Off += sizeof(int);
 
+
+# if defined(_MSC_VER)
+# define __attribute__(A) /* do nothing */
+# endif
+
+
 namespace minerva {
 
 class Serializable{
@@ -90,7 +96,11 @@ namespace common {
 
 template<typename... Args>
 std::string FString(char const* format, Args&&... args) {
-  size_t constexpr buffer_size = 1024;
+# if defined(_MSC_VER)
+    const size_t buffer_size = 1024;
+# else
+    size_t constexpr buffer_size = 1024;
+# endif
   char buffer[buffer_size];
   snprintf(buffer, buffer_size, format, std::forward<Args>(args)...);
   return std::string(buffer);

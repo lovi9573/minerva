@@ -37,7 +37,11 @@ struct GpuDevice::Impl {
   ~Impl();
   inline void ActivateDevice() const;
 
+# if defined(_MSC_VER)
+  static const size_t kParallelism = 4;
+# else
   static size_t constexpr kParallelism = 4;
+# endif
   int const device;
   array<cudaStream_t, kParallelism> stream;
   array<cublasHandle_t, kParallelism> cublas_handle;
@@ -65,11 +69,7 @@ GpuDevice::Impl::~Impl() {
 }
 
 void GpuDevice::Impl::ActivateDevice() const {
-	printf("Using cuda device # %d\n",device);
   CUDA_CALL(cudaSetDevice(device));
-  struct cudaDeviceProp props;
-  CUDA_CALL(cudaGetDeviceProperties(&props, device));
-  printf("Device %d: major %d, minor %d\n",device ,props.major, props.minor);
 }
 
 GpuDevice::GpuDevice(uint64_t device_id, DeviceListener* l, int gpu_id) : ThreadedDevice{device_id, l, Impl::kParallelism}, impl_{common::MakeUnique<Impl>(gpu_id)} {
@@ -125,11 +125,7 @@ void GpuDevice::DoExecute(const DataList& in, const DataList& out, PhysicalOp& o
   op.compute_fn->Execute(in, out, ctx);
   CUDA_CALL_MSG(op.compute_fn->Name(), cudaStreamSynchronize(impl_->stream[thrid]));
 }
-
-void GpuDevice::DoExecute(Task* task, int thrid){
-	Execute(task, thrid);
-}
-#endif // HAS_CUDA
+#endif
 
 }  // namespace minerva
 
