@@ -15,8 +15,8 @@ def relative_path(to):
 
 extensions = [
     Extension(
-        '*',
-        ['owl/*.pyx', 'owl/minerva_utils.cpp'],
+        'libowl',
+        sources=['owl/owl/libowl.pyx', 'owl/owl/minerva_utils.cpp'],
         language='c++',
         include_dirs=[
             'minerva',
@@ -28,9 +28,8 @@ extensions = [
             '-Wall',
             '-O2',
             '-g'
-#            '-DHAS_MPI', #TODO: owl shouldn't need to know that mpi even exists.
- #           '-I/usr/include/openmpi-x86_64' #TODO: owl shouldn't need to know that mpi even exists.
-        ] + [x for x in sys.argv[3:] if (len(x.strip().split("=")) > 1 and x.strip().split("=")[1] != "0")],
+            #TODO(Jesse Lovitt) This  !='0' test causes a fractional bit width of 0 to fail.
+        ] + [x for x in sys.argv[3:] if (len(x.strip().split("=")) > 1 and x.strip().split("=")[1] != "0")], 
         libraries=[
             'minerva'
         ],
@@ -45,6 +44,6 @@ extensions = [
 
 setup(
     name='owl',
-    package_dir={'': 'owl'},
+    package_dir={'': 'owl/owl'},
     ext_modules=cythonize(extensions)
 )

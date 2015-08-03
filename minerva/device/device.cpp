@@ -194,6 +194,7 @@ void ThreadedDevice::Barrier(int) {
 
 
 
+
 /*
  * ====================
  * 		CPU

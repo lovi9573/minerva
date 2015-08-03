@@ -14,7 +14,9 @@ function run_clean {
   if [ "$yesorno" == "y" ]; then
       echo "Removing builds"
       rm -rf $BUILD_DIR
+      python setup.py clean --all
       rm -rf build
+      rm -rf dist
       rm -rf owl/libowl.so
   fi
   exit 0
@@ -39,6 +41,7 @@ CXXFLAGS="$CXXFLAGS \
   -DFIXED_POINT_DOUBLE_WIDE_TYPE=$FIXED_POINT_DOUBLE_WIDE_TYPE \
   -DFIXED_POINT_TYPE=$FIXED_POINT_TYPE \
   -DFIXED_POINT_FRACTION_WIDTH=$FIXED_POINT_FRACTION_WIDTH \
+  -DPS_ROOT=$PS_ROOT \
   "
 
 while [[ $# -gt 0 ]]; do

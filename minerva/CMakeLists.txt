@@ -37,5 +37,6 @@ if(BUILD_WITH_FPGA)
     target_link_libraries(minerva "${CMAKE_BINARY_DIR}/HTModels/libht${HT_MODEL_TYPE}.pa")
 endif()
 
+
 set(LIBRARY_OUTPUT_PATH ${Minerva_BINARY_DIR}/lib)
 

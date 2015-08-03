@@ -16,56 +16,58 @@ class FixedPoint{
 public:
 	TYPE value;
 
-	static const MULTYPE MAXVAL = ~(((MULTYPE)~0) << ((sizeof(TYPE)*8)-1));
-	static const MULTYPE MINVAL = -(MULTYPE)(((TYPE)1) << ((sizeof(TYPE)*8)-1));
+	//static const MULTYPE MAXVAL = ~(((MULTYPE)~0) << ((sizeof(TYPE)*8)-1));
+	//static const MULTYPE MINVAL = -(MULTYPE)(((TYPE)1) << ((sizeof(TYPE)*8)-1));
+	static const MULTYPE MAXVAL =  (1 << ((sizeof(TYPE)*8) + FRACW-1))-1;
+	static const MULTYPE MINVAL = -(1 << ((sizeof(TYPE)*8) + FRACW-1));
+	static const MULTYPE MINPREC =     1 << FRACW;
+	static const TYPE FRACTION_MASK = (1 << FRACW) - 1;
 
+
+	/* Constructors */
 	FixedPoint():value(0){}
 	FixedPoint(int v):value((TYPE)(v<<FRACW)){}
 	FixedPoint(double v):value(0){
-		value = v*(1<<FRACW);
-		//printf("%f => %d\n",v,value);
+		MULTYPE multiplier = ((MULTYPE)1)<< (2*FRACW);
+		value = (TYPE)(round(v*multiplier) >> FRACW);
+		//printf("%f (x%d)=> %d\n",v,multiplier,value);
 	}
 	FixedPoint(TYPE v):value(v){}
 	//FixedPoint(MULTYPE v):value((TYPE)v){}
 
+
+	/* Same type Operations */
 	FixedPoint operator*(const FixedPoint& rhs){
-		printf("multiply %d * %d\n",this->value,rhs.value);
-		return FixedPoint(((MULTYPE)this->value * (MULTYPE)rhs.value) >> FRACW);
+		return FixedPoint(mul(this->value, rhs.value));
 	}
 
 	FixedPoint operator/(const FixedPoint& rhs){
-		return FixedPoint((((MULTYPE)this->value) << FRACW) / (MULTYPE)rhs.value);
+		return FixedPoint(div(this->value, rhs.value));
 	}
 
 	FixedPoint operator+(const FixedPoint& rhs){
-		return FixedPoint(add(this->value,rhs.value));
+		return FixedPoint(add(this->value, rhs.value));
 	}
 
 	FixedPoint operator-(const FixedPoint& rhs){
-		MULTYPE v = (MULTYPE)this->value - (MULTYPE)rhs.value;
-		if(v > MAXVAL){
-			return FixedPoint(MAXVAL);
-		}
-		if(v < MINVAL){
-			return FixedPoint(MINVAL);
-		}
-		return FixedPoint(v);
+		return FixedPoint(sub(this->value, rhs.value));
 	}
 
-	FixedPoint operator*=(const FixedPoint& rhs){
-		return FixedPoint(*this*rhs);
-	}
-	FixedPoint operator/=(const FixedPoint& rhs){
-			return FixedPoint(*this/rhs);
-	}
-	FixedPoint& operator+=(const FixedPoint& rhs){
-		//TYPE tmp = this->value;
-		this->value = add(this->value,rhs.value);
-		//printf("%d += %d = %d\n",tmp ,rhs.value,this->value);
+	FixedPoint& operator*=(const FixedPoint& rhs){
+		this->value = mul(this->value, rhs.value);
 		return *this;
 	}
-	FixedPoint operator-=(const FixedPoint& rhs){
-			return FixedPoint(*this-rhs);
+	FixedPoint& operator/=(const FixedPoint& rhs){
+		this->value = div(this->value, rhs.value);
+		return *this;
+	}
+	FixedPoint& operator+=(const FixedPoint& rhs){
+		this->value = add(this->value,rhs.value);
+		return *this;
+	}
+	FixedPoint& operator-=(const FixedPoint& rhs){
+		this->value = sub(this->value, rhs.value);
+		return *this;
 	}
 
 	FixedPoint& operator=(const FixedPoint& other){
@@ -78,7 +80,6 @@ public:
 	}
 
 	float to_float(){
-		//printf("%d converted to float by / (1 << %d)\n",this->value,FRACW);
 		return ((float)this->value)/(1<<FRACW);
 	}
 
@@ -96,21 +97,49 @@ public:
 	}
 
 private:
-	 inline TYPE add(TYPE a, TYPE b){
-			MULTYPE v = (MULTYPE)a + (MULTYPE)b;
-			//printf("%d + %d = %d\n",a, b,v);
-			//printf("%d < %d < %d\n",MINVAL,v,MAXVAL);
-			if(v > MAXVAL){
-				printf("MAXTRUNC\n");
-				return (TYPE)MAXVAL;
-			}
-			if(v < MINVAL){
-				printf("MINTRUNC\n");
-				return (TYPE)MINVAL;
-			}
-			return (TYPE)v;
+
+	 inline MULTYPE round(MULTYPE val){
+		MULTYPE adjustment =  (MULTYPE)rand() & (MULTYPE)FRACTION_MASK;
+		//printf("Value: %d , Adjustment: %d\n",val,adjustment);
+		val = val + adjustment;
+		if(val > MAXVAL){
+			printf("MAXVAL (%f) exceeded. truncating\n",((float)(MAXVAL >> FRACW))/(1<<FRACW));
+			return MAXVAL ;
+		}
+		if(val < MINVAL){
+			printf("MINVAL (%f) exceeded. truncating\n",((float)(MINVAL >> FRACW))/(1<<FRACW));
+			return MINVAL;
+		}
+		TYPE out = (TYPE)(val >> FRACW);
+		if(!out){
+			printf("Underflow. (< %f)  Setting to minimum precision\n",((float)(MINPREC >> FRACW))/(1<<FRACW));
+			return (MULTYPE)(1 << FRACW);
+		}
+		return val;
 	 }
 
+	 inline TYPE add(TYPE a, TYPE b){
+			MULTYPE v = ((MULTYPE)a << FRACW)  + ((MULTYPE)b << FRACW) ;
+			return (TYPE)(round(v) >> FRACW);
+	 }
+
+	 inline TYPE sub(TYPE a, TYPE b){
+			MULTYPE v = ((MULTYPE)a << FRACW)  - ((MULTYPE)b << FRACW) ;
+			return (TYPE)(round(v) >> FRACW);
+	 }
+
+	 inline TYPE mul(TYPE a, TYPE b){
+			MULTYPE v = (MULTYPE)a * (MULTYPE)b;
+			return (TYPE)(round(v) >> FRACW);
+	 }
+
+	 inline TYPE div(TYPE a, TYPE b){
+			MULTYPE v = (((MULTYPE)a << FRACW) / (MULTYPE)b) << FRACW;
+			return (TYPE)(round(v) >> FRACW);
+	 }
+
+
+	/* Bridge Operations */
 	friend FixedPoint operator+(const FixedPoint& lhs, double rhs){
 		return lhs + FixedPoint(rhs);
 	}
