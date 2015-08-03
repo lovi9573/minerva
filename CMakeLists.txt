@@ -51,6 +51,7 @@ function(check_mpi_cuda_support)
     else(TEMP EQUAL "true")
         message(FATAL_ERROR "MPI implementation is not cuda-aware")
     endif(TEMP EQUAL "true")
+endfunction()
 
 function(find_ps)
   set(PS_ROOT "" CACHE PATH "minervaps root path")

@@ -30,9 +30,9 @@ class NetTrainer:
     def __init__(self, solver_file, snapshot = 0, num_gpu = 1, sync_freq=1):
         self.solver_file = solver_file
         self.snapshot = snapshot
-        self.num_gpu = num_gpu
+        self.num_gpu = num_gpu+1
         self.sync_freq = sync_freq
-        self.gpu = [owl.create_gpu_device(i) for i in range(num_gpu)]
+        self.gpu = [owl.create_cpu_device()] + [owl.create_gpu_device(i) for i in range(num_gpu)]
 
     def build_net(self):
         ''' Build network structure using Caffe's proto definition. It will also initialize
@@ -43,6 +43,7 @@ class NetTrainer:
         self.owl_net = Net()
         self.builder = CaffeNetBuilder(self.solver_file)
         self.snapshot_dir = self.builder.snapshot_dir
+        print "num_gpu",self.num_gpu
         self.builder.build_net(self.owl_net, self.num_gpu)
         self.owl_net.compute_size()
         self.builder.init_net_from_file(self.owl_net, self.snapshot_dir, self.snapshot)
