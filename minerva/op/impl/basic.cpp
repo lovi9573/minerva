@@ -521,6 +521,11 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 	int out_channel = outsize[1]*outsize[0];
 	int out_element = outsize[2]*outsize[1]*outsize[0];
 
+	for(int i = 0; i < outsize.Prod(); i++){
+		printf("[ %d ] %f,",i, (float)activations[i]);
+	}
+	printf("\n\n");
+
     int pad_height = closure.pad_height;
     int pad_width = closure.pad_width;
     int stride_vertical = closure.stride_vertical;
@@ -534,6 +539,7 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 			for(int x = -pad_width; x < insize[0]-filtersize[0]+pad_width+1; x += stride_horizontal){
 				//printf("\t\tcolumn %d / %d X %d\n",x,inputs[0].size_.get(0)-inputs[1].size_.get(0)+pad_width+1,stride_horizontal);
 				for(int filter = 0; filter < inputs[1].size_.get(3); filter++){
+					activations[x/stride_horizontal + out_column*(y/stride_vertical) + out_channel*filter + out_element*element ] = 0;
 					//printf("\t\t\tfilter %d / %d\n",filter,inputs[1].size_.get(3));
 					for(int channel =0; channel < inputs[0].size_.get(2); channel++){
 						//printf("\t\t\t\tchannel %d / %d\n",channel,inputs[1].size_.get(3));

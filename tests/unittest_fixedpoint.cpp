@@ -21,7 +21,7 @@
 
 //TODO(jesse lovitt) Does not work for fractional widths > 8
 
-#define FRACTION_WIDTH 10
+#define FRACTION_WIDTH 14
 #define SINGLETYPE int16_t
 #define DOUBLETYPE int32_t
 
@@ -57,15 +57,19 @@ void addi(){
 }
 
 void addf(){
-	FP8 f0(4.4);
+	float a = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
+	float b = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
+	float c = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
+	FP8 f0(a);
 	//printf("%f\n",(float)f0);
-	FP8 f1(8.8);
+	FP8 f1(b);
 	//printf("%f\n",(float)f1);
 	FP8 r = f0 + f1;
 
-	assert(close((float)r ,13.2, 2*EPSILON));
-	r += 10.1;
-	assert(close(23.3,(float)r , 2*EPSILON));
+	assert(close((float)r ,a+b, 2*EPSILON));
+	r = a;
+	r += c;
+	assert(close((float)r , a + c, 2*EPSILON));
 }
 
 void subi(){
@@ -79,12 +83,16 @@ void subi(){
 }
 
 void subf(){
-	FP8 f0(8.8);
-	FP8 f1(4.3);
+	float a = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX);
+	float b = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX);
+	float c = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX);
+	FP8 f0(a);
+	FP8 f1(b);
 	FP8 r = f0 - f1;
-	assert(close((float)r ,4.5, 2*EPSILON));
-	r -= 1.1;
-	assert(close(3.4,(float)r , 2*EPSILON));
+	assert(close((float)r , a-b, 2*EPSILON));
+	r = a;
+	r -= c;
+	assert(close((float)r, a-c , 2*EPSILON));
 }
 
 
@@ -99,13 +107,16 @@ void muli(){
 }
 
 void mulf(){
-	FP8 f0(4.4);
-	FP8 f1(7.1);
+	float a = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* sqrt(static_cast<float>(MAX));
+	float b = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* sqrt(static_cast<float>(MAX));
+	float c = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* sqrt(static_cast<float>(MAX));
+	FP8 f0(a);
+	FP8 f1(b);
 	FP8 r = f0 * f1;
-	assert(close((float)r ,4.4f*7.1f, EPSILON*4.4 + EPSILON*8.8 + EPSILON*EPSILON));
-	r = 8.9f;
-	r *= 0.13;
-	assert(close((float)r, 8.9f*0.13f , EPSILON*3.1f + EPSILON*38.72f + EPSILON*EPSILON));
+	assert(close((float)r , a*b, MAXM(EPSILON*a + EPSILON*b + EPSILON*EPSILON, 2*EPSILON) ));
+	r = a;
+	r *= c;
+	assert(close((float)r, a*c , MAXM(EPSILON*a + EPSILON*c + EPSILON*EPSILON, 2*EPSILON) ));
 }
 
 void divi(){
@@ -119,17 +130,17 @@ void divi(){
 }
 
 void divf(){
-	float a = 12.6f;
-	float b = 4.8f;
-	float c = 1.2f;
+	float a = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX);
+	float b = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* (static_cast<float>(MAX) - a/static_cast<float>(MAX)) + a/static_cast<float>(MAX);
+	float c = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* (static_cast<float>(MAX) - a/static_cast<float>(MAX)) + a/static_cast<float>(MAX);
 	FP8 f0(a);
 	FP8 f1(b);
 	FP8 r = f0 / f1;
 	//printf("%f\n",(float)r);
-	assert(close((float)r ,a/b , MAXM(((a + EPSILON)/(b - EPSILON)) - (a/b), EPSILON) ));
+	assert(close((float)r ,a/b , MAXM(((a + EPSILON)/(b - EPSILON)) - (a/b), 2*EPSILON) ));
 	r = a;
 	r /= c;
-	assert(close((float)r, a/c  , MAXM(((a + EPSILON)/(c - EPSILON)) - (a/c), EPSILON) ));
+	assert(close((float)r, a/c  , MAXM(((a + EPSILON)/(c - EPSILON)) - (a/c), 2*EPSILON) ));
 }
 
 void overflow(){
@@ -145,7 +156,7 @@ void overflow(){
 }
 
 void underflow(){
-	FP8 f0(0.05f);
+	FP8 f0(0.000005f);
 	FP8 f1(87.5f);
 	FP8 r = f0 / f1;
 	assert(close((float)r ,EPSILON, EPSILON/2));
@@ -156,16 +167,19 @@ void underflow(){
 
 
 int main(int argc, char* argv[]){
-	addi();
-	addf();
-	subi();
-	subf();
-	muli();
-	mulf();
-	divi();
-	divf();
-	overflow();
-	underflow();
+	int number_random_tests = 100;
+	for(int i = 0; i < number_random_tests; i++){
+		addi();
+		addf();
+		subi();
+		subf();
+		muli();
+		mulf();
+		divi();
+		divf();
+		overflow();
+		underflow();
+	}
 	printf("PASS!\n");
 }
 

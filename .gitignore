@@ -69,3 +69,4 @@ owl/libowl.cpp
 */HtDsnRpt.html
 */HtMonRpt.txt
 HTModels/hostapp/conv_sysc
+tests/unittest_fixedpoint

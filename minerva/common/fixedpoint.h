@@ -112,7 +112,7 @@ private:
 		}
 		TYPE out = (TYPE)(val >> FRACW);
 		if(!out){
-			printf("Underflow. (< %f)  Setting to minimum precision\n",((float)(MINPREC >> FRACW))/(1<<FRACW));
+			printf("Underflow. (< %f)  Setting to minimum precision\n",(1.0f)/(1<<FRACW));
 			return (MULTYPE)(1 << FRACW);
 		}
 		return val;
