@@ -33,7 +33,8 @@ class TestForiegnOps(unittest.TestCase):
         
         print 'Expected\n',expected
         print "Actual\n",test.to_numpy()
-        self.assertTrue(np.allclose(expected, test.to_numpy()))
+        print "This test must be run with a fractional bit width of 12"
+        self.assertTrue(np.allclose(expected, test.to_numpy(), atol= 1.0/(1<<12)*4))
 
 
 if __name__ == "__main__":
