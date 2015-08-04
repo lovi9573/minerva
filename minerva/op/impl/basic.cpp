@@ -588,6 +588,7 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
  */
 void ConvBackwardData(const DataList& inputs, const DataList& outputs, ConvBackwardDataClosure& closure){
 	//TODO(Jesse Lovitt): Replace this placeholder
+	LOG(FATAL) << "ConvBackwardData CPU not yet implemented.\n";
 	return;
 }
 
@@ -596,6 +597,7 @@ void ConvBackwardData(const DataList& inputs, const DataList& outputs, ConvBackw
  */
 void ConvBackwardBias(const DataList& inputs, const DataList& outputs, ConvBackwardBiasClosure& closure){
 	//TODO(Jesse Lovitt): Replace this placeholder
+	LOG(FATAL) << "ConvBackwardBias CPU not yet implemented.\n";
 	return;
 }
 
@@ -604,6 +606,7 @@ void ConvBackwardBias(const DataList& inputs, const DataList& outputs, ConvBackw
  */
 void ConvBackwardFilter(const DataList& inputs, const DataList& outputs, ConvBackwardFilterClosure& closure){
 	//TODO(Jesse Lovitt): Replace this placeholder
+	LOG(FATAL) << "ConvBackwardFilter CPU not yet implemented.\n";
 	return;
 }
 
@@ -684,6 +687,7 @@ void PoolingForward(const DataList& inputs, const DataList& outputs, PoolingForw
  */
 void PoolingBackward(const DataList& inputs, const DataList& outputs, PoolingBackwardClosure& closure){
 	//TODO(Jesse Lovitt): Implement this placeholder.
+	LOG(FATAL) << "PoolingBackward CPU not yet implemented.\n";
 	return;
 }
 
