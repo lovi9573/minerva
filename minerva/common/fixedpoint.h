@@ -98,21 +98,22 @@ public:
 
 private:
 
+	//TODO(Jesse Lovitt): Implement logging of truncations and precision adjusments
 	 inline MULTYPE round(MULTYPE val){
 		MULTYPE adjustment =  (MULTYPE)rand() & (MULTYPE)FRACTION_MASK;
 		//printf("Value: %d , Adjustment: %d\n",val,adjustment);
 		val = val + adjustment;
 		if(val > MAXVAL){
-			printf("MAXVAL (%f) exceeded. truncating\n",((float)(MAXVAL >> FRACW))/(1<<FRACW));
+			//printf("MAXVAL (%f) exceeded. truncating\n",((float)(MAXVAL >> FRACW))/(1<<FRACW));
 			return MAXVAL ;
 		}
 		if(val < MINVAL){
-			printf("MINVAL (%f) exceeded. truncating\n",((float)(MINVAL >> FRACW))/(1<<FRACW));
+			//printf("MINVAL (%f) exceeded. truncating\n",((float)(MINVAL >> FRACW))/(1<<FRACW));
 			return MINVAL;
 		}
 		TYPE out = (TYPE)(val >> FRACW);
 		if(!out){
-			printf("Underflow. (< %f)  Setting to minimum precision\n",(1.0f)/(1<<FRACW));
+			//printf("Underflow. (< %f)  Setting to minimum precision\n",(1.0f)/(1<<FRACW));
 			return (MULTYPE)(1 << FRACW);
 		}
 		return val;

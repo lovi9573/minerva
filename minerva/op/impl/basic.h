@@ -35,6 +35,12 @@ void ActivationForward(const DataList&, const DataList&, ActivationForwardClosur
 void ActivationBackward(const DataList&, const DataList&, ActivationBackwardClosure&);
 
 void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClosure& closure);
+void ConvBackwardData(const DataList& inputs, const DataList& outputs, ConvBackwardDataClosure& closure);
+void ConvBackwardBias(const DataList& inputs, const DataList& outputs, ConvBackwardBiasClosure& closure);
+void ConvBackwardFilter(const DataList& inputs, const DataList& outputs, ConvBackwardFilterClosure& closure);
+
+void PoolingForward(const DataList& inputs, const DataList& outputs, PoolingForwardClosure& closure);
+void PoolingBackward(const DataList& inputs, const DataList& outputs, PoolingBackwardClosure& closure);
 
 void SoftmaxForward(const DataList&, const DataList&, SoftmaxForwardClosure&);
 void Index(const DataList&, const DataList&, IndexClosure&);
