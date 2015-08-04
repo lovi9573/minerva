@@ -1,0 +1,44 @@
+Simulated Cycles	:    26513
+Platform		:    wx690
+Unit Count		:        1
+
+#
+# Memory Summary
+#
+Host Latency (cyc)	:      399 /       424 /      566  (Min / Avg / Max)
+CP Latency (cyc)	:       68 /       124 /      499  (Min / Avg / Max)
+Host Operations		:       39 /        29		   (Read / Write)
+CP Operations		:      100 /       100		   (Read / Write)
+Host Efficiency		:   14.74% /    12.50%		   (Read / Write)
+CP Efficiency		:   12.50% /    12.50%		   (Read / Write)
+Host Utiliztion		:    0.49% /     0.54%		   (Req / Resp)
+CP Utiliztion		:    1.45% /     1.45%		   (Req / Resp)
+
+#
+# Memory Operations                    Read      ReadMw      Write     WriteMw 
+#                                   ---------- ---------- ---------- ----------
+<total>                                    138          1        129          0
+HIF                                         38          1         29          0
+CTL                                          0          0          0          0
+ctl/RELU                                   100          0        100          0
+
+#
+# Thread Utilization                 Avg. Run  Avg. Alloc Max. Alloc  Available
+#                                   ---------- ---------- ---------- ----------
+HIF                                          0          0          0          1
+CTL                                          0          0          0          1
+ctl/RELU                                     0          1          2          2
+
+#
+# Module Utilization                   Valid      Retry   Active Cyc  Act. Util
+#                                   ---------- ---------- ---------- ----------
+HIF                                          0          0          0      0.00%
+CTL                                       4690       4487      13793     52.02%
+  CTL_ENTRY                                  1          0
+  CTL_COMPUTE                             4588       4487
+  CTL_JOIN                                 100          0
+  CTL_RTN                                    1          0
+ctl/RELU                                   300          0      13783     51.99%
+  RELU_LD1                                 100          0
+  RELU_ST                                  100          0
+  RELU_RTN                                 100          0

@@ -27,7 +27,7 @@ class MinervaSystem :
   friend class common::EverlastingSingleton<MinervaSystem>;
 
  public:
-  static void UniversalMemcpy(std::pair<Device::MemType, float*>, std::pair<Device::MemType, float*>, size_t);
+  static void UniversalMemcpy(std::pair<Device::MemType, element_t*>, std::pair<Device::MemType, element_t*>, size_t);
   static void UniversalMemcpy(void* ,void*, size_t);
   MinervaSystem() = delete;
   DISALLOW_COPY_AND_ASSIGN(MinervaSystem);
@@ -51,7 +51,7 @@ class MinervaSystem :
 
 
   void Request_Data(char* buffer, size_t bytes, int rank, uint64_t device_id, uint64_t data_id);
-  std::pair<Device::MemType, float*> GetPtr(uint64_t, uint64_t);
+  std::pair<Device::MemType, element_t*> GetPtr(uint64_t, uint64_t);
   uint64_t GenerateDataId();
   uint64_t GenerateTaskId();
 
@@ -69,7 +69,6 @@ class MinervaSystem :
   int rank();
   void WorkerRun() override;
 
-
 #ifdef HAS_MPI
   MpiServer& mpi_server(){
 	  return *mpiserver_;
@@ -79,6 +78,17 @@ class MinervaSystem :
   }
   // device master
 #endif
+
+#if defined(FIXED_POINT) || defined(HAS_FPGA)
+  int get_fraction_width(){
+	  return fraction_width;
+  }
+  void set_fraction_width(int w){
+	  fraction_width = w;
+  }
+#endif
+
+
 
  private:
   MinervaSystem(int*, char***);
@@ -95,6 +105,10 @@ class MinervaSystem :
   MpiHandler* mpihandler_;
   MpiServer* mpiserver_;
 #endif
+#if defined(FIXED_POINT) || defined(HAS_FPGA)
+  int fraction_width;
+#endif
+
 };
 
 

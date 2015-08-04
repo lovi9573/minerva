@@ -1,0 +1,219 @@
+	
+typedef ht_uint48 MemAddr_t;
+
+
+////////////////////////////////////////////////////
+// Top-level control module
+
+dsnInfo.AddModule(name=ctl, htIdW=0);
+
+ctl.AddInst(name=CTL_ENTRY);
+ctl.AddInst(name=CTL_CHECK_I);
+ctl.AddInst(name=CTL_CHECK_Y);
+ctl.AddInst(name=CTL_CHECK_X);
+ctl.AddInst(name=CTL_CHECK_F);
+ctl.AddInst(name=CTL_COLLECT);
+ctl.AddInst(name=CTL_COMPUTE);
+ctl.AddInst(name=CTL_JOIN);
+ctl.AddInst(name=CTL_RTN);
+
+ctl.AddHostMsg(dir=in, name=IMG_ADDR)
+	.AddDst(var=imgAddr)
+	;
+ctl.AddHostMsg(dir=in, name=IMG_NUM)
+	.AddDst(var=img_num)
+	;
+ctl.AddHostMsg(dir=in, name=IMG_DIM)
+	.AddDst(var=img_dim)
+	;
+ctl.AddHostMsg(dir=in, name=IMG_CHANNELS)
+	.AddDst(var=img_channels)
+	;
+ctl.AddHostMsg(dir=in, name=FILTER_ADDR)
+	.AddDst(var=filterAddr)
+	;
+ctl.AddHostMsg(dir=in, name=FILTER_NUM)
+	.AddDst(var=filter_num)
+	;
+ctl.AddHostMsg(dir=in, name=FILTER_DIM)
+	.AddDst(var=filter_dim)
+	;
+ctl.AddHostMsg(dir=in, name=STRIDE)
+	.AddDst(var=stride)
+	;
+ctl.AddHostMsg(dir=in, name=OUT_ADDR)
+	.AddDst(var=outAddr)
+	;
+ctl.AddHostMsg(dir=in, name=FRACTION_WIDTH)
+	.AddDst(var=fractionW)
+	;
+
+
+
+//All in units of image pixels(ignores # channels)
+ctl.AddPrivate()
+	.AddVar(type=uint32_t, name=rank)
+	.AddVar(type=uint32_t, name=applicationIdx_F)
+	.AddVar(type=uint32_t, name=applicationIdx_X)
+	.AddVar(type=uint32_t, name=applicationIdx_Y)
+	.AddVar(type=uint32_t, name=applicationIdx_I)
+	.AddVar(type=uint16_t, name=rankStride)
+	.AddVar(type=uint64_t, name=Addresses, dimen1=8)
+	.AddVar(type=ht_uint3,  name=count)
+	.AddVar(type=uint64_t,  name=outAddrOffset)
+	;
+
+ctl.AddShared()
+	.AddVar(type=uint64_t, name=imgAddr)
+	.AddVar(type=uint64_t, name=img_num)
+	.AddVar(type=uint64_t, name=img_dim)
+	.AddVar(type=uint64_t, name=img_channels)
+	.AddVar(type=uint64_t, name=filterAddr)
+	.AddVar(type=uint64_t, name=filter_num)
+	.AddVar(type=uint64_t, name=filter_dim)
+	.AddVar(type=uint64_t, name=stride)
+	.AddVar(type=uint64_t, name=outAddr)
+	.AddVar(type=uint16_t, name=fractionW)
+	.AddVar(type=uint32_t, name=dCoordinates)
+	.AddVar(type=uint32_t, name=dimY)
+	.AddVar(type=uint32_t, name=dimX)
+	.AddVar(type=uint32_t, name=dimF)
+	;
+
+
+ctl.AddGlobal()
+		.AddVar(type=uint16_t, name=fractionW)
+		;
+
+ctl.AddEntry(func=htmain, inst=CTL_ENTRY, host=true)
+	.AddParam(type=uint32_t, name=rank)
+	.AddParam(type=uint16_t, name=rankStride)
+	;
+
+ctl.AddReturn(func=htmain)
+	;
+
+ctl.AddCall(func=cluster, fork=true);
+
+////////////////////////////////////////////////////
+// Scatters a group of 4 filter applications to seperate threads
+// Gathers the resulting activations and merges them into a single quad-word write.
+#define CLUSTER_HTID_W 9
+
+dsnInfo.AddModule(name=cluster, htIdW=CLUSTER_HTID_W);
+
+cluster.AddInst(name=SG_FILTER_GROUP_INIT);
+cluster.AddInst(name=SG_FILTER_GROUP_DISPATCH);
+cluster.AddInst(name=SG_FILTER_GROUP_MERGE);
+cluster.AddInst(name=SG_FILTER_GROUP_WRITE);
+cluster.AddInst(name=SG_FILTER_GROUP_RTN);
+
+
+cluster.AddPrivate()
+		.AddVar(type=uint64_t, name=img_Addr1)
+		.AddVar(type=uint64_t, name=filter_Addr1)
+		.AddVar(type=uint64_t, name=img_Addr2)
+		.AddVar(type=uint64_t, name=filter_Addr2)
+		.AddVar(type=uint64_t, name=img_Addr3)
+		.AddVar(type=uint64_t, name=filter_Addr3)
+		.AddVar(type=uint64_t, name=img_Addr4)
+		.AddVar(type=uint64_t, name=filter_Addr4)
+		.AddVar(type=uint64_t, name=activation_group)
+		.AddVar(type=uint64_t, name=out_Addr)
+		.AddVar(type=ht_uint3, name=out_index)
+		.AddVar(type=ht_uint3, name=idx)
+		.AddVar(type=int16_t, name=accum)
+		;
+
+
+cluster.AddEntry(func=cluster, inst=SG_FILTER_GROUP_INIT)
+		.AddParam(type=uint64_t, name=img_Addr1)
+		.AddParam(type=uint64_t, name=filter_Addr1)
+		.AddParam(type=uint64_t, name=img_Addr2)
+		.AddParam(type=uint64_t, name=filter_Addr2)
+		.AddParam(type=uint64_t, name=img_Addr3)
+		.AddParam(type=uint64_t, name=filter_Addr3)
+		.AddParam(type=uint64_t, name=img_Addr4)
+		.AddParam(type=uint64_t, name=filter_Addr4)
+		.AddParam(type=uint64_t, name=out_Addr)
+	;
+
+cluster.AddReturn(func=cluster)
+		;
+
+cluster.AddCall(func=applyfilter, fork=true)
+		;
+
+cluster.AddWriteMem()
+		;
+
+////////////////////////////////////////////////////
+// Loads vector elements from op array, rectifies , stores results
+#define APPLYFILTER_HTID_W 9
+
+dsnInfo.AddModule(name=applyfilter, htIdW=APPLYFILTER_HTID_W);
+
+applyfilter.AddInst(name=CONV_INIT);
+applyfilter.AddInst(name=CONV_LOOP_TOP);
+applyfilter.AddInst(name=CONV_LD_IMG_SAMPLE);
+applyfilter.AddInst(name=CONV_LD_FILTER_SAMPLE);
+applyfilter.AddInst(name=CONV_APPLY);
+applyfilter.AddInst(name=CONV_LOOP_BRANCH);
+applyfilter.AddInst(name=CONV_LD_OUT);
+applyfilter.AddInst(name=CONV_PACK);
+applyfilter.AddInst(name=CONV_WRITE);
+applyfilter.AddInst(name=CONV_RTN);
+
+
+applyfilter.AddHostMsg(dir=in, name=IMG_DIM)
+	.AddDst(var=img_dim)
+	;
+applyfilter.AddHostMsg(dir=in, name=IMG_CHANNELS)
+	.AddDst(var=img_channels)
+	;
+applyfilter.AddHostMsg(dir=in, name=FILTER_DIM)
+	.AddDst(var=filter_dim)
+	;
+applyfilter.AddHostMsg(dir=in, name=FRACTION_WIDTH)
+	.AddDst(var=fractionW)
+	;
+
+applyfilter.AddPrivate()
+	.AddVar(type=int16_t, name=accum)
+	.AddVar(type=int16_t, name=img_val)
+	.AddVar(type=int16_t, name=filter_val)
+	.AddVar(type=uint16_t, name=cIdx)
+	.AddVar(type=uint16_t, name=xIdx)
+	.AddVar(type=uint16_t, name=yIdx)
+	.AddVar(type=ht_uint3, name=out_index)
+	.AddVar(type=uint64_t, name=imgAddr)
+	.AddVar(type=uint64_t, name=filterAddr)
+	;
+
+applyfilter.AddShared()
+	.AddVar(type=uint64_t, name=img_dim)
+	.AddVar(type=uint64_t, name=img_channels)
+	.AddVar(type=uint64_t, name=filter_dim)
+	.AddVar(type=uint16_t, name=fractionW)
+	;
+
+
+applyfilter.AddEntry(func=applyfilter, inst=CONV_INIT)
+	.AddParam(type=ht_uint3, name=out_index)
+	.AddParam(type=uint64_t, name=imgAddr)
+	.AddParam(type=uint64_t, name=filterAddr)
+	;
+
+applyfilter.AddReturn(func=applyfilter)
+	.AddParam(type=ht_uint3, name=out_index)
+	.AddParam(type=int16_t, name=accum)
+	;
+
+applyfilter.AddReadMem()
+	.AddDst(var=filter_val, name=filter_val )
+	.AddDst(var=img_val, name=img_val)
+	;
+
+
+	//, rdType=int32_t)
+

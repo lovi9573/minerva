@@ -30,7 +30,7 @@ class DagScheduler :
       const std::vector<Scale>&, std::shared_ptr<ComputeFn>) override;
   void Wait(BackendChunk*) override;
   void WaitForAll() override;
-  std::shared_ptr<float> GetValue(BackendChunk*) override;
+  std::shared_ptr<element_t> GetValue(BackendChunk*) override;
   // Device listener
   void OnOperationComplete(Task*) override;
   // Interface for `DagChunk`

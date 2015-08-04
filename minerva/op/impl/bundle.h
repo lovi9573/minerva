@@ -1,6 +1,7 @@
 #pragma once
 #include "op/impl/basic.h"
 #include "op/impl/cuda.h"
+#include "op/impl/fpga.h"
 #include "op/impl/impl.h"
 #include <dmlc/logging.h>
 
@@ -30,11 +31,11 @@ INSTALL_COMPUTE_FN(ElewiseClosure, basic::Elewise, NO_IMPL, cuda::Elewise, NO_IM
 INSTALL_COMPUTE_FN(ThresholdNormClosure, basic::ThresholdNorm, NO_IMPL, NO_IMPL,NO_IMPL);
 INSTALL_COMPUTE_FN(SigmoidForwardClosure, basic::SigmoidForward, NO_IMPL, cuda::SigmoidForward, NO_IMPL);
 INSTALL_COMPUTE_FN(SigmoidBackwardClosure, NO_IMPL, NO_IMPL, cuda::SigmoidBackward, NO_IMPL);
-INSTALL_COMPUTE_FN(ReluForwardClosure, basic::ReluForward, NO_IMPL, cuda::ReluForward, NO_IMPL);
+INSTALL_COMPUTE_FN(ReluForwardClosure, basic::ReluForward, NO_IMPL, cuda::ReluForward, fpga::ReluForward);
 INSTALL_COMPUTE_FN(ReluBackwardClosure, basic::ReluBackward, NO_IMPL, cuda::ReluBackward, NO_IMPL);
 INSTALL_COMPUTE_FN(TanhForwardClosure, basic::TanhForward, NO_IMPL, cuda::TanhForward, NO_IMPL);
 INSTALL_COMPUTE_FN(TanhBackwardClosure, NO_IMPL, NO_IMPL, cuda::TanhBackward, NO_IMPL);
-INSTALL_COMPUTE_FN(ConvForwardClosure, basic::ConvForward, NO_IMPL, cuda::ConvForward, NO_IMPL);
+INSTALL_COMPUTE_FN(ConvForwardClosure, basic::ConvForward, NO_IMPL, cuda::ConvForward, fpga::ConvForward);
 INSTALL_COMPUTE_FN(ConvBackwardDataClosure, NO_IMPL, NO_IMPL, cuda::ConvBackwardData, NO_IMPL);
 INSTALL_COMPUTE_FN(ConvBackwardFilterClosure, NO_IMPL, NO_IMPL, cuda::ConvBackwardFilter, NO_IMPL);
 INSTALL_COMPUTE_FN(ConvBackwardBiasClosure, NO_IMPL, NO_IMPL, cuda::ConvBackwardBias, NO_IMPL);

@@ -15,7 +15,7 @@ namespace minerva {
 
 int ArrayLoaderOp::GetSerializedSize() const {
 #ifdef HAS_MPI
-	return sizeof(int) + sizeof(int) + closure.count*sizeof(float);
+	return sizeof(int) + sizeof(int) + closure.count*sizeof(element_t);
 #else
 	return sizeof(int) + sizeof(int);
 #endif
@@ -25,10 +25,10 @@ int ArrayLoaderOp::Serialize(char* buffer) const {
 	SERIALIZE(buffer, offset, ARRAYLOADERCLOSURE, int)
 #ifdef HAS_MPI
 	SERIALIZE(buffer, offset, closure.count, int)
-	memcpy(buffer+offset, closure.data.get(), closure.count*sizeof(float));
-	offset += closure.count*sizeof(float);
+	memcpy(buffer+offset, closure.data.get(), closure.count*sizeof(element_t));
+	offset += closure.count*sizeof(element_t);
 #else
-	SERIALIZE(buffer, offset, closure.data.get(), float*);
+	SERIALIZE(buffer, offset, closure.data.get(), element_t*);
 #endif
 	return offset;
 }
@@ -39,15 +39,15 @@ std::shared_ptr<ComputeFn> ArrayLoaderOp::DeSerialize(char* buffer,int* bytes) {
 	int count;
 	DESERIALIZE(buffer, offset, count, int)
 	op->closure.count = count;
-	std::shared_ptr<float> data(new float[count], [](float* p) {
+	std::shared_ptr<element_t> data(new element_t[count], [](element_t* p) {
 	    delete[] p;
 	  });
-	memcpy(data.get(), buffer+offset, count*sizeof(float));
+	memcpy(data.get(), buffer+offset, count*sizeof(element_t));
 	op->closure.data = data;
-	*bytes = offset + count*sizeof(float);
+	*bytes = offset + count*sizeof(element_t);
 #else
-	float *ptr;
-	DESERIALIZE(buffer, offset, ptr, float*)
+	element_t *ptr;
+	DESERIALIZE(buffer, offset, ptr, element_t*)
 	op->closure.data.reset(ptr);
 #endif
 	return std::shared_ptr<ComputeFn>(op);
@@ -92,18 +92,18 @@ std::shared_ptr<ComputeFn> RandBernoulliOp::DeSerialize(char* buffer,int* bytes)
 
 
 int FillOp::GetSerializedSize() const  {
-	return sizeof(int) + sizeof(float);
+	return sizeof(int) + sizeof(element_t);
 }
 int FillOp::Serialize(char* buffer) const  {
 	int offset = 0;
 	SERIALIZE(buffer, offset, FILLCLOSURE, int)
-	SERIALIZE(buffer, offset, closure.val, float)
+	SERIALIZE(buffer, offset, closure.val, element_t)
 	return offset;
 }
 std::shared_ptr<ComputeFn> FillOp::DeSerialize(char* buffer, int* bytes) {
 	FillOp *op = new FillOp();
 	int offset = 0;
-	DESERIALIZE(buffer, offset, op->closure.val, float)
+	DESERIALIZE(buffer, offset, op->closure.val, element_t)
 	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
 }
@@ -330,13 +330,13 @@ std::shared_ptr<ComputeFn> ArithmeticOp::DeSerialize(char* buffer, int* bytes) {
 }
 
 int ArithmeticConstOp::GetSerializedSize() const {
-	return sizeof(int)+sizeof(ArithmeticType)+sizeof(float)+sizeof(int);
+	return sizeof(int)+sizeof(ArithmeticType)+sizeof(element_t)+sizeof(int);
 }
 int ArithmeticConstOp::Serialize(char* buffer) const {
 	int offset = 0;
 	SERIALIZE(buffer, offset, ARITHMETICCONSTCLOSURE, int)
 	SERIALIZE(buffer, offset, static_cast<int>(closure.type), int)
-	SERIALIZE(buffer, offset, closure.val, float)
+	SERIALIZE(buffer, offset, closure.val, element_t)
 	SERIALIZE(buffer, offset, closure.side, int)
 	return offset;
 }
@@ -344,7 +344,7 @@ std::shared_ptr<ComputeFn> ArithmeticConstOp::DeSerialize(char* buffer,int* byte
 	ArithmeticConstOp *op = new ArithmeticConstOp();
 	int offset = 0;
 	DESERIALIZE_ENUM(buffer, offset, op->closure.type, ArithmeticType)
-	DESERIALIZE(buffer, offset, op->closure.val, float)
+	DESERIALIZE(buffer, offset, op->closure.val, element_t)
 	DESERIALIZE(buffer, offset, op->closure.side, int)
 	*bytes = offset;
 	return std::shared_ptr<ComputeFn>(op);
@@ -586,14 +586,14 @@ std::shared_ptr<ComputeFn> PoolingBackwardOp::DeSerialize(char* buffer,int* byte
 }
 
 int LRNForwardOp::GetSerializedSize() const {
-	return 2*sizeof(int)+ 2*sizeof(float)+closure.data_shape.GetSerializedSize() ;
+	return 2*sizeof(int)+ 2*sizeof(element_t)+closure.data_shape.GetSerializedSize() ;
 }
 int LRNForwardOp::Serialize(char* buffer) const {
 	int offset = 0;
 	SERIALIZE(buffer, offset, LRNFORWARDCLOSURE, int)
 	SERIALIZE(buffer, offset, closure.local_size, int)
-	SERIALIZE(buffer, offset, closure.alpha, float)
-	SERIALIZE(buffer, offset, closure.beta, float)
+	SERIALIZE(buffer, offset, closure.alpha, element_t)
+	SERIALIZE(buffer, offset, closure.beta, element_t)
 	offset += closure.data_shape.Serialize(buffer+offset);
 	return offset;
 }
@@ -602,8 +602,8 @@ std::shared_ptr<ComputeFn> LRNForwardOp::DeSerialize(char* buffer,int* bytes) {
 	int offset = 0;
 	int b = 0;
 	DESERIALIZE(buffer, offset, op->closure.local_size, int)
-	DESERIALIZE(buffer, offset, op->closure.alpha, float)
-	DESERIALIZE(buffer, offset, op->closure.beta, float)
+	DESERIALIZE(buffer, offset, op->closure.alpha, element_t)
+	DESERIALIZE(buffer, offset, op->closure.beta, element_t)
 	op->closure.data_shape = Scale::DeSerialize(buffer+offset, &b );
 	offset += b;
 	*bytes = offset;
@@ -612,14 +612,14 @@ std::shared_ptr<ComputeFn> LRNForwardOp::DeSerialize(char* buffer,int* bytes) {
 
 
 int LRNBackwardOp::GetSerializedSize() const {
-	return 2*sizeof(int)+ 2*sizeof(float)+closure.data_shape.GetSerializedSize() ;
+	return 2*sizeof(int)+ 2*sizeof(element_t)+closure.data_shape.GetSerializedSize() ;
 }
 int LRNBackwardOp::Serialize(char* buffer) const {
 	int offset = 0;
 	SERIALIZE(buffer, offset, LRNBACKWARDCLOSURE, int)
 	SERIALIZE(buffer, offset, closure.local_size, int)
-	SERIALIZE(buffer, offset, closure.alpha, float)
-	SERIALIZE(buffer, offset, closure.beta, float)
+	SERIALIZE(buffer, offset, closure.alpha, element_t)
+	SERIALIZE(buffer, offset, closure.beta, element_t)
 	offset += closure.data_shape.Serialize(buffer+offset);
 	return offset;
 }
@@ -628,8 +628,8 @@ std::shared_ptr<ComputeFn> LRNBackwardOp::DeSerialize(char* buffer,int* bytes) {
 	int offset = 0;
 	int b = 0;
 	DESERIALIZE(buffer, offset, op->closure.local_size, int)
-	DESERIALIZE(buffer, offset, op->closure.alpha, float)
-	DESERIALIZE(buffer, offset, op->closure.beta, float)
+	DESERIALIZE(buffer, offset, op->closure.alpha, element_t)
+	DESERIALIZE(buffer, offset, op->closure.beta, element_t)
 	op->closure.data_shape = Scale::DeSerialize(buffer+offset, &b );
 	offset += b;
 	*bytes = offset;

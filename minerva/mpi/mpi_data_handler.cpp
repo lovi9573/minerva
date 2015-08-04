@@ -42,15 +42,14 @@ void MpiDataHandler::Handle_Task_Data_Request(MPI_Status& status){
 	DESERIALIZE(buffer, offset, device_id, uint64_t)
 	DESERIALIZE(buffer, offset, data_id, uint64_t)
 	DESERIALIZE(buffer, offset, bytes, uint64_t)
-	std::pair<Device::MemType, float*> devptr = MinervaSystem::Instance().GetPtr(device_id, data_id);
+	std::pair<Device::MemType, element_t*> devptr = MinervaSystem::Instance().GetPtr(device_id, data_id);
 	//char outbuffer[bytes];
-	//std::pair<Device::MemType, float*> to = std::pair<Device::MemType, float*>(Device::MemType::kCpu, (float*)outbuffer);
 	//MinervaSystem::Instance().UniversalMemcpy(to, devptr, bytes);
-/*	for(uint64_t i =0; i < bytes/sizeof(float); i ++){
+/*	for(uint64_t i =0; i < bytes/sizeof(element_t); i ++){
 		printf("%f, ", *(to.second+i));
 	}*/
 
-	//printf("[%d] Mpi data handler sending %lu floats over\n", MinervaSystem::Instance().rank(),(bytes/sizeof(float)));
+	//printf("[%d] Mpi data handler sending %lu element_t's over\n", MinervaSystem::Instance().rank(),(bytes/sizeof(elemnt_t)));
 	MPI_Send(devptr.second, bytes, MPI_BYTE, status.MPI_SOURCE, MPI_TASK_DATA_RESPONSE, MPI_COMM_WORLD);
 }
 
@@ -63,11 +62,11 @@ void MpiDataHandler::Request_Data(char* devbuffer, size_t bytes, int rank, uint6
 	SERIALIZE(msgbuffer, offset, bytes, size_t);
 	std::unique_lock<std::mutex> lock(mpi_mutex_);
 	MPI_Send(msgbuffer, size, MPI_BYTE, rank, MPI_TASK_DATA_REQUEST, MPI_COMM_WORLD);
-	//printf("[%d] Mpi data handler recieving %lu floats\n", MinervaSystem::Instance().rank(),(bytes/sizeof(float)));
+	//printf("[%d] Mpi data handler recieving %lu element_t's\n", MinervaSystem::Instance().rank(),(bytes/sizeof(element_t)));
 	MPI_Recv(devbuffer, bytes, MPI_BYTE, rank, MPI_TASK_DATA_RESPONSE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 /*
-	for(uint64_t i =0; i < bytes/sizeof(float); i ++){
-		printf("%f, ", *(  ((float*)buffer)+i        ));
+	for(uint64_t i =0; i < bytes/sizeof(element_t); i ++){
+		printf("%f, ", *(  ((element_t*)buffer)+i        ));
 	}*/
 }
 

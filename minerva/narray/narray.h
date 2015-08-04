@@ -4,6 +4,7 @@
 #include <memory>
 #include "op/closure.h"
 #include "common/scale.h"
+#include "common/common.h"
 #include "backend/backend.h"
 #include "backend/backend_chunk.h"
 
@@ -19,12 +20,12 @@ class NArray {
 
  public:
   // Static constructors
-  static NArray Constant(const Scale& size, float val);
+  static NArray Constant(const Scale& size, element_t val);
   static NArray Randn(const Scale& size, float mu, float var);
   static NArray RandBernoulli(const Scale& size, float p);
   static NArray Zeros(const Scale& size);
   static NArray Ones(const Scale& size);
-  static NArray MakeNArray(const Scale& size, std::shared_ptr<float> array);
+  static NArray MakeNArray(const Scale& size, std::shared_ptr<element_t> array);
   static NArray PushGradAndPullWeight(const NArray& grad, const std::string& layer_name);
   // DAG generating operations
   static std::vector<NArray> Compute(
@@ -49,21 +50,21 @@ class NArray {
   friend NArray operator+(const NArray&, const NArray&);
   friend NArray operator-(const NArray&, const NArray&);
   friend NArray operator/(const NArray&, const NArray&);
-  friend NArray operator+(float, const NArray&);
-  friend NArray operator-(float, const NArray&);
-  friend NArray operator*(float, const NArray&);
-  friend NArray operator/(float, const NArray&);
-  friend NArray operator+(const NArray&, float);
-  friend NArray operator-(const NArray&, float);
-  friend NArray operator*(const NArray&, float);
-  friend NArray operator/(const NArray&, float);
+  friend NArray operator+(element_t, const NArray&);
+  friend NArray operator-(element_t, const NArray&);
+  friend NArray operator*(element_t, const NArray&);
+  friend NArray operator/(element_t, const NArray&);
+  friend NArray operator+(const NArray&, element_t);
+  friend NArray operator-(const NArray&, element_t);
+  friend NArray operator*(const NArray&, element_t);
+  friend NArray operator/(const NArray&, element_t);
   NArray& operator+=(const NArray&);
   NArray& operator-=(const NArray&);
   NArray& operator/=(const NArray&);
-  NArray& operator+=(float);
-  NArray& operator-=(float);
-  NArray& operator*=(float);
-  NArray& operator/=(float);
+  NArray& operator+=(element_t);
+  NArray& operator-=(element_t);
+  NArray& operator*=(element_t);
+  NArray& operator/=(element_t);
   NArray operator-() const;
   NArray operator[](int);
   // Matmult
@@ -90,12 +91,12 @@ class NArray {
   // Replicate matrix
   NArray NormArithmetic(const NArray&, ArithmeticType) const;
   // Non-lazy reductions
-  float Sum() const;  // TODO
-  float Max() const;  // TODO
+  element_t Sum() const;  // TODO
+  element_t Max() const;  // TODO
   int CountZero() const;
   // System
   void Wait() const;
-  std::shared_ptr<float> Get() const;
+  std::shared_ptr<element_t> Get() const;
   void ToStream(std::ostream& out, const FileFormat& format) const;
   void ToFile(const std::string& filename, const FileFormat& format) const;
 

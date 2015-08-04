@@ -26,6 +26,7 @@ deps
 lib
 tags
 vendor
+HTModels/ht
 
 # Cmake files
 cmake_install.cmake
@@ -65,3 +66,7 @@ cscope.out
 
 #generated files
 owl/libowl.cpp
+*/HtDsnRpt.html
+*/HtMonRpt.txt
+HTModels/hostapp/conv_sysc
+tests/unittest_fixedpoint

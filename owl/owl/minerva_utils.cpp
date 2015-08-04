@@ -76,10 +76,13 @@ std::vector<int> OfScale(minerva::Scale const& s) {
 
 minerva::NArray FromNumpy(float const* data, minerva::Scale const& scale) {
   auto size = scale.Prod();
-  std::shared_ptr<float> ptr(new float[size], [](float* p) {
+  std::shared_ptr<element_t> ptr(new element_t[size], [](element_t* p) {
     delete[] p;
   });
-  memcpy(ptr.get(), data, size * sizeof(float));
+  for(int i = 0; i < size; i++){
+	  ptr.get()[i] = data[i];
+  }
+  //memcpy(ptr.get(), data, size * sizeof(float));
   return minerva::NArray::MakeNArray(scale, ptr);
 }
 
@@ -87,11 +90,12 @@ void ToNumpy(float* dst, minerva::NArray const& n) {
 	//printf("Entering minerva_utils ToNumpy\n");
   auto size = n.Size().Prod();
   auto ptr = n.Get();
-/*  printf("Minerva Utils ToNumpy recieved %d floats \n", size);
+  //printf("Minerva Utils ToNumpy recieved %d floats \n", size);
   for (int i = 0; i < size; i++){
-	  printf("%f , ",*(ptr.get()+i));
-  }*/
-  memcpy(dst, ptr.get(), size * sizeof(float));
+	  dst[i] = ptr.get()[i];
+	  //printf("%f , ",*(ptr.get()+i));
+  }
+  //memcpy(dst, ptr.get(), size * sizeof(float));
 }
 
 }  // namespace libowl

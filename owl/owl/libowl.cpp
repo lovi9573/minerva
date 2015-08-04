@@ -21,8 +21,17 @@
             "-Wall", 
             "-O2", 
             "-g", 
-            "-DHAS_MPI", 
-            "-I/usr/include/openmpi-x86_64"
+            "-DCUDA_ROOT=", 
+            "-DCUDNN_ROOT=/home/jlovitt/include", 
+            "-DMPI_HEADER_ROOT=", 
+            "-DBUILD_CPU_ONLY=1", 
+            "-DBLAS_ROOT=", 
+            "-DHT_MODEL_TYPE=sysc", 
+            "-DFIXED_POINT=1", 
+            "-DFIXED_POINT_DOUBLE_WIDE_TYPE=int32_t", 
+            "-DFIXED_POINT_TYPE=int16_t", 
+            "-DFIXED_POINT_FRACTION_WIDTH=12", 
+            "-DPS_ROOT="
         ], 
         "library_dirs": [
             "release/lib"

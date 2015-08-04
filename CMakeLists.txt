@@ -40,7 +40,6 @@ function(find_blas)
   endif()
 endfunction()
 
-
 function(check_mpi_cuda_support)  
     EXECUTE_PROCESS(COMMAND ompi_info "--parsable" "-l" "9" "--all"
                     COMMAND grep "mpi_built_with_cuda_support:value"
@@ -158,6 +157,13 @@ if(BUILD_WITH_MPI AND MPI_CXX_FOUND)
   #target_link_libraries(Minerva ${MPI_CXX_LIBRARIES})
 endif()
 
+if(FIXED_POINT)
+    add_definitions(-DFIXED_POINT)
+    add_definitions(-DFIXED_POINT_DOUBLE_WIDE_TYPE=${FIXED_POINT_DOUBLE_WIDE_TYPE})
+    add_definitions(-DFIXED_POINT_TYPE=${FIXED_POINT_TYPE})
+    add_definitions(-DFIXED_POINT_FRACTION_WIDTH=${FIXED_POINT_FRACTION_WIDTH})
+endif()
+
 if(BUILD_WITH_PS)
   add_definitions(-DHAS_PS)
   find_ps()
@@ -179,6 +185,13 @@ message(STATUS "build with BLAS library for CPU     -- ${BUILD_WITH_BLAS}")
 message(STATUS "build with MPI support              -- ${BUILD_WITH_MPI}")
 message(STATUS "MPI libraries found.                -- ${MPI_CXX_FOUND}")
 message(STATUS "build with FPGA support             -- ${BUILD_WITH_FPGA}")
+message(STATUS "FPGA model type                     -- ${HT_MODEL_TYPE}")
+message(STATUS "build with fixed point support      -- ${FIXED_POINT}")
+if(FIXED_POINT)
+    message(STATUS "  fixed point type.             -- ${FIXED_POINT_TYPE}")
+    message(STATUS "  fixed point 2x type           -- ${FIXED_POINT_DOUBLE_WIDE_TYPE}")
+    message(STATUS "  fraction width                -- ${FIXED_POINT_FRACTION_WIDTH}")
+endif()
 
 add_subdirectory(minerva)
 

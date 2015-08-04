@@ -26,7 +26,7 @@ static NArray ArithmeticHelper(const NArray& lhs, const NArray& rhs, ArithmeticT
   }
 }
 
-static NArray ArithmeticConstHelper(const NArray& narr, float val, int side, ArithmeticType type) {
+static NArray ArithmeticConstHelper(const NArray& narr, element_t val, int side, ArithmeticType type) {
   ArithmeticConstOp* arith_const_op = new ArithmeticConstOp();
   arith_const_op->closure = {type, val, side};
   return NArray::ComputeOne({narr}, narr.Size(), arith_const_op);
@@ -93,35 +93,35 @@ NArray operator/(const NArray& lhs, const NArray& rhs) {
   return ArithmeticHelper(lhs, rhs, ArithmeticType::kDiv);
 }
 
-NArray operator+(float lhs, const NArray& rhs) {
+NArray operator+(element_t lhs, const NArray& rhs) {
   return ArithmeticConstHelper(rhs, lhs, 0, ArithmeticType::kAdd);
 }
 
-NArray operator-(float lhs, const NArray& rhs) {
+NArray operator-(element_t lhs, const NArray& rhs) {
   return ArithmeticConstHelper(rhs, lhs, 0, ArithmeticType::kSub);
 }
 
-NArray operator*(float lhs, const NArray& rhs) {
+NArray operator*(element_t lhs, const NArray& rhs) {
   return ArithmeticConstHelper(rhs, lhs, 0, ArithmeticType::kMult);
 }
 
-NArray operator/(float lhs, const NArray& rhs) {
+NArray operator/(element_t lhs, const NArray& rhs) {
   return ArithmeticConstHelper(rhs, lhs, 0, ArithmeticType::kDiv);
 }
 
-NArray operator+(const NArray& lhs, float rhs) {
+NArray operator+(const NArray& lhs, element_t rhs) {
   return ArithmeticConstHelper(lhs, rhs, 1, ArithmeticType::kAdd);
 }
 
-NArray operator-(const NArray& lhs, float rhs) {
+NArray operator-(const NArray& lhs, element_t rhs) {
   return ArithmeticConstHelper(lhs, rhs, 1, ArithmeticType::kSub);
 }
 
-NArray operator*(const NArray& lhs, float rhs) {
+NArray operator*(const NArray& lhs, element_t rhs) {
   return ArithmeticConstHelper(lhs, rhs, 1, ArithmeticType::kMult);
 }
 
-NArray operator/(const NArray& lhs, float rhs) {
+NArray operator/(const NArray& lhs, element_t rhs) {
   return ArithmeticConstHelper(lhs, rhs, 1, ArithmeticType::kDiv);
 }
 
@@ -137,19 +137,19 @@ NArray& NArray::operator/=(const NArray& narr) {
   return *this = (*this / narr);
 }
 
-NArray& NArray::operator+=(float val) {
+NArray& NArray::operator+=(element_t val) {
   return *this = (*this + val);
 }
 
-NArray& NArray::operator-=(float val) {
+NArray& NArray::operator-=(element_t val) {
   return *this = (*this - val);
 }
 
-NArray& NArray::operator*=(float val) {
+NArray& NArray::operator*=(element_t val) {
   return *this = (*this * val);
 }
 
-NArray& NArray::operator/=(float val) {
+NArray& NArray::operator/=(element_t val) {
   return *this = (*this / val);
 }
 

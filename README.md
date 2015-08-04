@@ -111,6 +111,11 @@ Currently distributed computation is supported with Open-Mpi.
 For this to work you must compile Open-Mpi with the --with-cuda configuration.  More details can be found at https://www.open-mpi.org/faq/?category=buildcuda
 Additionally, since libmpi.so is being loaded lazily by the minerva library, it's modules will fail.  To get around this it must be preloaded using LD_PRELOAD=<path to libmpi.so> for each mpirun invocation to load it in the global namespace.
 
+##Requirements
+Cython
+CMake >2.8
+OpenMpi for MPI support
+Git >1.6.5
 
 ## Next Plan
 * Get rid of boost library dependency by using Cython. (DONE)

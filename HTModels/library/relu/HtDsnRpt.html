@@ -1,0 +1,313 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>HTL Report</title>
+        <link rel="stylesheet" href="/home/jlovitt/git/OpenHT/rpm/prefix/bin/../html/css/style.css" type="text/css" media="screen, projection" />
+        <script type="text/javascript" src="/home/jlovitt/git/OpenHT/rpm/prefix/bin/../html/js/jquery-1.4.2.min.js"></script>
+        <script type="text/javascript" src="/home/jlovitt/git/OpenHT/rpm/prefix/bin/../html/js/scripts.js"></script>
+    </head>
+    <body>
+        <h1><b>Summary</b></h1>
+          <dl>
+            <dt>Execution Date:</dt>
+              <dd>Wed, 15 Jul 15 16:59:57 -0600</dd>
+              <br/>
+            <dt>Execution Directory:</dt>
+              <dd>/home/jlovitt/git/myminerva/HTModels/ht/sysc</dd>
+              <br/>
+            <dt>Command Line:</dt>
+              <dd> /home/jlovitt/git/OpenHT/rpm/prefix/bin/htl -I /home/jlovitt/git/myminerva/HTModels/src -I /home/jlovitt/git/myminerva/HTModels/src_pers -DHT_SYSC -cp wx-690 -DWX690 -vr -if /home/jlovitt/git/myminerva/HTModels/src_pers/relu_forward.hti /home/jlovitt/git/myminerva/HTModels/src_pers/relu_forward.htd .</dd>
+        <h1><b>Generated APIs</b></h1>
+        <div id="listContainer">
+            <div class="listControl">
+                <a id="expandList">Expand All</a>
+                <a id="collapseList">Collapse All</a>
+            </div>
+            <ul id="expList">
+                <li>
+                    <b>Persctl</b>
+                    <ul>
+                        <li>
+                            Module Attributes
+                            <ul>
+                                <li>
+                                    <span>HtIdW = 0</span>
+                                </li>
+                                <li>
+                                    <span>Clock rate = 1x</span>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            Thread Control
+                            <ul>
+                                <li>
+                                    HtRetry()
+                                </li>
+                                <li>
+                                    HtContinue(ht_uint2 nextInstr)
+                                </li>
+                                <li>
+                                    void HtTerminate()
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            Private Variables
+                            <ul>
+                                <li>
+                                    Read Only (PR_)
+                                    <ul>
+                                        <li>
+                                            <span>int PR_htId</span>
+                                        </li>
+                                        <li>
+                                            <span>sc_uint&lt;CTL_INSTR_W> PR_htInstr</span>
+                                        </li>
+                                        <li>
+                                            <span>bool  PR_htValid</span>
+                                        </li>
+                                        <li>
+                                            <span>uint32_t PR_vecIdx</span>
+                                        </li>
+                                        <li>
+                                            <span>uint32_t PR_vecStride</span>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    Read/Write (P_)
+                                    <ul>
+                                        <li>
+                                            <span>uint32_t P_vecIdx</span>
+                                        </li>
+                                        <li>
+                                            <span>uint32_t P_vecStride</span>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            Shared Variables
+                            <ul>
+                                <li>
+                                    Read Only (SR_)
+                                    <ul>
+                                        <li>
+                                            <span>uint64_t SR_vecLen</span>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    Read/Write (S_)
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            Call/Return
+                            <ul>
+                                <li>
+                                    bool SendReturnBusy_htmain()
+                                </li>
+                                <li>
+                                    bool SendReturn_htmain()
+                                </li>
+                                <li>
+                                    bool SendCallBusy_relu()
+                                </li>
+                                <li>
+                                    void SendCallFork_relu(ht_uint2 rtnInstr, uint32_t vecIdx)
+                                </li>
+                                <li>
+                                    void RecvReturnPause_relu(ht_uint2 rsmInstr)
+                                </li>
+                                <li>
+                                    void RecvReturnJoin_relu()
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <b>Persrelu</b>
+                    <ul>
+                        <li>
+                            Module Attributes
+                            <ul>
+                                <li>
+                                    <span>HtIdW = 1</span>
+                                </li>
+                                <li>
+                                    <span>Clock rate = 1x</span>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            Thread Control
+                            <ul>
+                                <li>
+                                    HtRetry()
+                                </li>
+                                <li>
+                                    HtContinue(ht_uint2 nextInstr)
+                                </li>
+                                <li>
+                                    void HtTerminate()
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            Private Variables
+                            <ul>
+                                <li>
+                                    Read Only (PR_)
+                                    <ul>
+                                        <li>
+                                            <span>sc_uint&lt;1 > PR_htId</span>
+                                        </li>
+                                        <li>
+                                            <span>sc_uint&lt;RELU_INSTR_W> PR_htInstr</span>
+                                        </li>
+                                        <li>
+                                            <span>bool  PR_htValid</span>
+                                        </li>
+                                        <li>
+                                            <span>uint32_t PR_vecIdx</span>
+                                        </li>
+                                        <li>
+                                            <span>int32_t PR_result</span>
+                                        </li>
+                                        <li>
+                                            <span>ht_uint2 PR_rtnInstr</span>
+                                        </li>
+                                        <li>
+                                            <span>bool PR_rtnJoin</span>
+                                        </li>
+                                        <li>
+                                            <span>int32_t PR_relu__op1</span>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    Read/Write (P_)
+                                    <ul>
+                                        <li>
+                                            <span>uint32_t P_vecIdx</span>
+                                        </li>
+                                        <li>
+                                            <span>int32_t P_result</span>
+                                        </li>
+                                        <li>
+                                            <span>ht_uint2 P_rtnInstr</span>
+                                        </li>
+                                        <li>
+                                            <span>bool P_rtnJoin</span>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            Shared Variables
+                            <ul>
+                                <li>
+                                    Read Only (SR_)
+                                    <ul>
+                                        <li>
+                                            <span>ht_uint48 SR_op1Addr</span>
+                                        </li>
+                                        <li>
+                                            <span>ht_uint48 SR_resAddr</span>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    Read/Write (S_)
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            Call/Return
+                            <ul>
+                                <li>
+                                    bool SendReturnBusy_relu()
+                                </li>
+                                <li>
+                                    bool SendReturn_relu()
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            Memory Interface
+                            <ul>
+                                <li>
+                                    bool ReadMemBusy()
+                                </li>
+                                <li>
+                                    void ReadMem_op1(sc_uint&lt;MEM_ADDR_W> memAddr, bool orderChk = true)
+                                </li>
+                                <li>
+                                    void ReadMemPause(ht_uint2 rsmInstr)
+                                </li>
+                                <li>
+                                    bool WriteMemBusy()
+                                </li>
+                                <li>
+                                    void WriteMem(sc_uint&lt;MEM_ADDR_W> memAddr, uint64_t data, bool orderChk = true);
+                                </li>
+                                <li>
+                                    WriteMemPause(ht_uint2 rsmInstr)
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <h1><b>Generated Call Graph</b></h1>
+        <object type="image/png" data="ht/HtCallGraph.png"></object>
+        <h1><b>Generated RAMs</b></h1>
+          <dl>
+            <dt><b>Summary</b></dt>
+              <br/>
+              <dd>BRAMs per wx-690 AE: 2940</dd>
+              <dd>BRAM usage limit: 50%</dd>
+              <dd>Max 18Kb BRAMs per Unit (use -ub to override): 1470 (2940 BRAMs * 50% / 1 units)</dd>
+
+              <dd>Min Slice to BRAM ratio<sup>1</sup> (use -lb to override): 40</dd>
+              <dd><dl><dd><sup>1</sup> The ratio is used to determine how many FPGA slices are required
+              when implementing a memory as a BRAM versus a distributed ram.</dd></dl></dd>
+            <br/>
+            <dt><b>Arrayed Variable(s)</b></dt>
+            <br/>
+            <dl><dd><table border="1">
+              <tr>
+                <th rowspan=2>Module Name</th>
+                <th rowspan=2>Variable Type</th>
+                <th rowspan=2>Ram/Field</th>
+                <th rowspan=2>Depth</th>
+                <th rowspan=2>Width</th>
+                <th rowspan=2>Copies</th>
+                <th colspan=2>Distributed</th>
+                <th colspan=2>Block</th>
+                <th rowspan=2>Ratio</th>
+                <th rowspan=2>Selected</th>
+              </tr>
+              <tr>
+                <th># LUTs</th>
+                <th>Total</th>
+                <th># 18Kb</th>
+                <th>Total</th>
+              </tr>
+              <tr>
+                <td>relu             </td><td>Private          </td><td>                </td><td> 2</td><td>67</td><td> 1</td><td>67</td><td>67</td><td> 2</td><td> 2</td><td> 11.17</td><td>Dist</td>
+              </tr>
+              <tr>
+                <td>relu             </td><td>Private          </td><td>relu__op1       </td><td> 2</td><td>32</td><td> 1</td><td>32</td><td>32</td><td> 1</td><td> 1</td><td> 10.67</td><td>Dist</td>
+              </tr>
+            </dd></dl></table>
+          </dl>
+    </body>
+</html>

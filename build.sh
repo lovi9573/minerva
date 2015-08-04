@@ -22,6 +22,8 @@ function run_clean {
   exit 0
 }
 
+echo $FIXED_POINT_DOUBLE_WIDE_TYPE
+
 CXXFLAGS="$CXXFLAGS \
   -DCUDA_ROOT=$CUDA_ROOT \
   -DCUDNN_ROOT=$CUDNN_ROOT \
@@ -34,6 +36,11 @@ CXXFLAGS="$CXXFLAGS \
   -DBUILD_WITH_MPI=$BUILD_WITH_MPI \
   -DBUILD_WITH_FPGA=$BUILD_WITH_FPGA \
   -DBLAS_ROOT=$BLAS_ROOT \
+  -DHT_MODEL_TYPE=$HT_MODEL_TYPE \
+  -DFIXED_POINT=$FIXED_POINT \
+  -DFIXED_POINT_DOUBLE_WIDE_TYPE=$FIXED_POINT_DOUBLE_WIDE_TYPE \
+  -DFIXED_POINT_TYPE=$FIXED_POINT_TYPE \
+  -DFIXED_POINT_FRACTION_WIDTH=$FIXED_POINT_FRACTION_WIDTH \
   -DPS_ROOT=$PS_ROOT \
   "
 
@@ -71,9 +78,12 @@ if [ ! -d $BUILD_DIR ]; then
   mkdir $BUILD_DIR
 fi
 cd $BUILD_DIR
-CC=$CC CXX=$CXX cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CXXFLAGS -I/home/jlovitt/open-mpi/include .. && make -j4
+if [ BUILD_WITH_FPGA -eq 1 ]; then
+	cp -r ../HTModels . && make -C HTModels lib$HT_MODEL_TYPE
+fi
+CC=$CC CXX=$CXX cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CXXFLAGS -I/home/jlovitt/open-mpi/include .. && make -j2
 cd ..
 
 if [ $BUILD_OWL -eq 1 ]; then
-  python setup.py build_ext --inplace --force
+  python setup.py build_ext --inplace --force $CXXFLAGS
 fi

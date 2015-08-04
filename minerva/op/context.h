@@ -5,6 +5,9 @@
 #include <cublas.h>
 #include <cudnn.h>
 #endif
+#ifdef HAS_FPGA
+//#include "Ht.h"
+#endif
 
 namespace minerva {
 
@@ -38,6 +41,11 @@ struct Context {
 #ifdef HAS_MPI
   int rank;
   int gpu_id;
+#endif
+#ifdef HAS_FPGA
+//  CHtHif *pHt_host_interface;
+// CHtAuUnit ** pAuUnits;
+//  int unitCnt;
 #endif
   virtual ~Context() {
   };

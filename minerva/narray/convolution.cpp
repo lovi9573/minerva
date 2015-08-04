@@ -162,13 +162,13 @@ ImageBatch Convolution::PoolingBackward(ImageBatch diff, ImageBatch top, ImageBa
 }
 
 
-ImageBatch Convolution::LRNForward(ImageBatch src, ImageBatch scale, int local_size, float alpha, float beta) {
+ImageBatch Convolution::LRNForward(ImageBatch src, ImageBatch scale, int local_size, element_t alpha, element_t beta) {
   LRNForwardOp* op = new LRNForwardOp();
   op->closure = {local_size, alpha, beta, src.Size()};
   return NArray::ComputeOne({src, scale}, src.Size(), op);
 }
 
-ImageBatch Convolution::LRNBackward(ImageBatch bottom_data, ImageBatch top_data, ImageBatch scale, ImageBatch top_diff , int local_size, float alpha, float beta) {
+ImageBatch Convolution::LRNBackward(ImageBatch bottom_data, ImageBatch top_data, ImageBatch scale, ImageBatch top_diff , int local_size, element_t alpha, element_t beta) {
   LRNBackwardOp* op = new LRNBackwardOp();
   op->closure = {local_size, alpha, beta, bottom_data.Size()};
   return NArray::ComputeOne({bottom_data, top_data, scale, top_diff}, bottom_data.Size(), op);

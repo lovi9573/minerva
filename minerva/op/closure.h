@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include "common/scale.h"
+#include "common/common.h"
 #include "narray/convolution_info.h"
 
 
@@ -73,7 +74,7 @@ struct ArrayLoaderClosure {
 #ifdef HAS_MPI
   int count;
 #endif
-  std::shared_ptr<float> data;
+  std::shared_ptr<element_t> data;
 };
 
 struct RandnClosure {
@@ -85,7 +86,7 @@ struct RandBernoulliClosure {
 };
 
 struct FillClosure {
-  float val;
+  element_t val;
 };
 
 struct SyncWithPSClosure {
@@ -142,7 +143,7 @@ struct ArithmeticClosure {
 
 struct ArithmeticConstClosure {
   ArithmeticType type;
-  float val;
+  element_t val;
   int side; // 0 is left const, 1 is right const
 };
 
@@ -199,7 +200,7 @@ typedef PoolingClosure<1> PoolingBackwardClosure;
 
 template<int i> struct LRNClosure {
 	int local_size;
-	float alpha, beta;
+	element_t alpha, beta;
 	Scale data_shape;
 };
 

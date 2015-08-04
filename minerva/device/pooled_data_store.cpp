@@ -17,7 +17,7 @@ PooledDataStore::~PooledDataStore() {
   }
 }
 
-float* PooledDataStore::CreateData(uint64_t id, size_t length) {
+element_t* PooledDataStore::CreateData(uint64_t id, size_t length) {
   lock_guard<mutex> lck(access_mutex_);
   DLOG(INFO) << "create data #" << id << " length " << length;
   auto it = data_states_.emplace(id, DataState());
@@ -39,7 +39,7 @@ float* PooledDataStore::CreateData(uint64_t id, size_t length) {
       ReleaseFreeSpace();
     }
   }
-  return static_cast<float*>(ds.ptr);
+  return static_cast<element_t*>(ds.ptr);
 }
 
 void PooledDataStore::FreeData(uint64_t id) {

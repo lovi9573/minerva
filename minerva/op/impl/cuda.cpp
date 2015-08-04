@@ -22,9 +22,9 @@ namespace cuda {
 void Arithmetic(const DataList& inputs, const DataList& outputs, ArithmeticClosure& closure, const Context& context) {
   CHECK_EQ(inputs.size(), 2) << "Arithmetic takes 2 inputs";
   CHECK_EQ(outputs.size(), 1) << "Arithmetic takes 1 output";
-  float* left = inputs[0].data_;
-  float* right = inputs[1].data_;
-  float* res = outputs[0].data_;
+  element_t* left = inputs[0].data_;
+  element_t* right = inputs[1].data_;
+  element_t* res = outputs[0].data_;
   size_t size = outputs[0].size_.Prod();
   switch (closure.type) {
     case ArithmeticType::kAdd:
@@ -45,12 +45,12 @@ void Arithmetic(const DataList& inputs, const DataList& outputs, ArithmeticClosu
 void LRNForward(const DataList& inputs, const DataList& outputs, LRNForwardClosure& closure, const Context & context) {
   CHECK_EQ(inputs.size(), 2) << "(LRNForward) #inputs is wrong!";
   CHECK_EQ(outputs.size(), 1) << "(LRNForward) #outputs is wrong!";
-  float* bottom_data = inputs[0].data_;
-  float* scale_data = inputs[1].data_;
-  float* res_data = outputs[0].data_;
+  element_t* bottom_data = inputs[0].data_;
+  element_t* scale_data = inputs[1].data_;
+  element_t* res_data = outputs[0].data_;
   int local_size = closure.local_size;
-  float alpha = closure.alpha;
-  float beta = closure.beta;
+  element_t alpha = closure.alpha;
+  element_t beta = closure.beta;
   int num_img = closure.data_shape[3];
   int channel = closure.data_shape[2];
   int weight = closure.data_shape[1];
@@ -61,14 +61,14 @@ void LRNForward(const DataList& inputs, const DataList& outputs, LRNForwardClosu
 void LRNBackward(const DataList& inputs, const DataList& outputs, LRNBackwardClosure& closure, const Context & context) {
   CHECK_EQ(inputs.size(), 4) << "(LRNBackward) #inputs is wrong!";
   CHECK_EQ(outputs.size(), 1) << "(LRNBackward) #outputs is wrong!";
-  float* bottom_data = inputs[0].data_;
-  float* top_data = inputs[1].data_;
-  float* scale_data = inputs[2].data_;
-  float* top_diff = inputs[3].data_;
-  float* bottom_diff = outputs[0].data_;
+  element_t* bottom_data = inputs[0].data_;
+  element_t* top_data = inputs[1].data_;
+  element_t* scale_data = inputs[2].data_;
+  element_t* top_diff = inputs[3].data_;
+  element_t* bottom_diff = outputs[0].data_;
   int local_size = closure.local_size;
-  float alpha = closure.alpha;
-  float beta = closure.beta;
+  element_t alpha = closure.alpha;
+  element_t beta = closure.beta;
   int num_img = closure.data_shape[3];
   int channel = closure.data_shape[2];
   int weight = closure.data_shape[1];
@@ -83,11 +83,11 @@ void Concat(const DataList& inputs, const DataList& outputs, ConcatClosure& clos
   CHECK_LE(inputs[0].size_.NumDims() - closure.catdim, 3) << "(Concat) #Currently only support concat on the last two dims!";
 
   size_t concat_dim = closure.catdim;
-  float* top_data = outputs[0].data_;
+  element_t* top_data = outputs[0].data_;
   if (concat_dim == inputs[0].size_.NumDims() - 1) {
     int offset_num = 0;
     for (size_t i = 0; i < inputs.size(); ++i) {
-      float* bottom_data = inputs[i].data_;
+      element_t* bottom_data = inputs[i].data_;
       CudaPerformCopy(bottom_data, top_data + offset_num, inputs[i].size_.Prod(), context.cublas_handle);
       offset_num += inputs[i].size_.Prod();
     }
@@ -95,7 +95,7 @@ void Concat(const DataList& inputs, const DataList& outputs, ConcatClosure& clos
   else {
     int offset_channel = 0;
     for (size_t i = 0; i < inputs.size(); ++i) {
-      float* bottom_data = inputs[i].data_;
+      element_t* bottom_data = inputs[i].data_;
       int bot_num_elem = 1;
       int top_num_elem = 1;
       int img_size = 1;
@@ -124,10 +124,10 @@ void Slice(const DataList& inputs, const DataList& outputs, SliceClosure& closur
   CHECK_LE(inputs[0].size_.NumDims() - closure.slice_dim, 3) << "(Slice) #Currently only support concat on the last two dims!";
 
   size_t slice_dim = closure.slice_dim;
-  float* input_data = inputs[0].data_;
+  element_t* input_data = inputs[0].data_;
   if (slice_dim == inputs[0].size_.NumDims() - 1){
     int offset_num = 0;
-    float* output_data = outputs[0].data_;
+    element_t* output_data = outputs[0].data_;
     int img_size = 1;
     for (size_t i = 0; i < inputs[0].size_.NumDims() - 1; i++) {
       img_size *= inputs[0].size_[i];
@@ -137,7 +137,7 @@ void Slice(const DataList& inputs, const DataList& outputs, SliceClosure& closur
   }
   else{
     int offset_channel = closure.st_off;
-    float* output_data = outputs[0].data_;
+    element_t* output_data = outputs[0].data_;
     int output_num_elem = 1;
     int input_num_elem = 1;
     int img_size = 1;
@@ -158,9 +158,9 @@ void Slice(const DataList& inputs, const DataList& outputs, SliceClosure& closur
 void MatMult(const DataList& inputs, const DataList& outputs, MatMultClosure& closure, const Context & context) {
   CHECK_EQ(inputs.size(), 2) << "(matmult) #inputs is wrong!";
   CHECK_EQ(outputs.size(), 1) << "(matmult) #outputs is wrong!";
-  float* left_data = inputs[0].data_;
-  float* right_data = inputs[1].data_;
-  float* res_data = outputs[0].data_;
+  element_t* left_data = inputs[0].data_;
+  element_t* right_data = inputs[1].data_;
+  element_t* res_data = outputs[0].data_;
   int m = inputs[0].size_[0];
   int k = inputs[0].size_[1];
   int n = outputs[0].size_[1];
@@ -171,9 +171,9 @@ void ArithmeticConst(const DataList& inputs, const DataList& outputs,
   ArithmeticConstClosure& closure, const Context& context) {
   CHECK_EQ(inputs.size(), 1) << "(arithmetic const) #inputs is wrong!";
   CHECK_EQ(outputs.size(), 1) << "(arithmetic const) #outputs is wrong!";
-  float val = closure.val;
-  float* in_data = inputs[0].data_;
-  float* res_data = outputs[0].data_;
+  element_t val = closure.val;
+  element_t* in_data = inputs[0].data_;
+  element_t* res_data = outputs[0].data_;
   size_t size = inputs[0].size_.Prod();
   switch (closure.type) {
     case ArithmeticType::kAdd:
@@ -201,8 +201,8 @@ void ArithmeticConst(const DataList& inputs, const DataList& outputs,
 
 void Transpose(const DataList& inputs, const DataList& outputs,
   TransposeClosure& closure, const Context& context) {
-  float* in_data = inputs[0].data_;
-  float* res_data = outputs[0].data_;
+  element_t* in_data = inputs[0].data_;
+  element_t* res_data = outputs[0].data_;
   int m = inputs[0].size_[0];
   int n = inputs[0].size_[1];
   CudaPerformTranspose(in_data, res_data, m, n, context.cublas_handle);
@@ -312,15 +312,15 @@ void MaxIndex(const DataList& inputs, const DataList& outputs,
 void Reshape(const DataList& inputs, const DataList& outputs, ReshapeClosure&, const Context& context) {
   CHECK_EQ(inputs.size(), 1);
   CHECK_EQ(outputs.size(), 1);
-  CudaPerformReshape(inputs[0].data_, outputs[0].data_, inputs[0].size_.Prod() * sizeof(float), context.stream);
+  CudaPerformReshape(inputs[0].data_, outputs[0].data_, inputs[0].size_.Prod() * sizeof(element_t), context.stream);
 }
 
 
 void Elewise(const DataList& inputs, const DataList& outputs, ElewiseClosure& closure, const Context& context) {
   CHECK_EQ(inputs.size(), 1) << "(elewise) #inputs is wrong!";
   CHECK_EQ(outputs.size(), 1) << "(elewise) #outputs is wrong!";
-  float* in_data = inputs[0].data_;
-  float* res_data = outputs[0].data_;
+  element_t* in_data = inputs[0].data_;
+  element_t* res_data = outputs[0].data_;
   int length = outputs[0].size_.Prod();
   switch (closure.type) {
     case ElewiseType::kExp:
@@ -592,7 +592,7 @@ void PoolingBackward(const DataList& inputs, const DataList& outputs, PoolingBac
 void ArrayLoader(const DataList& outputs, ArrayLoaderClosure& closure, const Context& context) {
   CHECK_EQ(outputs.size(), 1) << "(array loader) #outputs wrong";
   CHECK(closure.data) << "probably already executed";
-  CUDA_CALL(cudaMemcpyAsync(outputs[0].data_, closure.data.get(), outputs[0].size_.Prod() * sizeof(float), cudaMemcpyDefault));
+  CUDA_CALL(cudaMemcpyAsync(outputs[0].data_, closure.data.get(), outputs[0].size_.Prod() * sizeof(element_t), cudaMemcpyDefault));
   closure.data.reset();
 }
 
@@ -617,7 +617,7 @@ void SyncWithPS(const DataList& inputs, const DataList& outputs, SyncWithPSClosu
   // TODO: use memory allocator, or directly pass CPU pointer in
   // we are creating temp space on CPU for now, should use memory allocator
   size_t size = outputs[0].size_.Prod();
-  vector<float> weight(size);
+  vector<element_t> weight(size);
   if (inputs.empty())
   {
     PushGradAndPullWeight(nullptr, &weight[0], size, closure.layer_name);
@@ -626,7 +626,7 @@ void SyncWithPS(const DataList& inputs, const DataList& outputs, SyncWithPSClosu
   {
     CHECK_EQ(inputs.size(), 1);
     CHECK_EQ(inputs[0].size_.Prod(), outputs[0].size_.Prod()) << "Pushed and pulled matrix must be of same dim";
-    vector<float> grad(size);
+    vector<element_t> grad(size);
     CUDA_CALL(cudaMemcpyAsync(&grad[0], inputs[0].data_, size, cudaMemcpyDefault, context.stream));
     CUDA_CALL(cudaStreamSynchronize(context.stream));
     PushGradAndPullWeight(&grad[0], &weight[0], size, closure.layer_name);

@@ -7,6 +7,7 @@
 #include <unordered_set>
 #include <algorithm>
 #include "./make_unique.h"
+#include "common/element.h"
 
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName&) = delete; \
@@ -36,7 +37,6 @@
 	Item = static_cast<Type>(*(Buff+Off)); \
 	Off += sizeof(int);
 
-
 # if defined(_MSC_VER)
 # define __attribute__(A) /* do nothing */
 # endif
@@ -50,6 +50,8 @@ public:
 	virtual int GetSerializedSize() const =0;
 	virtual int Serialize(char*) const =0;
 };
+
+
 
 
 template<typename T>

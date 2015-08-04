@@ -14,8 +14,8 @@ class DataStore {
   DataStore(std::function<void*(size_t)> a, std::function<void(void*)> d);
   DISALLOW_COPY_AND_ASSIGN(DataStore);
   virtual ~DataStore();
-  virtual float* CreateData(uint64_t, size_t);
-  virtual float* GetData(uint64_t);
+  virtual element_t* CreateData(uint64_t, size_t);
+  virtual element_t* GetData(uint64_t);
   virtual bool ExistData(uint64_t id) const;
   virtual void FreeData(uint64_t);
   virtual size_t GetTotalBytes() const;

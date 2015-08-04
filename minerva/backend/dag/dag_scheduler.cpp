@@ -83,21 +83,21 @@ void DagScheduler::WaitForAll() {
   }
 }
 
-shared_ptr<float> DagScheduler::GetValue(BackendChunk* chunk) {
+shared_ptr<element_t> DagScheduler::GetValue(BackendChunk* chunk) {
   auto& data = CHECK_NOTNULL(dynamic_cast<DagChunk*>(chunk))->node()->data_;
-  shared_ptr<float> ret(new float[data.size.Prod()], [](float* p) {
+  shared_ptr<element_t> ret(new element_t[data.size.Prod()], [](element_t* p) {
     delete[] p;
   });
 #ifdef HAS_MPI
   if (data.rank != MinervaSystem::Instance().rank()){
-	  size_t size = data.size.Prod()*sizeof(float);
+	  size_t size = data.size.Prod()*sizeof(element_t);
 	  MinervaSystem::Instance().Request_Data(reinterpret_cast<char*>(ret.get()), size, data.rank,  data.device_id, data.data_id );
 	  return ret;
   }
 #endif
   //printf("Getting data pointer for data id %lu on device %lu\n.", data.data_id, data.device_id);
   auto dev_pair = MinervaSystem::Instance().GetPtr(data.device_id, data.data_id);
-  MinervaSystem::UniversalMemcpy(make_pair(Device::MemType::kCpu, ret.get()), dev_pair, data.size.Prod() * sizeof(float));
+  MinervaSystem::UniversalMemcpy(make_pair(Device::MemType::kCpu, ret.get()), dev_pair, data.size.Prod() * sizeof(element_t));
   return ret;
 }
 
