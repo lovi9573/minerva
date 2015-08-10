@@ -499,24 +499,25 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 	CHECK_EQ(inputs.size(), 3) << " Convolution #inputs are wrong.\n";
 	CHECK_EQ(outputs.size(), 1) << " Convolution #outputs are wrong.\n";
 
-	element_t* input = inputs[0].data_;
-	Scale insize = inputs[0].size_;
-	int in_column = insize[0];
-	int in_channel = insize[1]*insize[0];
-	int in_element = insize[2]*insize[1]*insize[0];
+	element_t* bottom = inputs[0].data_;
+	Scale bottom_size = inputs[0].size_;
+	int bottom_column_stride = bottom_size[0];
+	int bottom_channel_stride = bottom_size[1]*bottom_size[0];
+	int bottom_image_stride = bottom_size[2]*bottom_size[1]*bottom_size[0];
 
 	element_t* filters = inputs[1].data_;
 	Scale filtersize = inputs[1].size_;
-	int filter_column = filtersize[0];
-	int filter_channel = filtersize[1]*filtersize[0];
-	int filter_element = filtersize[2]*filtersize[1]*filtersize[0];
+	int filter_column_stride = filtersize[0];
+	int filter_channel_stride = filtersize[1]*filtersize[0];
+	int filter_element_stride = filtersize[2]*filtersize[1]*filtersize[0];
 
 	element_t* bias = inputs[2].data_;
-	element_t* activations = outputs[0].data_;
-	Scale outsize = outputs[0].size_;
-	int out_column = outsize[0];
-	int out_channel = outsize[1]*outsize[0];
-	int out_element = outsize[2]*outsize[1]*outsize[0];
+
+	element_t* top = outputs[0].data_;
+	Scale top_size = outputs[0].size_;
+	int top_column_stride = top_size[0];
+	int top_channel_stride = top_size[1]*top_size[0];
+	int top_image_stride = top_size[2]*top_size[1]*top_size[0];
 
 	/*
 	for(int i = 0; i < outsize.Prod(); i++){
@@ -531,18 +532,18 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
     int stride_horizontal = closure.stride_horizontal;
 
 
-	for(int element = 0 ; element < insize[3]; element++){
+	for(int element = 0 ; element < bottom_size[3]; element++){
 		//printf("element\n");
-		for(int y = -pad_height; y < insize[1]-filtersize[1]+pad_height; y = y + stride_vertical){
+		for(int y = -pad_height; y < bottom_size[1]-filtersize[1]+pad_height; y = y + stride_vertical){
 			//printf("\trow %d / %d X %d\n",y,inputs[0].size_.get(1)-inputs[1].size_.get(1)+pad_height+1,stride_vertical);
-			for(int x = -pad_width; x < insize[0]-filtersize[0]+pad_width; x += stride_horizontal){
+			for(int x = -pad_width; x < bottom_size[0]-filtersize[0]+pad_width; x += stride_horizontal){
 				//printf("\t\tcolumn %d / %d X %d\n",x,inputs[0].size_.get(0)-inputs[1].size_.get(0)+pad_width+1,stride_horizontal);
 				for(int filter = 0; filter < inputs[1].size_.get(3); filter++){
-					int outindex = (x+pad_height)/stride_horizontal + out_column*((y+pad_height)/stride_vertical) + out_channel*filter + out_element*element;
-					if(outsize.Prod() <=  outindex || outindex < 0){
-						printf("output size: %d, index: %d\n",outsize.Prod(),outindex);
+					int outindex = (x+pad_height)/stride_horizontal + top_column_stride*((y+pad_height)/stride_vertical) + top_channel_stride*filter + top_image_stride*element;
+					if(top_size.Prod() <=  outindex || outindex < 0){
+						printf("output size: %d, index: %d\n",top_size.Prod(),outindex);
 					}
-					activations[outindex] = 0;
+					top[outindex] = 0;
 
 					//printf("\t\t\tfilter %d / %d\n",filter,inputs[1].size_.get(3));
 					for(int channel =0; channel < inputs[0].size_.get(2); channel++){
@@ -551,32 +552,32 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 							for(int filter_x = 0; filter_x < inputs[1].size_.get(0); filter_x++){
 								if(x >= 0 && x < inputs[0].size_.get(0) && y >= 0 && y < inputs[0].size_.get(1)){
 									////printf("\t\t\t\t\t\top x: %d, y: %d\n",filter_x,filter_y);
-									if(x+filter_x < insize[0] && y+filter_y < insize[1]){
-										int inindex = (x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*element ;
-										if( insize.Prod() <= inindex || inindex < 0 ){
+									if(x+filter_x < bottom_size[0] && y+filter_y < bottom_size[1]){
+										int inindex = (x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*element ;
+										if( bottom_size.Prod() <= inindex || inindex < 0 ){
 											printf("input size: %d, index: %d ; x:%d < %d, y: %d<%d, c: %d<%d, e: %d\n",
-													insize.Prod(),inindex,
-													x+filter_x,insize[0],y+filter_y, insize[1], channel, insize[2], element);
+													bottom_size.Prod(),inindex,
+													x+filter_x,bottom_size[0],y+filter_y, bottom_size[1], channel, bottom_size[2], element);
 										}
-										if(filtersize.Prod() <= filter_x+filter_column*filter_y+filter_channel*channel+filter_element*filter){
+										if(filtersize.Prod() <= filter_x+filter_column_stride*filter_y+filter_channel_stride*channel+filter_element_stride*filter){
 											printf(" filter size: %d, index: %d\n",
-													filtersize.Prod(),filter_x+filter_column*filter_y+filter_channel*channel+filter_element*filter);
+													filtersize.Prod(),filter_x+filter_column_stride*filter_y+filter_channel_stride*channel+filter_element_stride*filter);
 										}
-										activations[outindex ] +=
-												input[inindex] *
-												filters[filter_x+filter_column*filter_y+filter_channel*channel+filter_element*filter] ;
+										top[outindex ] +=
+												bottom[inindex] *
+												filters[filter_x+filter_column_stride*filter_y+filter_channel_stride*channel+filter_element_stride*filter] ;
 									}
 								/*	printf("\t\t\t\t\t(c: %d , x: %d + %d , y: %d + %d) input:%f * filter:%f => [ %d ] %f\n",channel,x,filter_x,y,filter_y,
 											(float)input[(x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*element],
 											(float)filters[filter_x+filter_column*filter_y+filter_channel*channel+filter_element*filter],
 											x/stride_horizontal + out_column*(y/stride_vertical) + out_channel*filter + out_element*element,
-											(float)activations[x/stride_horizontal + out_column*(y/stride_vertical) + out_channel*filter + out_element*element ]);
+											(float)activations[x/stride_horizontal + out_column*(y/stride_vertical) + out_channel*filter + top_image_stride*element ]);
 								 */
 								}
 							}
 						}
 					}//End full filter (filter_x*filter_y*channel)
-					activations[outindex]  += bias[filter];
+					top[outindex]  += bias[filter];
 				}
 			}
 		}
@@ -587,27 +588,223 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
  * NOTE: This implementation is not designed to be fast.  If you want that, use a GPU.  It is meant to provide feature completeness and the ability to develop on a GPU-less machine.
  */
 void ConvBackwardData(const DataList& inputs, const DataList& outputs, ConvBackwardDataClosure& closure){
-	//TODO(Jesse Lovitt): Replace this placeholder
-	LOG(FATAL) << "ConvBackwardData CPU not yet implemented.\n";
-	return;
+	CHECK_EQ(inputs.size(), 2) << " Convolution #inputs are wrong.\n";
+	CHECK_EQ(outputs.size(), 1) << " Convolution #outputs are wrong.\n";
+
+	element_t* bottom_diff = outputs[0].data_;
+	Scale bottom_size = outputs[0].size_;
+	int bottom_column_stride = bottom_size[0];
+	int bottom_channel_stride = bottom_size[1]*bottom_size[0];
+	int bottom_image_stride = bottom_size[2]*bottom_size[1]*bottom_size[0];
+
+	element_t* filters = inputs[1].data_;
+	Scale filtersize = inputs[1].size_;
+	int filter_column_stride = filtersize[0];
+	int filter_channel_stride = filtersize[1]*filtersize[0];
+	int filter_element_stride = filtersize[2]*filtersize[1]*filtersize[0];
+
+	//element_t* bias = inputs[2].data_;
+
+	element_t* top_diff = inputs[0].data_;
+	Scale top_size = inputs[0].size_;
+	int top_column_stride = top_size[0];
+	int top_channel_stride = top_size[1]*top_size[0];
+	int top_image_stride = top_size[2]*top_size[1]*top_size[0];
+
+	/*
+	for(int i = 0; i < outsize.Prod(); i++){
+		printf("[ %d ] %f,",i, (float)activations[i]);
+	}
+	printf("\n\n");
+	*/
+
+    int pad_height = closure.pad_height;
+    int pad_width = closure.pad_width;
+    int stride_vertical = closure.stride_vertical;
+    int stride_horizontal = closure.stride_horizontal;
+
+
+	for(int image = 0 ; image < bottom_size[3]; image++){
+		//printf("element\n");
+		for(int y = -pad_height; y < bottom_size[1]-filtersize[1]+pad_height; y = y + stride_vertical){
+			//printf("\trow %d / %d X %d\n",y,inputs[0].size_.get(1)-inputs[1].size_.get(1)+pad_height+1,stride_vertical);
+			for(int x = -pad_width; x < bottom_size[0]-filtersize[0]+pad_width; x += stride_horizontal){
+				//printf("\t\tcolumn %d / %d X %d\n",x,inputs[0].size_.get(0)-inputs[1].size_.get(0)+pad_width+1,stride_horizontal);
+				for(int filter = 0; filter < filtersize[3]; filter++){
+					int top_index = (x+pad_height)/stride_horizontal + top_column_stride*((y+pad_height)/stride_vertical) + top_channel_stride*filter + top_image_stride*image;
+					//printf("\t\t\tfilter %d / %d\n",filter,inputs[1].size_.get(3));
+					for(int channel =0; channel < bottom_size[2]; channel++){
+						//printf("\t\t\t\tchannel %d / %d\n",channel,inputs[1].size_.get(3));
+						for(int filter_y = 0; filter_y < filtersize[1]; filter_y++){
+							for(int filter_x = 0; filter_x < filtersize[0]; filter_x++){
+								if(x >= 0 && x < bottom_size[0] && y >= 0 && y < bottom_size[1]){
+									////printf("\t\t\t\t\t\top x: %d, y: %d\n",filter_x,filter_y);
+									if(x+filter_x < bottom_size[0] && y+filter_y < bottom_size[1]){
+										int bottom_index = (x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*image ;
+										if( bottom_size.Prod() <= bottom_index || bottom_index < 0 ){
+											printf("Bad index! input size: %d, index: %d ; x:%d < %d, y: %d<%d, c: %d<%d, e: %d\n",
+													bottom_size.Prod(),bottom_index,
+													x+filter_x,bottom_size[0],y+filter_y, bottom_size[1], channel, bottom_size[2], image);
+										}
+										if(filtersize.Prod() <= filter_x+filter_column_stride*filter_y+filter_channel_stride*channel+filter_element_stride*filter){
+											printf("Bad index!  filter size: %d, index: %d\n",
+													filtersize.Prod(),filter_x+filter_column_stride*filter_y+filter_channel_stride*channel+filter_element_stride*filter);
+										}
+
+										bottom_diff[bottom_index] += top_diff[top_index ] *
+												filters[filter_x+filter_column_stride*filter_y+filter_channel_stride*channel+filter_element_stride*filter] ;
+									}
+								/*	printf("\t\t\t\t\t(c: %d , x: %d + %d , y: %d + %d) input:%f * filter:%f => [ %d ] %f\n",channel,x,filter_x,y,filter_y,
+											(float)input[(x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*element],
+											(float)filters[filter_x+filter_column*filter_y+filter_channel*channel+filter_element*filter],
+											x/stride_horizontal + out_column*(y/stride_vertical) + out_channel*filter + out_element*element,
+											(float)activations[x/stride_horizontal + out_column*(y/stride_vertical) + out_channel*filter + top_image_stride*element ]);
+								 */
+								}
+							}
+						}
+					}//End full filter (filter_x*filter_y*channel)
+				}
+			}
+		}
+	}
 }
 
 /*
  * NOTE: This implementation is not designed to be fast.  If you want that, use a GPU.  It is meant to provide feature completeness and the ability to develop on a GPU-less machine.
  */
 void ConvBackwardBias(const DataList& inputs, const DataList& outputs, ConvBackwardBiasClosure& closure){
-	//TODO(Jesse Lovitt): Replace this placeholder
-	LOG(FATAL) << "ConvBackwardBias CPU not yet implemented.\n";
-	return;
+	CHECK_EQ(inputs.size(), 1) << " Convolution #inputs are wrong.\n";
+	CHECK_EQ(outputs.size(), 1) << " Convolution #outputs are wrong.\n";
+
+	element_t* bottom_diff = outputs[0].data_;
+	Scale bottom_size = outputs[0].size_;
+	//int bottom_image_stride = bottom_size[0];
+	//cout << "convolution bias_diff size " << bottom_size.ToString() << "\n";
+
+	element_t* top_diff = inputs[0].data_;
+	Scale top_size = inputs[0].size_;
+	int top_column_stride = top_size[0];
+	int top_channel_stride = top_size[1]*top_size[0];
+	int top_image_stride = top_size[2]*top_size[1]*top_size[0];
+
+	/*
+	for(int i = 0; i < outsize.Prod(); i++){
+		printf("[ %d ] %f,",i, (float)activations[i]);
+	}
+	printf("\n\n");
+	*/
+
+	for(int element = 0 ; element < top_size[3]; element++){
+		//printf("element\n");
+		for(int filter = 0; filter < top_size[2]; filter++){
+			int bottom_index = filter; //+ element*bottom_image_stride;
+			if( bottom_index < 0 || bottom_index >= bottom_size.Prod()){
+				printf("Bad index: ConvBackwardBias::bottom_index %d\n",bottom_index);
+			}
+			for(int y = 0; y < top_size[1]; y++){
+				//printf("\trow %d / %d X %d\n",y,inputs[0].size_.get(1)-inputs[1].size_.get(1)+pad_height+1,stride_vertical);
+				for(int x = 0; x < top_size[0]; x ++){
+					//printf("\t\tcolumn %d / %d X %d\n",x,inputs[0].size_.get(0)-inputs[1].size_.get(0)+pad_width+1,stride_horizontal);
+						int top_index = x + top_column_stride*y + top_channel_stride*filter + top_image_stride*element;
+						if( top_index < 0 || top_index >= top_size.Prod()){
+							printf("Bad index: ConvBackwardBias::top_index %d \n",top_index);
+						}
+						bottom_diff[bottom_index] += top_diff[top_index];
+				}
+			}
+		}
+	}
 }
 
 /*
  * NOTE: This implementation is not designed to be fast.  If you want that, use a GPU.  It is meant to provide feature completeness and the ability to develop on a GPU-less machine.
  */
 void ConvBackwardFilter(const DataList& inputs, const DataList& outputs, ConvBackwardFilterClosure& closure){
-	//TODO(Jesse Lovitt): Replace this placeholder
-	LOG(FATAL) << "ConvBackwardFilter CPU not yet implemented.\n";
+	CHECK_EQ(inputs.size(), 2) << " Convolution #inputs are wrong.\n";
+	CHECK_EQ(outputs.size(), 1) << " Convolution #outputs are wrong.\n";
 	return;
+
+	element_t* bottom = inputs[1].data_;
+	Scale bottom_size = inputs[1].size_;
+	int bottom_column_stride = bottom_size[0];
+	int bottom_channel_stride = bottom_size[1]*bottom_size[0];
+	int bottom_image_stride = bottom_size[2]*bottom_size[1]*bottom_size[0];
+
+	element_t* filter_diff = outputs[0].data_;
+	Scale filtersize = outputs[0].size_;
+	int filter_column_stride = filtersize[0];
+	int filter_channel_stride = filtersize[1]*filtersize[0];
+	int filter_element_stride = filtersize[2]*filtersize[1]*filtersize[0];
+
+	//element_t* bias = inputs[2].data_;
+
+	element_t* top_diff = inputs[0].data_;
+	Scale top_size = inputs[0].size_;
+	int top_column_stride = top_size[0];
+	int top_channel_stride = top_size[1]*top_size[0];
+	int top_image_stride = top_size[2]*top_size[1]*top_size[0];
+
+	/*
+	for(int i = 0; i < outsize.Prod(); i++){
+		printf("[ %d ] %f,",i, (float)activations[i]);
+	}
+	printf("\n\n");
+	*/
+
+    int pad_height = closure.pad_height;
+    int pad_width = closure.pad_width;
+    int stride_vertical = closure.stride_vertical;
+    int stride_horizontal = closure.stride_horizontal;
+
+
+	for(int element = 0 ; element < bottom_size[3]; element++){
+		//printf("element\n");
+		for(int y = -pad_height; y < bottom_size[1]-filtersize[1]+pad_height; y = y + stride_vertical){
+			//printf("\trow %d / %d X %d\n",y,inputs[0].size_.get(1)-inputs[1].size_.get(1)+pad_height+1,stride_vertical);
+			for(int x = -pad_width; x < bottom_size[0]-filtersize[0]+pad_width; x += stride_horizontal){
+				//printf("\t\tcolumn %d / %d X %d\n",x,inputs[0].size_.get(0)-inputs[1].size_.get(0)+pad_width+1,stride_horizontal);
+				for(int filter = 0; filter < inputs[1].size_.get(3); filter++){
+					int top_index = (x+pad_height)/stride_horizontal + top_column_stride*((y+pad_height)/stride_vertical) + top_channel_stride*filter + top_image_stride*element;
+					if(top_index < 0 || top_index >= top_size.Prod()){
+						cout << "Bad Index:  ConvBackwardFilter:: top_index " << top_index << " of " <<top_size.ToString()  << "\n";
+					}
+					//printf("\t\t\tfilter %d / %d\n",filter,inputs[1].size_.get(3));
+					for(int channel =0; channel < inputs[0].size_.get(2); channel++){
+						//printf("\t\t\t\tchannel %d / %d\n",channel,inputs[1].size_.get(3));
+						for(int filter_y = 0; filter_y < inputs[1].size_.get(1); filter_y++){
+							for(int filter_x = 0; filter_x < inputs[1].size_.get(0); filter_x++){
+								if(x >= 0 && x < inputs[0].size_.get(0) && y >= 0 && y < inputs[0].size_.get(1)){
+									////printf("\t\t\t\t\t\top x: %d, y: %d\n",filter_x,filter_y);
+									if(x+filter_x < bottom_size[0] && y+filter_y < bottom_size[1]){
+										int bottom_index = (x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*element ;
+										if( bottom_size.Prod() <= bottom_index || bottom_index < 0 ){
+											printf("input size: %d, index: %d ; x:%d < %d, y: %d<%d, c: %d<%d, e: %d\n",
+													bottom_size.Prod(),bottom_index,
+													x+filter_x,bottom_size[0],y+filter_y, bottom_size[1], channel, bottom_size[2], element);
+										}
+										int filter_index = filter_x+filter_column_stride*filter_y+filter_channel_stride*channel+filter_element_stride*filter;
+										if(filtersize.Prod() <= filter_index || filter_index < 0){
+											printf(" filter size: %d, index: %d\n",
+													filtersize.Prod(),filter_x+filter_column_stride*filter_y+filter_channel_stride*channel+filter_element_stride*filter);
+										}
+
+										filter_diff[filter_index] += bottom[bottom_index]* top_diff[top_index ];
+									}
+								/*	printf("\t\t\t\t\t(c: %d , x: %d + %d , y: %d + %d) input:%f * filter:%f => [ %d ] %f\n",channel,x,filter_x,y,filter_y,
+											(float)input[(x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*element],
+											(float)filters[filter_x+filter_column*filter_y+filter_channel*channel+filter_element*filter],
+											x/stride_horizontal + out_column*(y/stride_vertical) + out_channel*filter + out_element*element,
+											(float)activations[x/stride_horizontal + out_column*(y/stride_vertical) + out_channel*filter + top_image_stride*element ]);
+								 */
+								}
+							}
+						}
+					}//End full filter (filter_x*filter_y*channel)
+				}
+			}
+		}
+	}
 }
 
 /*
@@ -686,7 +883,7 @@ void PoolingForward(const DataList& inputs, const DataList& outputs, PoolingForw
  * NOTE: This implementation is not designed to be fast.  If you want that, use a GPU.  It is meant to provide feature completeness and the ability to develop on a GPU-less machine.
  */
 void PoolingBackward(const DataList& inputs, const DataList& outputs, PoolingBackwardClosure& closure){
-	//TODO(Jesse Lovitt): Implement this placeholder.
+	//TODO(Jesse Lovitt): Test this implementation.
 	auto& top_diff = inputs[0];
 	auto& top = inputs[1];
 	auto& bottom = inputs[2];
@@ -730,6 +927,7 @@ void PoolingBackward(const DataList& inputs, const DataList& outputs, PoolingBac
 							if(x >= 0 && x+filter_x < bottom_size[0] && y >= 0 && y+filter_y < bottom_size[1]){
 								////printf("\t\t\t\t\t\top x: %d, y: %d\n",filter_x,filter_y);
 								int bottom_index = (x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*image;
+								//TODO(Jesse Lovitt): Caution... float comparison.
 								if(top.data_[top_index ] == bottom.data_[bottom_index]){
 									if((x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*image < 0 ||(x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*image >= bottom_size.Prod()){
 										printf("Pooling index error");
