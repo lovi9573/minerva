@@ -52,6 +52,20 @@ function(check_mpi_cuda_support)
     endif(TEMP EQUAL "true")
 endfunction()
 
+function(find_ps)
+  set(PS_ROOT "" CACHE PATH "minervaps root path")
+  find_library(PS_LIBRARIES NAMES libminervaps.a
+    PATHS ${PS_ROOT}/build
+    DOC "PS library path")
+  if(PS_LIBRARIES)
+    set(PS_FOUND TRUE PARENT_SCOPE)
+    message(STATUS "Found PS (library: ${PS_LIBRARIES})")
+    mark_as_advanced(PS_LIBRARIES)
+  else()
+    MESSAGE(FATAL_ERROR "Failed to find PS in path: ${PS_ROOT}. Make sure you have built ps with 'make minerva'.")
+  endif()
+endfunction()
+
 project(Minerva)
 
 function(check_rdma_support)
@@ -80,7 +94,7 @@ check_cxx_compiler_flag("-ftree-vectorize" SUPPORTS_VECTORIZE)
 
 set(COMPILER_FLAGS "-Wall -fPIC -march=native")
 set(GENERAL_FLAGS_DEBUG "${COMPILER_FLAGS} -O0 -g")
-set(GENERAL_FLAGS_RELEASE "${COMPILER_FLAGS} -O2 -mtune=native -mssse3 -ftree-vectorize -funswitch-loops -ftree-vectorizer-verbose=0")
+set(GENERAL_FLAGS_RELEASE "${COMPILER_FLAGS} -O2 -mtune=native -mssse3")
 set(CMAKE_CXX_FLAGS_DEBUG "${GENERAL_FLAGS_DEBUG} -std=c++11")
 set(CMAKE_CXX_FLAGS_RELEASE "${GENERAL_FLAGS_RELEASE} -std=c++11 -DNDEBUG")
 
@@ -145,6 +159,9 @@ endif()
 
 if(BUILD_WITH_PS)
   add_definitions(-DHAS_PS)
+  find_ps()
+  message(STATUS "PS enabled, forcing BUILD_TESTS to 0")
+  set(BUILD_TESTS 0)
 endif()
 
 if(BUILD_WITH_BLAS)
