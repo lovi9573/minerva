@@ -687,8 +687,68 @@ void PoolingForward(const DataList& inputs, const DataList& outputs, PoolingForw
  */
 void PoolingBackward(const DataList& inputs, const DataList& outputs, PoolingBackwardClosure& closure){
 	//TODO(Jesse Lovitt): Implement this placeholder.
-	LOG(FATAL) << "PoolingBackward CPU not yet implemented.\n";
-	return;
+	auto& top_diff = inputs[0];
+	auto& top = inputs[1];
+	auto& bottom = inputs[2];
+	auto& bottom_diff = outputs[0];
+
+	//int num_images = top_diff.size_[3];
+	//int num_channels = top_diff.size_[2];
+	//int bottom_height = bottom.size_[1];
+	//int bottom_width = bottom.size_[0];
+
+	Scale bottom_size = inputs[2].size_;
+	int bottom_column_stride = bottom_size[0];
+	int bottom_channel_stride = bottom_size[1]*bottom_size[0];
+	int bottom_image_stride = bottom_size[2]*bottom_size[1]*bottom_size[0];
+
+	Scale top_size = outputs[0].size_;
+	int top_column_stride = top_size[0];
+	int top_channel_stride = top_size[1]*top_size[0];
+	int top_image_stride = top_size[2]*top_size[1]*top_size[0];
+
+
+	int pad_height = closure.pad_height;
+	int pad_width = closure.pad_width;
+	int stride_vertical = closure.stride_vertical;
+	int stride_horizontal = closure.stride_horizontal;
+	int height = closure.height;
+	int width = closure.width;
+
+	for(int image = 0 ; image < bottom_size[3]; image++){
+		//printf("element\n");
+		for(int y = -pad_height; y < bottom_size[1]-height+pad_height+1; y = y + stride_vertical){
+			//printf("\trow %d / %d X %d\n",y,inputs[0].size_.get(1)-inputs[1].size_.get(1)+pad_height+1,stride_vertical);
+			for(int x = -pad_width; x < bottom_size[0]-width+pad_width+1; x += stride_horizontal){
+				//printf("\t\tcolumn %d / %d X %d\n",x,inputs[0].size_.get(0)-inputs[1].size_.get(0)+pad_width+1,stride_horizontal);
+				for(int channel =0; channel < inputs[0].size_.get(2); channel++){
+					int top_index = (x+pad_height)/stride_horizontal + top_column_stride*((y+pad_height)/stride_vertical) + top_channel_stride*channel + top_image_stride*image;
+					//printf("\t\t\t\tchannel %d / %d\n",channel,inputs[1].size_.get(3));
+					for(int filter_y = 0; filter_y < height; filter_y++){
+						for(int filter_x = 0; filter_x < width; filter_x++){
+							//printf("bounds test\n");
+							if(x >= 0 && x+filter_x < bottom_size[0] && y >= 0 && y+filter_y < bottom_size[1]){
+								////printf("\t\t\t\t\t\top x: %d, y: %d\n",filter_x,filter_y);
+								int bottom_index = (x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*image;
+								if(top.data_[top_index ] == bottom.data_[bottom_index]){
+									if((x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*image < 0 ||(x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*image >= bottom_size.Prod()){
+										printf("Pooling index error");
+									}
+									bottom_diff.data_[bottom_index] += top_diff.data_[top_index];
+								}
+								/*
+								printf("\t\t\t\t\t(c: %d , x: %d + %d , y: %d + %d) input:%f  => [ %d ] %f\n",channel,x,filter_x,y,filter_y,
+										(float)input[(x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*image],
+										x/stride_horizontal + top_column_stride*(y/stride_vertical) + out_channel*channel + top_image_stride*image ,
+										(float)activations[x/stride_horizontal + top_column_stride*(y/stride_vertical) + top_channel_stride*channel + out_element*image ]);
+								 */
+							}
+						}
+					}
+				}//End full filter (filter_x*filter_y*channel)
+			}
+		}
+	}
 }
 
 

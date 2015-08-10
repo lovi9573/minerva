@@ -13,6 +13,11 @@ def relative_path(to):
     base = os.path.dirname(os.path.realpath(__file__))
     return os.path.join(base, to)
 
+
+def passthrough_arg(x):
+    parts = x.strip().split("=")
+    return len(parts) > 1 and (parts[1] != "0" or parts[0][-2:] =="_N") 
+
 extensions = [
     Extension(
         'libowl',
@@ -29,7 +34,7 @@ extensions = [
             '-O2',
             '-g'
             #TODO(Jesse Lovitt) This  !='0' test causes a fractional bit width of 0 to fail.
-        ] + [x for x in sys.argv[3:] if (len(x.strip().split("=")) > 1 and x.strip().split("=")[1] != "0")], 
+        ] + [x for x in sys.argv[3:] if passthrough_arg(x)], 
         libraries=[
             'minerva'
         ],
