@@ -11,6 +11,11 @@
 
 #if defined(FIXED_POINT) || defined(HAS_FPGA)
 
+#include <sstream>
+#include <iostream>
+#include <iomanip>
+
+
 template<typename MULTYPE, typename TYPE, int FRACW>
 class FixedPoint{
 public:
@@ -91,8 +96,10 @@ public:
 		return (double)this->to_float();
 	}*/
 
-	const char* str() const{
-		return (std::to_string(this->value >> FRACW) + "." + std::to_string(this->value & ((~(uint16_t)0) >> (sizeof(TYPE)*8 - FRACW)))).c_str();
+	const char* str() {
+		std::ostringstream out;
+		out << (this->to_float());
+		return out.str().c_str();
 
 	}
 

@@ -180,6 +180,8 @@ int main(int argc, char* argv[]){
 		overflow();
 		underflow();
 	}
+	FixedPoint<int32_t,int16_t,8> printtest(123.45678f);
+	printf("123.45678 == %s\n",printtest.str());
 	printf("PASS!\n");
 }
 
