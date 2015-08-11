@@ -61,6 +61,11 @@ void SetDevice(uint64_t id) {
   ms.SetDevice(id);
 }
 
+void Print_Profiler_Results(){
+  auto&& ms = minerva::IMinervaSystem::Interface();
+  ms.profiler().PrintResult();
+}
+
 minerva::Scale ToScale(std::vector<int>* v) {
   minerva::Scale r(std::move(*v));
   return r;
@@ -83,7 +88,11 @@ minerva::NArray FromNumpy(float const* data, minerva::Scale const& scale) {
 	  ptr.get()[i] = data[i];
   }
   //memcpy(ptr.get(), data, size * sizeof(float));
-  return minerva::NArray::MakeNArray(scale, ptr);
+  auto a = minerva::NArray::MakeNArray(scale, ptr);
+  minerva::FileFormat fmt;
+  fmt.binary = false;
+  a.ToStream(std::cout,fmt);
+  return a;
 }
 
 void ToNumpy(float* dst, minerva::NArray const& n) {

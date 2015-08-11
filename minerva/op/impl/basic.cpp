@@ -419,6 +419,7 @@ void SigmoidForward(const DataList& inputs, const DataList& outputs, SigmoidForw
 void ReluForward(const DataList& inputs, const DataList& outputs, ReluForwardClosure&) {
   CHECK_EQ(inputs.size(), 1) << "relu forward #inputs wrong";
   CHECK_EQ(outputs.size(), 1) << "relu forward #outputs wrong";
+  CHECK_EQ(outputs[0].size_.Prod(), inputs[0].size_.Prod()) << "top and bottom sizes aren't the same.\n";
 
   element_t* input_data = inputs[0].data_;
   element_t* output_data = outputs[0].data_;
@@ -519,12 +520,11 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 	int top_channel_stride = top_size[1]*top_size[0];
 	int top_image_stride = top_size[2]*top_size[1]*top_size[0];
 
-	/*
-	for(int i = 0; i < outsize.Prod(); i++){
-		printf("[ %d ] %f,",i, (float)activations[i]);
+	bool used[top_size.Prod()];
+
+	for(int i = 0; i < top_size.Prod(); i++){
+		used[i] = false;
 	}
-	printf("\n\n");
-	*/
 
     int pad_height = closure.pad_height;
     int pad_width = closure.pad_width;
@@ -543,7 +543,8 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 					if(top_size.Prod() <=  outindex || outindex < 0){
 						printf("output size: %d, index: %d\n",top_size.Prod(),outindex);
 					}
-					top[outindex] = 0;
+					top[outindex] = 0.0f;
+					used[outindex] = true;
 
 					//printf("\t\t\tfilter %d / %d\n",filter,inputs[1].size_.get(3));
 					for(int channel =0; channel < inputs[0].size_.get(2); channel++){
@@ -559,13 +560,17 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 													bottom_size.Prod(),inindex,
 													x+filter_x,bottom_size[0],y+filter_y, bottom_size[1], channel, bottom_size[2], element);
 										}
-										if(filtersize.Prod() <= filter_x+filter_column_stride*filter_y+filter_channel_stride*channel+filter_element_stride*filter){
+										int filter_index = filter_x+filter_column_stride*filter_y+filter_channel_stride*channel+filter_element_stride*filter;
+										if(filtersize.Prod() <= filter_index){
 											printf(" filter size: %d, index: %d\n",
-													filtersize.Prod(),filter_x+filter_column_stride*filter_y+filter_channel_stride*channel+filter_element_stride*filter);
+													filtersize.Prod(),filter_index);
 										}
 										top[outindex ] +=
 												bottom[inindex] *
-												filters[filter_x+filter_column_stride*filter_y+filter_channel_stride*channel+filter_element_stride*filter] ;
+												filters[filter_index] ;
+										if(outindex == 0){
+											printf("img: %d * filter: %d\n ",inindex, filter_index);
+										}
 									}
 								/*	printf("\t\t\t\t\t(c: %d , x: %d + %d , y: %d + %d) input:%f * filter:%f => [ %d ] %f\n",channel,x,filter_x,y,filter_y,
 											(float)input[(x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*element],
@@ -580,6 +585,12 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 					top[outindex]  += bias[filter];
 				}
 			}
+		}
+	}
+	/* Sanity check */
+	for(int i = 0; i < top_size.Prod(); i++){
+		if ( !used[i]){
+			DLOG(FATAL) << "ConvForward: some output index not used: " << i;
 		}
 	}
 }

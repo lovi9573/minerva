@@ -77,7 +77,7 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 	  auto& op = task->op;
 	  CHECK(op.compute_fn);
 	  if(!FLAGS_no_execute) {
-		#ifndef NDEBUG
+		#ifdef USE_PROFILER
 			Barrier(thrid);
 			WallTimer calculate_timer;
 			calculate_timer.Start();
@@ -86,7 +86,7 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 			//printf("Dispatching task < %lu > with new data size | %lu | to rank %d\n",task->id, task->outputs.size(), _rank);
 			DoExecute(task, thrid);
 			DLOG(INFO) << Name() << " notified of completion of mpi task #" << task->id << ": " << op.compute_fn->Name();
-		#ifndef NDEBUG
+		#ifdef USE_PROFILER
 			//printf("a\n");
 			calculate_timer.Stop();
 			//printf("b\n");
@@ -97,7 +97,7 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 	  common::FatalError("please recompile with macro HAS_MPI");
 #endif
   }else{
-	#ifndef NDEBUG
+	#ifdef USE_PROFILER
 	  WallTimer memory_timer;
 	  memory_timer.Start();
 	#endif
@@ -154,7 +154,7 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 	  auto& op = task->op;
 	  CHECK(op.compute_fn);
 	  if(!FLAGS_no_execute) {
-	#ifndef NDEBUG
+	#ifdef USE_PROFILER
 		Barrier(thrid);
 		memory_timer.Stop();
 		MinervaSystem::Instance().profiler().RecordTime(TimerType::kMemory, op.compute_fn->Name(), memory_timer);
@@ -164,7 +164,7 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
 		DLOG(INFO) << Name() << " execute task #" << task->id << ": " << op.compute_fn->Name();
 		DoExecute(input_shards, output_shards, op, thrid);
 		DLOG(INFO) << Name() << " finished execute task #" << task->id << ": " << op.compute_fn->Name();
-	#ifndef NDEBUG
+	#ifdef USE_PROFILER
 		calculate_timer.Stop();
 		MinervaSystem::Instance().profiler().RecordTime(TimerType::kCalculation, op.compute_fn->Name(), calculate_timer);
 	#endif

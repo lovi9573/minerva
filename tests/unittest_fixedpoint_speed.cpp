@@ -13,7 +13,7 @@
 #include <assert.h>
 #include <iostream>
 #include <stdio.h>
-#include <fixedpoint.h>
+#include <common/fixedpoint.h>
 
 #include <time.h>
 #include <sys/time.h>

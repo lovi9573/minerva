@@ -268,13 +268,13 @@ def slice(src, slice_dim, st_off, slice_count):
     """
     return NArray.slice(src, slice_dim, st_off, slice_count)
 
-# def print_profiler_result():
-#     """ Print result from execution profiler
-#
-#     :return: None
-#     """
-#     _owl.print_profiler_result()
-#
+def print_profiler_result():
+    """ Print result from execution profiler
+
+    :return: None
+    """
+    _owl.print_profiler_results()
+
 # def reset_profiler_result():
 #     """ Reset execution profiler
 #

@@ -16,7 +16,7 @@
 #include <iostream>
 #include <sstream>
 #include <stdio.h>
-#include <fixedpoint.h>
+#include <common/fixedpoint.h>
 #include <math.h>
 
 //TODO(jesse lovitt) Does not work for fractional widths > 8
@@ -31,13 +31,13 @@ typedef FixedPoint<DOUBLETYPE,SINGLETYPE,FRACTION_WIDTH> FP8;
 #define MAXM(X, Y) (((X) > (Y)) ? (X) : (Y))
 
 float EPSILON  = (1.0f/((float)(1 << FRACTION_WIDTH) - 1));
-float MAX = (float)(
-					((SINGLETYPE)1) << (sizeof(SINGLETYPE)*8 - FRACTION_WIDTH )
-					- 1)
+float MAX = (float)( \
+					(((SINGLETYPE)1) << (sizeof(SINGLETYPE)*8 - FRACTION_WIDTH )) \
+					- 1) \
 			- EPSILON;
 
-float MIN = (float)(
-					((DOUBLETYPE)1) << (sizeof(SINGLETYPE)*8 - FRACTION_WIDTH )
+float MIN = (float)( \
+					(((DOUBLETYPE)1) << (sizeof(SINGLETYPE)*8 - FRACTION_WIDTH )) \
 					-1);
 
 

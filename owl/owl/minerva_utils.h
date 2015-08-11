@@ -17,6 +17,7 @@ int rank();
 void WorkerRun();
 void WaitForAll();
 void SetDevice(uint64_t);
+void Print_Profiler_Results();
 minerva::Scale ToScale(std::vector<int>*);
 std::vector<int> OfScale(minerva::Scale const&);
 

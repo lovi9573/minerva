@@ -164,6 +164,10 @@ if(FIXED_POINT)
     add_definitions(-DFIXED_POINT_FRACTION_WIDTH_N=${FIXED_POINT_FRACTION_WIDTH_N})
 endif()
 
+if(USE_PROFILER)
+    add_definitions(-DUSE_PROFILER)
+endif()
+
 if(BUILD_WITH_PS)
   add_definitions(-DHAS_PS)
   find_ps()

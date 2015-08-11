@@ -46,6 +46,9 @@ def wait_for_all():
 def set_device(i):
     m.SetDevice(i)
 
+def print_profiler_results():
+    m.Print_Profiler_Results()
+
 def initialize():
     cdef int argc = len(sys.argv)
     cdef char** argv = <char**>(calloc(argc, sizeof(char*)))

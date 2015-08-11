@@ -174,6 +174,9 @@ class NetTrainer:
                 print "Save to snapshot %d, current lr %f" % ((iteridx + 1) / (s.owl_net.solver.snapshot), s.owl_net.current_lr)
                 s.builder.save_net_to_file(s.owl_net, s.snapshot_dir, (iteridx + 1) / (s.owl_net.solver.snapshot))
             sys.stdout.flush()
+            
+            #print stats
+            owl.print_profiler_result()
 
     def gradient_checker(s, checklayer_name):
         ''' Check backpropagation on multiple GPUs
