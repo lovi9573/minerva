@@ -3,8 +3,11 @@ BUILD_DIR=release
 
 # Compilers
 CXX=g++
+#CXX=mpicxx
+
 
 CC=gcc
+#CC=mpicc
 
 # Flags passed to C++ compiler
 CXXFLAGS=
@@ -13,30 +16,31 @@ CXXFLAGS=
 CUDA_ROOT=
 
 # Root path to find cudnn
-CUDNN_ROOT=
-CUDNN_VERSION=
+CUDNN_ROOT=$HOME/include
 
-#Root path to find MPI headers
+# Root path to find mpi headers
 MPI_HEADER_ROOT=
 
 # build type: (Release | Debug | RelWithDebInfo)
-BUILD_TYPE=Debug
+BUILD_TYPE=Release
+
+# Use the profiler
+USE_PROFILER=1
 
 # whether building python binding (cython needed)
-BUILD_OWL=0
+BUILD_OWL=1
 
 # whether building cxx applications
 BUILD_CXX_APPS=0
 
 # whether building unit tests
-BUILD_TESTS=0
+BUILD_TESTS=1
 
 # whether building with PS
 BUILD_WITH_PS=0
-PS_ROOT=
 
 # whether build cpu-only version
-BUILD_CPU_ONLY=0
+BUILD_CPU_ONLY=1
 
 # whether build with blas support on cpu
 BUILD_WITH_BLAS=0
@@ -50,4 +54,17 @@ BUILD_WITH_FPGA=0
 
 # !! for deveopment only !!
 # fpga modeling/production step: (model | sysc |  )
-HT_MODEL_TYPE=model
+HT_MODEL_TYPE=sysc
+
+### Fixed point calculations ##
+#enable fixed point calculations
+FIXED_POINT=0
+# C type to hold intermediate multiplication results
+FIXED_POINT_DOUBLE_WIDE_TYPE=int32_t
+# C type used to hold the fixed point representation
+FIXED_POINT_TYPE=int16_t
+# bit width of the fractional part.
+FIXED_POINT_FRACTION_WIDTH_N=12
+
+
+

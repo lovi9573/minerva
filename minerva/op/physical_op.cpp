@@ -17,7 +17,7 @@ int ArrayLoaderOp::GetSerializedSize() const {
 #ifdef HAS_MPI
 	return sizeof(int) + sizeof(int) + closure.count*sizeof(element_t);
 #else
-	return sizeof(int) + sizeof(int);
+	return sizeof(int) + sizeof(element_t*);
 #endif
 }
 int ArrayLoaderOp::Serialize(char* buffer) const {
@@ -49,6 +49,7 @@ std::shared_ptr<ComputeFn> ArrayLoaderOp::DeSerialize(char* buffer,int* bytes) {
 	element_t *ptr;
 	DESERIALIZE(buffer, offset, ptr, element_t*)
 	op->closure.data.reset(ptr);
+	*bytes = offset ;
 #endif
 	return std::shared_ptr<ComputeFn>(op);
 }

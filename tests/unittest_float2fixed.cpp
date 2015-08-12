@@ -4,6 +4,7 @@
 using namespace minerva;
 using namespace std;
 
+/*
 
 TEST(float2q88, q882float) {
 	int n = 5;
@@ -42,3 +43,4 @@ TEST(float2q214, q2142float) {
 		EXPECT_NEAR(f_exp[i], f[i], 1.0/4096);
 	}
 }
+*/

@@ -1,3 +1,4 @@
+
 #include "unittest_main.h"
 #include <cmath>
 #include "op/physical_op.h"
@@ -59,9 +60,15 @@ TEST(Serialize, Reductionop) {
 
 TEST(Serialize, ArrayLoaderOp) {
   //Setup
-  float array[] = {1.1,2.2,3.3,4.4,5.5,6.6};
+  int n = 9;
+  float* array = new float[n];
+  for(int i = 0; i < n; i++){
+	  array[i] = 1.1*i;
+  }
   ArrayLoaderOp op = ArrayLoaderOp();
+#ifdef HAS_MPI
   op.closure.count = 6;
+#endif
   op.closure.data = std::shared_ptr<float>(array, [](float* p) {});
 
   //Serialize
@@ -81,10 +88,12 @@ TEST(Serialize, ArrayLoaderOp) {
 
   //Validate
   EXPECT_EQ(size, offset);
+#ifdef HAS_MPI
   EXPECT_EQ(op.closure.count, std::dynamic_pointer_cast<ArrayLoaderOp>(deop)->closure.count);
   for(int i = 0; i < op.closure.count; i++){
 	  EXPECT_FLOAT_EQ(*(op.closure.data.get()+i), *(std::dynamic_pointer_cast<ArrayLoaderOp>(deop)->closure.data.get()+i));
   }
+#endif
 }
 
 
@@ -132,8 +141,13 @@ TEST(Serialize, PhysicalData) {
   //Setup
   uint64_t device_id =12;
   uint64_t data_id = 2;
+#ifdef HAS_MPI
   int rank = 4;
   PhysicalData pd = PhysicalData(Scale({1,2,3,4}),rank,device_id,data_id);
+#else
+  PhysicalData pd = PhysicalData(Scale({1,2,3,4}),device_id,data_id);
+#endif
+
   //pd.rank = rank;
 
   //Serialize
@@ -148,7 +162,9 @@ TEST(Serialize, PhysicalData) {
   //Validate
   EXPECT_EQ(pd.device_id, pdout.device_id);
   EXPECT_EQ(pd.data_id, pdout.data_id);
+#ifdef HAS_MPI
   EXPECT_EQ(pd.rank, pdout.rank);
+#endif
   EXPECT_EQ(pd.size, pdout.size);
   EXPECT_EQ(size, bytesconsumed);
 }
@@ -190,11 +206,13 @@ TEST(Serialize, TaskFill) {
   EXPECT_EQ(std::dynamic_pointer_cast<FillOp>(task.op.compute_fn)->closure.val, std::dynamic_pointer_cast<FillOp>(taskout.op.compute_fn)->closure.val);
   for(int i = 0; i < n; i++){
   	    EXPECT_EQ(task.inputs.at(i).physical_data.size, taskout.inputs.at(i).physical_data.size);
+#ifdef HAS_MPI
 		EXPECT_EQ(task.inputs.at(i).physical_data.rank, taskout.inputs.at(i).physical_data.rank);
+		EXPECT_EQ(task.outputs.at(i).physical_data.rank, taskout.outputs.at(i).physical_data.rank);
+#endif
 		EXPECT_EQ(task.inputs.at(i).physical_data.data_id, taskout.inputs.at(i).physical_data.data_id);
 		EXPECT_EQ(task.inputs.at(i).physical_data.device_id, taskout.inputs.at(i).physical_data.device_id);
   	    EXPECT_EQ(task.outputs.at(i).physical_data.size, taskout.outputs.at(i).physical_data.size);
-		EXPECT_EQ(task.outputs.at(i).physical_data.rank, taskout.outputs.at(i).physical_data.rank);
 		EXPECT_EQ(task.outputs.at(i).physical_data.data_id, taskout.outputs.at(i).physical_data.data_id);
 		EXPECT_EQ(task.outputs.at(i).physical_data.device_id, taskout.outputs.at(i).physical_data.device_id);
     }
@@ -236,12 +254,16 @@ TEST(Serialize, TaskAdd) {
   EXPECT_EQ(std::dynamic_pointer_cast<ArithmeticOp>(task.op.compute_fn)->closure.type, std::dynamic_pointer_cast<ArithmeticOp>(taskout.op.compute_fn)->closure.type);
   for(int i = 0; i < n; i++){
   	    EXPECT_EQ(task.inputs.at(i).physical_data.size, taskout.inputs.at(i).physical_data.size);
+#ifdef HAS_MPI
 		EXPECT_EQ(task.inputs.at(i).physical_data.rank, taskout.inputs.at(i).physical_data.rank);
+#endif
 		EXPECT_EQ(task.inputs.at(i).physical_data.data_id, taskout.inputs.at(i).physical_data.data_id);
 		EXPECT_EQ(task.inputs.at(i).physical_data.device_id, taskout.inputs.at(i).physical_data.device_id);
     }
 	EXPECT_EQ(task.outputs.at(0).physical_data.size, taskout.outputs.at(0).physical_data.size);
+#ifdef HAS_MPI
 	EXPECT_EQ(task.outputs.at(0).physical_data.rank, taskout.outputs.at(0).physical_data.rank);
+#endif
 	EXPECT_EQ(task.outputs.at(0).physical_data.data_id, taskout.outputs.at(0).physical_data.data_id);
 	EXPECT_EQ(task.outputs.at(0).physical_data.device_id, taskout.outputs.at(0).physical_data.device_id);
 }

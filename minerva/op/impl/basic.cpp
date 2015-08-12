@@ -534,11 +534,11 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 
 	for(int element = 0 ; element < bottom_size[3]; element++){
 		//printf("element\n");
-		for(int y = -pad_height; y < bottom_size[1]-filtersize[1]+pad_height; y = y + stride_vertical){
+		for(int y = -pad_height; y <= bottom_size[1]-filtersize[1]+pad_height; y = y + stride_vertical){
 			//printf("\trow %d / %d X %d\n",y,inputs[0].size_.get(1)-inputs[1].size_.get(1)+pad_height+1,stride_vertical);
-			for(int x = -pad_width; x < bottom_size[0]-filtersize[0]+pad_width; x += stride_horizontal){
+			for(int x = -pad_width; x <= bottom_size[0]-filtersize[0]+pad_width; x += stride_horizontal){
 				//printf("\t\tcolumn %d / %d X %d\n",x,inputs[0].size_.get(0)-inputs[1].size_.get(0)+pad_width+1,stride_horizontal);
-				for(int filter = 0; filter < inputs[1].size_.get(3); filter++){
+				for(int filter = 0; filter < filtersize[3]; filter++){
 					int outindex = (x+pad_height)/stride_horizontal + top_column_stride*((y+pad_height)/stride_vertical) + top_channel_stride*filter + top_image_stride*element;
 					if(top_size.Prod() <=  outindex || outindex < 0){
 						printf("output size: %d, index: %d\n",top_size.Prod(),outindex);
@@ -547,11 +547,11 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 					used[outindex] = true;
 
 					//printf("\t\t\tfilter %d / %d\n",filter,inputs[1].size_.get(3));
-					for(int channel =0; channel < inputs[0].size_.get(2); channel++){
+					for(int channel =0; channel < bottom_size[2]; channel++){
 						//printf("\t\t\t\tchannel %d / %d\n",channel,inputs[1].size_.get(3));
-						for(int filter_y = 0; filter_y < inputs[1].size_.get(1); filter_y++){
-							for(int filter_x = 0; filter_x < inputs[1].size_.get(0); filter_x++){
-								if(x >= 0 && x < inputs[0].size_.get(0) && y >= 0 && y < inputs[0].size_.get(1)){
+						for(int filter_y = 0; filter_y < filtersize[1]; filter_y++){
+							for(int filter_x = 0; filter_x < filtersize[0]; filter_x++){
+								if(x >= 0 && x < bottom_size[0] && y >= 0 && y < bottom_size[1]){
 									////printf("\t\t\t\t\t\top x: %d, y: %d\n",filter_x,filter_y);
 									if(x+filter_x < bottom_size[0] && y+filter_y < bottom_size[1]){
 										int inindex = (x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*element ;
@@ -560,7 +560,7 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 													bottom_size.Prod(),inindex,
 													x+filter_x,bottom_size[0],y+filter_y, bottom_size[1], channel, bottom_size[2], element);
 										}
-										int filter_index = filter_x+filter_column_stride*filter_y+filter_channel_stride*channel+filter_element_stride*filter;
+										int filter_index = (filtersize[0] -1 -filter_x)+filter_column_stride*(filtersize[1] -1 -filter_y)+filter_channel_stride*channel+filter_element_stride*filter;
 										if(filtersize.Prod() <= filter_index){
 											printf(" filter size: %d, index: %d\n",
 													filtersize.Prod(),filter_index);
@@ -568,8 +568,8 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 										top[outindex ] +=
 												bottom[inindex] *
 												filters[filter_index] ;
-										if(outindex == 0){
-											printf("img: %d * filter: %d\n ",inindex, filter_index);
+										if(0){
+											printf("img: %f * filter: %f accum[%d]: %f\n ",bottom[inindex], filters[filter_index], outindex, top[outindex]);
 										}
 									}
 								/*	printf("\t\t\t\t\t(c: %d , x: %d + %d , y: %d + %d) input:%f * filter:%f => [ %d ] %f\n",channel,x,filter_x,y,filter_y,
@@ -637,9 +637,9 @@ void ConvBackwardData(const DataList& inputs, const DataList& outputs, ConvBackw
 
 	for(int image = 0 ; image < bottom_size[3]; image++){
 		//printf("element\n");
-		for(int y = -pad_height; y < bottom_size[1]-filtersize[1]+pad_height; y = y + stride_vertical){
+		for(int y = -pad_height; y <= bottom_size[1]-filtersize[1]+pad_height; y = y + stride_vertical){
 			//printf("\trow %d / %d X %d\n",y,inputs[0].size_.get(1)-inputs[1].size_.get(1)+pad_height+1,stride_vertical);
-			for(int x = -pad_width; x < bottom_size[0]-filtersize[0]+pad_width; x += stride_horizontal){
+			for(int x = -pad_width; x <= bottom_size[0]-filtersize[0]+pad_width; x += stride_horizontal){
 				//printf("\t\tcolumn %d / %d X %d\n",x,inputs[0].size_.get(0)-inputs[1].size_.get(0)+pad_width+1,stride_horizontal);
 				for(int filter = 0; filter < filtersize[3]; filter++){
 					int top_index = (x+pad_height)/stride_horizontal + top_column_stride*((y+pad_height)/stride_vertical) + top_channel_stride*filter + top_image_stride*image;
@@ -657,13 +657,14 @@ void ConvBackwardData(const DataList& inputs, const DataList& outputs, ConvBackw
 													bottom_size.Prod(),bottom_index,
 													x+filter_x,bottom_size[0],y+filter_y, bottom_size[1], channel, bottom_size[2], image);
 										}
-										if(filtersize.Prod() <= filter_x+filter_column_stride*filter_y+filter_channel_stride*channel+filter_element_stride*filter){
+										int filter_index = (filtersize[0] -1 -filter_x)+filter_column_stride*(filtersize[1] -1 -filter_y)+filter_channel_stride*channel+filter_element_stride*filter;
+										if(filtersize.Prod() <= filter_index){
 											printf("Bad index!  filter size: %d, index: %d\n",
-													filtersize.Prod(),filter_x+filter_column_stride*filter_y+filter_channel_stride*channel+filter_element_stride*filter);
+													filtersize.Prod(),filter_index);
 										}
 
 										bottom_diff[bottom_index] += top_diff[top_index ] *
-												filters[filter_x+filter_column_stride*filter_y+filter_channel_stride*channel+filter_element_stride*filter] ;
+												filters[filter_index] ;
 									}
 								/*	printf("\t\t\t\t\t(c: %d , x: %d + %d , y: %d + %d) input:%f * filter:%f => [ %d ] %f\n",channel,x,filter_x,y,filter_y,
 											(float)input[(x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*element],
@@ -771,9 +772,9 @@ void ConvBackwardFilter(const DataList& inputs, const DataList& outputs, ConvBac
 
 	for(int element = 0 ; element < bottom_size[3]; element++){
 		//printf("element\n");
-		for(int y = -pad_height; y < bottom_size[1]-filtersize[1]+pad_height; y = y + stride_vertical){
+		for(int y = -pad_height; y <=bottom_size[1]-filtersize[1]+pad_height; y = y + stride_vertical){
 			//printf("\trow %d / %d X %d\n",y,inputs[0].size_.get(1)-inputs[1].size_.get(1)+pad_height+1,stride_vertical);
-			for(int x = -pad_width; x < bottom_size[0]-filtersize[0]+pad_width; x += stride_horizontal){
+			for(int x = -pad_width; x <= bottom_size[0]-filtersize[0]+pad_width; x += stride_horizontal){
 				//printf("\t\tcolumn %d / %d X %d\n",x,inputs[0].size_.get(0)-inputs[1].size_.get(0)+pad_width+1,stride_horizontal);
 				for(int filter = 0; filter < inputs[1].size_.get(3); filter++){
 					int top_index = (x+pad_height)/stride_horizontal + top_column_stride*((y+pad_height)/stride_vertical) + top_channel_stride*filter + top_image_stride*element;
@@ -794,10 +795,10 @@ void ConvBackwardFilter(const DataList& inputs, const DataList& outputs, ConvBac
 													bottom_size.Prod(),bottom_index,
 													x+filter_x,bottom_size[0],y+filter_y, bottom_size[1], channel, bottom_size[2], element);
 										}
-										int filter_index = filter_x+filter_column_stride*filter_y+filter_channel_stride*channel+filter_element_stride*filter;
+										int filter_index = (filtersize[0] -1 -filter_x)+filter_column_stride*(filtersize[1] -1 -filter_y)+filter_channel_stride*channel+filter_element_stride*filter;
 										if(filtersize.Prod() <= filter_index || filter_index < 0){
 											printf(" filter size: %d, index: %d\n",
-													filtersize.Prod(),filter_x+filter_column_stride*filter_y+filter_channel_stride*channel+filter_element_stride*filter);
+													filtersize.Prod(),filter_index);
 										}
 
 										filter_diff[filter_index] += bottom[bottom_index]* top_diff[top_index ];
@@ -848,15 +849,16 @@ void PoolingForward(const DataList& inputs, const DataList& outputs, PoolingForw
 
 	for(int image = 0 ; image < insize[3]; image++){
 		//printf("element\n");
-		for(int y = -pad_height; y < insize[1]-height+pad_height+1; y = y + stride_vertical){
+		for(int y = -pad_height; y < insize[1]-height+pad_height+1; y += stride_vertical){
 			//printf("\trow %d / %d X %d\n",y,inputs[0].size_.get(1)-inputs[1].size_.get(1)+pad_height+1,stride_vertical);
 			for(int x = -pad_width; x < insize[0]-width+pad_width+1; x += stride_horizontal){
 				//printf("\t\tcolumn %d / %d X %d\n",x,inputs[0].size_.get(0)-inputs[1].size_.get(0)+pad_width+1,stride_horizontal);
 				for(int channel =0; channel < inputs[0].size_.get(2); channel++){
-					int outindex = (x+pad_height)/stride_horizontal + out_column*((y+pad_height)/stride_vertical) + out_channel*channel + out_element*image;
-					if(x < insize[0] && y < insize[1]){
-						if(x+in_column*y+in_channel*channel+in_element*image < 0 || x+in_column*y+in_channel*channel+in_element*image >= insize.Prod()){
-							printf("Pooling index error");
+					int outindex = (x+pad_width)/stride_horizontal + out_column*((y+pad_height)/stride_vertical) + out_channel*channel + out_element*image;
+					int sample_index = (x)+in_column*(y)+in_channel*channel+in_element*image;
+					if(x > 0 && x < insize[0] && y > 0 && y < insize[1]){
+						if(sample_index < 0 || sample_index >= insize.Prod()){
+							printf("===Pooling initial sample index error (%d) ===\n ",sample_index);
 						}
 						activations[outindex] = input[x+in_column*y+in_channel*channel+in_element*image];
 					}else{
@@ -865,14 +867,15 @@ void PoolingForward(const DataList& inputs, const DataList& outputs, PoolingForw
 					//printf("\t\t\t\tchannel %d / %d\n",channel,inputs[1].size_.get(3));
 					for(int filter_y = 0; filter_y < height; filter_y++){
 						for(int filter_x = 0; filter_x < width; filter_x++){
+							sample_index = (x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*image;
 							//printf("bounds test\n");
-							if(x >= 0 && x+filter_x < insize[0] && y >= 0 && y+filter_y < insize[1]){
+							if(x+filter_x >= 0 && x+filter_x < insize[0] && y+filter_y >= 0 && y+filter_y < insize[1]){
 								////printf("\t\t\t\t\t\top x: %d, y: %d\n",filter_x,filter_y);
-								if(activations[outindex ] < input[(x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*image]){
-									if((x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*image < 0 ||(x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*image >= insize.Prod()){
-										printf("Pooling index error");
+								if(activations[outindex ] < input[sample_index]){
+									if(sample_index < 0 ||sample_index >= insize.Prod()){
+										printf("===Pooling sample index error (%d) === \n",sample_index);
 									}
-									activations[outindex ] =input[(x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*image];
+									activations[outindex ] =input[sample_index];
 								}
 								/*
 								printf("\t\t\t\t\t(c: %d , x: %d + %d , y: %d + %d) input:%f  => [ %d ] %f\n",channel,x,filter_x,y,filter_y,

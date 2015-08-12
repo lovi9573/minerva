@@ -6,17 +6,21 @@
  */
 
 
-
+#define FIXED_POINT_FRACTION_WIDTH_N 14
+#define FIXED_POINT_TYPE int16_t
+#define FIXED_POINT_DOUBLE_WIDE_TYPE int32_t
 
 #define FIXED_POINT
+
 #include <stdint.h>
 #include <assert.h>
 #include <iostream>
 #include <stdio.h>
 #include <common/fixedpoint.h>
-
+#include "unittest_main.h"
 #include <time.h>
 #include <sys/time.h>
+
 double get_wall_time(){
     struct timeval time;
     if (gettimeofday(&time,NULL)){
@@ -43,9 +47,8 @@ inline float addfixed(FP8 a, FP8 b){
 	return a * b;
 }
 
-
-int main(int argc, char* argv[]){
-	int number_random_tests = 1000000;
+TEST(FixedPoint, Speed){
+	int number_random_tests = 10000000;
 	double a = get_wall_time();	
 	for(int i = 0; i < number_random_tests; i++){
 		addfloat(static_cast<float>(rand())/static_cast<float>(RAND_MAX), static_cast<float>(rand())/static_cast<float>(RAND_MAX));
@@ -59,7 +62,7 @@ int main(int argc, char* argv[]){
 	}
 	b = get_wall_time() - b;
 	std::cout << "fixed time: " << b << " \n";
-
+	EXPECT_LT((b/a), 3.0);
 	std::cout << "factor: " << (b/a) << "\n";
 }
 
