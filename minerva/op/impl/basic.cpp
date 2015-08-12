@@ -565,9 +565,7 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 											printf(" filter size: %d, index: %d\n",
 													filtersize.Prod(),filter_index);
 										}
-										top[outindex ] +=
-												bottom[inindex] *
-												filters[filter_index] ;
+										top[outindex ] += bottom[inindex] * filters[filter_index] ;
 										if(0){
 											printf("img: %f * filter: %f accum[%d]: %f\n ",bottom[inindex], filters[filter_index], outindex, top[outindex]);
 										}
@@ -622,12 +620,10 @@ void ConvBackwardData(const DataList& inputs, const DataList& outputs, ConvBackw
 	int top_channel_stride = top_size[1]*top_size[0];
 	int top_image_stride = top_size[2]*top_size[1]*top_size[0];
 
-	/*
-	for(int i = 0; i < outsize.Prod(); i++){
-		printf("[ %d ] %f,",i, (float)activations[i]);
+	for(int i = 0; i < bottom_size.Prod(); i++){
+		bottom_diff[i] = 0.0f;
 	}
-	printf("\n\n");
-	*/
+
 
     int pad_height = closure.pad_height;
     int pad_width = closure.pad_width;
@@ -637,7 +633,7 @@ void ConvBackwardData(const DataList& inputs, const DataList& outputs, ConvBackw
 
 	for(int image = 0 ; image < bottom_size[3]; image++){
 		//printf("element\n");
-		for(int y = -pad_height; y <= bottom_size[1]-filtersize[1]+pad_height; y = y + stride_vertical){
+		for(int y = -pad_height; y <= bottom_size[1]-filtersize[1]+pad_height; y +=  stride_vertical){
 			//printf("\trow %d / %d X %d\n",y,inputs[0].size_.get(1)-inputs[1].size_.get(1)+pad_height+1,stride_vertical);
 			for(int x = -pad_width; x <= bottom_size[0]-filtersize[0]+pad_width; x += stride_horizontal){
 				//printf("\t\tcolumn %d / %d X %d\n",x,inputs[0].size_.get(0)-inputs[1].size_.get(0)+pad_width+1,stride_horizontal);
@@ -662,9 +658,14 @@ void ConvBackwardData(const DataList& inputs, const DataList& outputs, ConvBackw
 											printf("Bad index!  filter size: %d, index: %d\n",
 													filtersize.Prod(),filter_index);
 										}
-
-										bottom_diff[bottom_index] += top_diff[top_index ] *
-												filters[filter_index] ;
+										bottom_diff[bottom_index] += top_diff[top_index ] * filters[filter_index] ;
+										/*
+										printf(" diff: %f (%d,%d)  --> weight: %f (%d,%d) --> %f => accum: %f (%d,%d)\n",
+												top_diff[top_index ],x+pad_height, y+pad_height,
+												filters[filter_index], filtersize[0] -1 -filter_x, filtersize[1] -1 -filter_y,
+												top_diff[top_index ] * filters[filter_index],
+												bottom_diff[bottom_index], x+filter_x,y+filter_y );
+										*/
 									}
 								/*	printf("\t\t\t\t\t(c: %d , x: %d + %d , y: %d + %d) input:%f * filter:%f => [ %d ] %f\n",channel,x,filter_x,y,filter_y,
 											(float)input[(x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*element],
