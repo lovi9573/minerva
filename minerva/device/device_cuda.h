@@ -31,7 +31,7 @@ class GpuDevice : public ThreadedDevice {
   void Barrier(int) override;
   void DoCopyRemoteData(element_t*, element_t*, size_t, int) override;
   void DoExecute(const DataList&, const DataList&, PhysicalOp&, int) override;
-  void DoExecute(Task* task, int thrid) override;
+//  void DoExecute(Task* task, int thrid) override;
 };
 #endif
 

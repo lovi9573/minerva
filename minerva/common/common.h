@@ -9,6 +9,7 @@
 #include "./make_unique.h"
 #include "common/element.h"
 
+#ifndef DISALLOW_COPY_AND_ASSIGN
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName&) = delete; \
   TypeName& operator=(const TypeName&) = delete
@@ -21,6 +22,12 @@
   DISALLOW_COPY_AND_ASSIGN(TypeName); \
   DISALLOW_MOVE_AND_ASSIGN(TypeName)
 
+#else
+
+#define DISALLOW_COPY_AND_MOVE(TypeName) \
+  DISALLOW_COPY_AND_ASSIGN(TypeName); \
+
+#endif
 
 /*
  *  Serialization

@@ -79,7 +79,7 @@ if [ ! -d $BUILD_DIR ]; then
   mkdir $BUILD_DIR
 fi
 cd $BUILD_DIR
-if [ BUILD_WITH_FPGA -eq 1 ]; then
+if [ $BUILD_WITH_FPGA -eq 1 ]; then
 	cp -r ../HTModels . && make -C HTModels lib$HT_MODEL_TYPE
 fi
 CC=$CC CXX=$CXX cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CXXFLAGS -I/home/jlovitt/open-mpi/include .. && make -j2
