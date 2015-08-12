@@ -91,7 +91,7 @@ minerva::NArray FromNumpy(float const* data, minerva::Scale const& scale) {
   auto a = minerva::NArray::MakeNArray(scale, ptr);
   minerva::FileFormat fmt;
   fmt.binary = false;
-  a.ToStream(std::cout,fmt);
+  //a.ToStream(std::cout,fmt);
   return a;
 }
 

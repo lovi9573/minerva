@@ -903,7 +903,6 @@ void PoolingBackward(const DataList& inputs, const DataList& outputs, PoolingBac
 	auto& top = inputs[1];
 	auto& bottom = inputs[2];
 	auto& bottom_diff = outputs[0];
-
 	//int num_images = top_diff.size_[3];
 	//int num_channels = top_diff.size_[2];
 	//int bottom_height = bottom.size_[1];
@@ -914,7 +913,7 @@ void PoolingBackward(const DataList& inputs, const DataList& outputs, PoolingBac
 	int bottom_channel_stride = bottom_size[1]*bottom_size[0];
 	int bottom_image_stride = bottom_size[2]*bottom_size[1]*bottom_size[0];
 
-	Scale top_size = outputs[0].size_;
+	Scale top_size = inputs[0].size_;
 	int top_column_stride = top_size[0];
 	int top_channel_stride = top_size[1]*top_size[0];
 	int top_image_stride = top_size[2]*top_size[1]*top_size[0];
@@ -927,6 +926,11 @@ void PoolingBackward(const DataList& inputs, const DataList& outputs, PoolingBac
 	int height = closure.height;
 	int width = closure.width;
 
+	for(int i = 0; i < bottom_size.Prod(); i++){
+		bottom_diff.data_[i] = 0.0f;
+	}
+
+
 	for(int image = 0 ; image < bottom_size[3]; image++){
 		//printf("element\n");
 		for(int y = -pad_height; y < bottom_size[1]-height+pad_height+1; y = y + stride_vertical){
@@ -934,27 +938,28 @@ void PoolingBackward(const DataList& inputs, const DataList& outputs, PoolingBac
 			for(int x = -pad_width; x < bottom_size[0]-width+pad_width+1; x += stride_horizontal){
 				//printf("\t\tcolumn %d / %d X %d\n",x,inputs[0].size_.get(0)-inputs[1].size_.get(0)+pad_width+1,stride_horizontal);
 				for(int channel =0; channel < inputs[0].size_.get(2); channel++){
-					int top_index = (x+pad_height)/stride_horizontal + top_column_stride*((y+pad_height)/stride_vertical) + top_channel_stride*channel + top_image_stride*image;
+					int top_index = (x+pad_width)/stride_horizontal + top_column_stride*((y+pad_height)/stride_vertical) + top_channel_stride*channel + top_image_stride*image;
 					//printf("\t\t\t\tchannel %d / %d\n",channel,inputs[1].size_.get(3));
 					for(int filter_y = 0; filter_y < height; filter_y++){
 						for(int filter_x = 0; filter_x < width; filter_x++){
-							//printf("bounds test\n");
 							if(x >= 0 && x+filter_x < bottom_size[0] && y >= 0 && y+filter_y < bottom_size[1]){
 								////printf("\t\t\t\t\t\top x: %d, y: %d\n",filter_x,filter_y);
 								int bottom_index = (x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*image;
 								//TODO(Jesse Lovitt): Caution... float comparison.
+								//printf("top: %f[%d] vs bottom: %f[%d]\n",top.data_[top_index ],top_index, bottom.data_[bottom_index],bottom_index);
 								if(top.data_[top_index ] == bottom.data_[bottom_index]){
 									if((x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*image < 0 ||(x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*image >= bottom_size.Prod()){
 										printf("Pooling index error");
 									}
+									/*
+									printf("bottom_diff: (%d,%d) += %f (%d,%d) => %f\n",x+filter_x,y+filter_y,
+											top_diff.data_[top_index],x+pad_width,y+pad_height,
+											bottom_diff.data_[bottom_index] + top_diff.data_[top_index]);
+									*/
 									bottom_diff.data_[bottom_index] += top_diff.data_[top_index];
 								}
-								/*
-								printf("\t\t\t\t\t(c: %d , x: %d + %d , y: %d + %d) input:%f  => [ %d ] %f\n",channel,x,filter_x,y,filter_y,
-										(float)input[(x+filter_x)+in_column*(y+filter_y)+in_channel*channel+in_element*image],
-										x/stride_horizontal + top_column_stride*(y/stride_vertical) + out_channel*channel + top_image_stride*image ,
-										(float)activations[x/stride_horizontal + top_column_stride*(y/stride_vertical) + top_channel_stride*channel + out_element*image ]);
-								 */
+
+
 							}
 						}
 					}
@@ -975,8 +980,6 @@ void Index(const DataList& inputs, const DataList& outputs, IndexClosure& closur
 	auto idx = closure.idx;
 
 	memcpy(output_data, input_data + idx * output_length, output_length * sizeof(input_data[0]));
-	for (size_t i = 0; i < output_length; ++ i)
-		cout << output_data[i] << endl;
 
 	for (size_t i = 0; i < output_length; ++ i)
 		output_data[i] = input_data[i + idx * output_length];
