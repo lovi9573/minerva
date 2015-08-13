@@ -125,6 +125,10 @@ void GpuDevice::DoExecute(const DataList& in, const DataList& out, PhysicalOp& o
   op.compute_fn->Execute(in, out, ctx);
   CUDA_CALL_MSG(op.compute_fn->Name(), cudaStreamSynchronize(impl_->stream[thrid]));
 }
+
+void GpuDevice::DoExecute(Task* task, int thrid){
+	LOG(FATAL) << "DoExecute(Task*, ...) is only allowed on an Mpi device.\n";
+}
 #endif
 
 }  // namespace minerva
