@@ -1,5 +1,6 @@
 #include "profiler/execution_profiler.h"
 #include <cstdio>
+#include "common/element.h"
 
 using namespace std;
 
@@ -50,6 +51,9 @@ void ExecutionProfiler::PrintResult() {
 	allcaltime += it.second[1];
   }
   printf("All Mem Time: %16f  All Cal Time: % 16f  All Time: %16f\n", allmemtime, allcaltime ,allmemtime + allcaltime);
+#ifdef FIXED_POINT
+  FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_FRACTION_WIDTH_N>::Report();
+#endif
 }
 
 }  // namespace minerva

@@ -302,12 +302,14 @@ TEST(FixedPoint, Overflow){
 	//printf("%f\n",(float)f1);
 	FP r = f0 * f1;
 	EXPECT_NEAR((float)r , MAX , EPSILON);
-	r = -f0 * f1;
+	FP f2(0.0f - (float)(1 << (sizeof(FIXED_POINT_TYPE)*8 - FRACW -1)));
+	r = f2 * f1;
 	//printf("%f\n",(float)r);
 	EXPECT_NEAR((float)r , 0.0 - min, EPSILON);
+	r.Report();
 }
 
-TEST(FixedPoint, Underflow){
+TEST(FixedPoint, DISABLED_Underflow){
 	const int FRACW = 8;
 	float EPSILON  = getEpsilon(FRACW);
 	//float MAX = getMax(FRACW);

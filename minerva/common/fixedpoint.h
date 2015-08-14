@@ -14,6 +14,7 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+#include <stdint.h>
 
 
 template<typename MULTYPE, typename TYPE, int FRACW>
@@ -23,18 +24,22 @@ public:
 
 	//static const MULTYPE MAXVAL = ~(((MULTYPE)~0) << ((sizeof(TYPE)*8)-1));
 	//static const MULTYPE MINVAL = -(MULTYPE)(((TYPE)1) << ((sizeof(TYPE)*8)-1));
-	static const MULTYPE MAXVAL =  ((MULTYPE)1 << ((sizeof(TYPE)*8) + FRACW-1))-1;
-	static const MULTYPE MINVAL = -((MULTYPE)1 << ((sizeof(TYPE)*8) + FRACW-1));
-	static const MULTYPE MINPREC =     (MULTYPE)1 << FRACW;
+	static const MULTYPE MAXVAL =  ((MULTYPE)1 << ((sizeof(TYPE)*8) -1))-1;
+	static const MULTYPE MINVAL = -((MULTYPE)1 << ((sizeof(TYPE)*8) -1));
+	//static const MULTYPE MINPREC =     (MULTYPE)1 << FRACW;
 	static const TYPE FRACTION_MASK = ((TYPE)1 << FRACW) - 1;
+
+	static uint64_t n_MaxTruncs;
+	static uint64_t n_MinTruncs;
+	static uint64_t n_UnderFlows;
 
 
 	/* Constructors */
 	FixedPoint():value(0){}
-	//FixedPoint(int v):value((TYPE)(v<<FRACW)){}
-	FixedPoint(double v):value(0){
+	FixedPoint(int v):value((TYPE)(v<<FRACW)){}
+	inline FixedPoint(double v):value(0){
 		MULTYPE multiplier = ((MULTYPE)1)<< (2*FRACW);
-		value = (TYPE)(round(v*multiplier) >> FRACW);
+		value = (TYPE)trunc(round(v*multiplier) >> FRACW);
 		//printf("%f (x%d)=> %d\n",v,multiplier,value);
 	}
 	FixedPoint(TYPE v):value(v){}
@@ -42,40 +47,40 @@ public:
 
 
 	/* Same type Operations */
-	FixedPoint operator*(const FixedPoint& rhs){
+	inline FixedPoint operator*(const FixedPoint& rhs){
 		return FixedPoint(mul(this->value, rhs.value));
 	}
 
-	FixedPoint operator/(const FixedPoint& rhs){
+	inline FixedPoint operator/(const FixedPoint& rhs){
 		return FixedPoint(div(this->value, rhs.value));
 	}
 
-	FixedPoint operator+(const FixedPoint& rhs){
+	inline FixedPoint operator+(const FixedPoint& rhs){
 		return FixedPoint(add(this->value, rhs.value));
 	}
 
-	FixedPoint operator-(const FixedPoint& rhs){
-		return FixedPoint(sub(this->value, rhs.value));
+	inline FixedPoint operator-(const FixedPoint& rhs){
+		return FixedPoint(add(this->value, -rhs.value));
 	}
 
-	FixedPoint& operator*=(const FixedPoint& rhs){
+	inline FixedPoint& operator*=(const FixedPoint& rhs){
 		this->value = mul(this->value, rhs.value);
 		return *this;
 	}
-	FixedPoint& operator/=(const FixedPoint& rhs){
+	inline FixedPoint& operator/=(const FixedPoint& rhs){
 		this->value = div(this->value, rhs.value);
 		return *this;
 	}
-	FixedPoint& operator+=(const FixedPoint& rhs){
+	inline FixedPoint& operator+=(const FixedPoint& rhs){
 		this->value = add(this->value,rhs.value);
 		return *this;
 	}
-	FixedPoint& operator-=(const FixedPoint& rhs){
-		this->value = sub(this->value, rhs.value);
+	inline FixedPoint& operator-=(const FixedPoint& rhs){
+		this->value = add(this->value, -rhs.value);
 		return *this;
 	}
 
-	FixedPoint& operator=(const FixedPoint& other){
+	inline FixedPoint& operator=(const FixedPoint& other){
 		this->value = other.value;
 		return *this;
 	}
@@ -84,7 +89,7 @@ public:
 		return !value;
 	}
 
-	float to_float(){
+	inline float to_float(){
 		return ((float)this->value)/(1<<FRACW);
 	}
 
@@ -100,66 +105,78 @@ public:
 		std::ostringstream out;
 		out << (this->to_float());
 		return out.str().c_str();
+	}
 
+	static void Report(){
+		std::cout << "# Maximum Overflows: " << n_MaxTruncs << "\n" \
+				  << "# Minimum Overflows: " << n_MinTruncs << "\n" \
+				  << "# Underflows: " << n_UnderFlows << "\n";
 	}
 
 private:
 
 	//TODO(Jesse Lovitt): Implement logging of truncations and precision adjusments
 	 inline MULTYPE round(MULTYPE val){
-		MULTYPE adjustment =  (MULTYPE)rand() & (MULTYPE)FRACTION_MASK;
-		//printf("Value: %d , Adjustment: %d\n",val,adjustment);
-		val = val + adjustment;
-		if(val > MAXVAL){
-			//printf("MAXVAL (%f) exceeded. truncating\n",((float)(MAXVAL >> FRACW))/(1<<FRACW));
-			return MAXVAL ;
-		}
-		if(val < MINVAL){
-			//printf("MINVAL (%f) exceeded. truncating\n",((float)(MINVAL >> FRACW))/(1<<FRACW));
-			return MINVAL;
-		}
-		//TYPE out = (TYPE)(val >> FRACW);
-		/*
-		if(!out){
-			printf("Underflow. (< %f)  Setting to minimum precision\n",(1.0f)/(1<<FRACW));
-			return (MULTYPE)(1 << FRACW);
-		}
-		*/
+		val = val + ((MULTYPE)rand() & (MULTYPE)FRACTION_MASK);
 		return val ;
 	 }
 
-	 inline TYPE add(TYPE a, TYPE b){
-			MULTYPE v = ((MULTYPE)a << FRACW)  + ((MULTYPE)b << FRACW) ;
-			return (TYPE)(round(v) >> FRACW);
+	 inline TYPE trunc(MULTYPE val){
+		if(val > MAXVAL){
+			//printf("MAXVAL (%f) exceeded. truncating\n",((float)(MAXVAL >> FRACW))/(1<<FRACW));
+			n_MaxTruncs++;
+			return (TYPE)MAXVAL ;
+		}
+		if(val < MINVAL){
+			//printf("MINVAL (%f) exceeded. truncating\n",((float)(MINVAL >> FRACW))/(1<<FRACW));
+			n_MinTruncs++;
+			return (TYPE)MINVAL;
+		}
+		/*
+		if(!val){
+			printf("Underflow. (< %f)  Setting to minimum precision\n",(1.0f)/(1<<FRACW));
+			n_UnderFlows++;
+			return (MULTYPE)(1 << FRACW);
+		}
+		*/
+		return (TYPE)val;
 	 }
 
+
+
+	 inline TYPE add(TYPE a, TYPE b){
+			MULTYPE v = ((MULTYPE)a)  + ((MULTYPE)b) ;
+			return trunc(v);
+	 }
+
+	 /*
 	 inline TYPE sub(TYPE a, TYPE b){
 			MULTYPE v = ((MULTYPE)a << FRACW)  - ((MULTYPE)b << FRACW) ;
 			return (TYPE)(round(v) >> FRACW);
 	 }
-
+	  */
 	 inline TYPE mul(TYPE a, TYPE b){
 			MULTYPE v = (MULTYPE)a * (MULTYPE)b;
-			return (TYPE)(round(v) >> FRACW);
+			return (TYPE)trunc(round(v) >> FRACW);
 	 }
 
 	 inline TYPE div(TYPE a, TYPE b){
-			MULTYPE v = (((MULTYPE)a << FRACW) / (MULTYPE)b) << FRACW;
-			return (TYPE)(round(v) >> FRACW);
+			MULTYPE v = (((MULTYPE)a << FRACW) / (MULTYPE)b) ;
+			return (TYPE)trunc(v) ;
 	 }
 
 
 	/* Bridge Operations */
-	friend FixedPoint operator+(const FixedPoint& lhs, double rhs){
+	friend inline FixedPoint operator+(const FixedPoint& lhs, double rhs){
 		return lhs + FixedPoint(rhs);
 	}
-	friend FixedPoint operator-(const FixedPoint& lhs, double rhs){
+	friend inline FixedPoint operator-(const FixedPoint& lhs, double rhs){
 		return lhs - FixedPoint(rhs);
 	}
-	friend FixedPoint operator*(const FixedPoint& lhs, double rhs){
+	friend inline FixedPoint operator*(const FixedPoint& lhs, double rhs){
 		return lhs * FixedPoint(rhs);
 	}
-	friend FixedPoint operator/(const FixedPoint& lhs, double rhs){
+	friend inline FixedPoint operator/(const FixedPoint& lhs, double rhs){
 		return lhs / FixedPoint(rhs);
 	}
 
@@ -169,6 +186,13 @@ private:
 	}
 
 };
+
+template<typename MULTYPE, typename TYPE, int FRACW>
+uint64_t FixedPoint<MULTYPE,TYPE,FRACW>::n_MaxTruncs = 0;
+template<typename MULTYPE, typename TYPE, int FRACW>
+uint64_t FixedPoint<MULTYPE,TYPE,FRACW>::n_MinTruncs = 0;
+template<typename MULTYPE, typename TYPE, int FRACW>
+uint64_t FixedPoint<MULTYPE,TYPE,FRACW>::n_UnderFlows = 0;
 
 #endif /* fixed point */
 
