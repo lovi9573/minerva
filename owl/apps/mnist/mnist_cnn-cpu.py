@@ -7,7 +7,7 @@ import owl
 import owl.elewise as ele
 import owl.conv as conv
 
-lazy_cycle = 4
+lazy_cycle = 2
 
 class MNISTCNNModel:
     def __init__(self):
@@ -83,7 +83,7 @@ def bpprop(model, samples, label):
 
 def train_network(model, num_epochs=100, minibatch_size=256, lr=0.01, mom=0.75, wd=5e-4):
     # load data
-    (train_data, test_data) = mnist_io.load_mb_from_mat('mnist_all.mat', minibatch_size / len(gpu))
+    (train_data, test_data) = mnist_io.load_mb_from_mat('mnist_all.mat', minibatch_size )
     num_test_samples = test_data[0].shape[0]
     test_samples = owl.from_numpy(test_data[0]).reshape([28, 28, 1, num_test_samples])
     test_labels = owl.from_numpy(test_data[1])
@@ -91,24 +91,22 @@ def train_network(model, num_epochs=100, minibatch_size=256, lr=0.01, mom=0.75, 
         print "---Epoch #", i
         last = time.time()
         count = 0
-        weightgrads = [None] * len(gpu)
-        biasgrads = [None] * len(gpu)
+        weightgrads = [None] 
+        biasgrads = [None] 
         for (mb_samples, mb_labels) in train_data:
             count += 1
-            current_gpu = count % len(gpu)
-            owl.set_device(gpu[current_gpu])
             num_samples = mb_samples.shape[0]
             data = owl.from_numpy(mb_samples).reshape([28, 28, 1, num_samples])
             label = owl.from_numpy(mb_labels)
-            out, weightgrads[current_gpu], biasgrads[current_gpu] = bpprop(model, data, label)
-            if current_gpu == 0:
-                for k in range(len(model.weights)):
-                    model.weightdelta[k] = mom * model.weightdelta[k] - lr / num_samples / len(gpu) * multi_gpu_merge(weightgrads, 0, k) - lr * wd * model.weights[k]
-                    model.biasdelta[k] = mom * model.biasdelta[k] - lr / num_samples / len(gpu) * multi_gpu_merge(biasgrads, 0, k)
-                    model.weights[k] += model.weightdelta[k]
-                    model.bias[k] += model.biasdelta[k]
-                if count % (len(gpu) * lazy_cycle) == 0:
-                    print_training_accuracy(out, label, num_samples, 'Training')
+            out, weightgrads[0], biasgrads[0] = bpprop(model, data, label)
+            for k in range(len(model.weights)):
+                model.weightdelta[k] = mom * model.weightdelta[k] - lr / num_samples / 1 * multi_gpu_merge(weightgrads, 0, k) - lr * wd * model.weights[k]
+                model.biasdelta[k] = mom * model.biasdelta[k] - lr / num_samples / 1 * multi_gpu_merge(biasgrads, 0, k)
+                model.weights[k] += model.weightdelta[k]
+                model.bias[k] += model.biasdelta[k]
+            if count % (lazy_cycle) == 0:
+                print_training_accuracy(out, label, num_samples, 'Training'+str(count))
+                #owl.print_profiler_result()
         print '---End of Epoch #', i, 'time:', time.time() - last
         # do test
         out, _, _  = bpprop(model, test_samples, test_labels)
@@ -119,18 +117,18 @@ def multi_gpu_merge(l, base, layer):
         return l[0][layer]
     left = multi_gpu_merge(l[:len(l) / 2], base, layer)
     right = multi_gpu_merge(l[len(l) / 2:], base + len(l) / 2, layer)
-    owl.set_device(base)
     return left + right
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='MNIST CNN')
-    parser.add_argument('-n', '--num', help='number of GPUs to use', action='store', type=int, default=1)
-    (args, remain) = parser.parse_known_args()
-    assert(1 <= args.num)
-    print 'Using %d GPU(s)' % args.num
-    gpu = [owl.create_gpu_device(i) for i in range(args.num)]
-    #owl.set_device(gpu[0])
+    #parser = argparse.ArgumentParser(description='MNIST CNN')
+    #parser.add_argument('-n', '--num', help='number of GPUs to use', action='store', type=int, default=1)
+    #(args, remain) = parser.parse_known_args()
+    #assert(1 <= args.num)
+    #print 'Using %d GPU(s)' % args.num
+    print "Getting started using CPU"
     owl.set_device(owl.create_cpu_device())
     model = MNISTCNNModel()
+    print "model created"
     model.init_random()
+    print "model initialized randomly"
     train_network(model)

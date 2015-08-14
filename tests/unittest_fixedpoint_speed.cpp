@@ -30,7 +30,7 @@ double get_wall_time(){
     return (double)time.tv_sec + (double)time.tv_usec * .000001;
 }
 
-#define FRACTION_WIDTH 8
+#define FRACTION_WIDTH 12
 #define SINGLETYPE int16_t
 #define DOUBLETYPE int32_t
 
@@ -39,26 +39,30 @@ typedef FixedPoint<DOUBLETYPE,SINGLETYPE,FRACTION_WIDTH> FP8;
 
 #define MAXM(X, Y) (((X) > (Y)) ? (X) : (Y))
 
-inline float addfloat(float a, float b){
-	return a * b;
+inline float addfloat(float a, float b, float c){
+	return a * b + c;
 }
 
-inline float addfixed(FP8 a, FP8 b){
-	return a * b;
+inline float addfixed(FP8 a, FP8 b, FP8 c){
+	return a * b + c;
 }
 
 TEST(FixedPoint, Speed){
 	int number_random_tests = 10000000;
 	double a = get_wall_time();	
 	for(int i = 0; i < number_random_tests; i++){
-		addfloat(static_cast<float>(rand())/static_cast<float>(RAND_MAX), static_cast<float>(rand())/static_cast<float>(RAND_MAX));
+		addfloat(static_cast<float>(rand())/static_cast<float>(RAND_MAX),
+				static_cast<float>(rand())/static_cast<float>(RAND_MAX),
+				static_cast<float>(rand())/static_cast<float>(RAND_MAX));
 	}
 	a = get_wall_time() - a;
 	std::cout << "float time: " << a << " \n";
 	
 	double b = get_wall_time();	
 	for(int i = 0; i < number_random_tests; i++){
-		addfixed(static_cast<float>(rand())/static_cast<float>(RAND_MAX), static_cast<float>(rand())/static_cast<float>(RAND_MAX));
+		addfixed(static_cast<float>(rand())/static_cast<float>(RAND_MAX),
+				static_cast<float>(rand())/static_cast<float>(RAND_MAX),
+				static_cast<float>(rand())/static_cast<float>(RAND_MAX));
 	}
 	b = get_wall_time() - b;
 	std::cout << "fixed time: " << b << " \n";

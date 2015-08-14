@@ -4,7 +4,7 @@ using namespace std;
 using namespace minerva;
 
 #ifdef HAS_CUDA
-TEST(PoolingForward, DISABLED_GpuWithoutPadding) {
+TEST(PoolingBackward, DISABLED_GpuWithoutPadding) {
   float input_raw[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
   float correct_raw[] = {11, 12, 15, 16};
   auto& ms = MinervaSystem::Instance();
@@ -15,7 +15,7 @@ TEST(PoolingForward, DISABLED_GpuWithoutPadding) {
   ms.SetDevice(gpu_device);
   ImageBatch input = NArray::MakeNArray(input_size, input_ptr);
   PoolingInfo pooling_info(PoolingInfo::Algorithm::kMax, 3, 3, 1, 1);
-  ImageBatch output = Convolution::PoolingForward(input, pooling_info);
+  ImageBatch output = Convolution::PoolingBackward(input, pooling_info);
   auto output_ptr = output.Get();
   EXPECT_EQ(output.Size(), correct_size);
   for (int i = 0; i < correct_size.Prod(); ++i) {
@@ -23,7 +23,7 @@ TEST(PoolingForward, DISABLED_GpuWithoutPadding) {
   }
 }
 
-TEST(PoolingForward, DISABLED_GpuWithExactPadding) {
+TEST(PoolingBackward, DISABLED_GpuWithExactPadding) {
   float input_raw[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
   float correct_raw[] = {6, 7, 8, 8, 10, 11, 12, 12, 14, 15, 16, 16, 14, 15, 16, 16};
   auto& ms = MinervaSystem::Instance();
@@ -34,7 +34,7 @@ TEST(PoolingForward, DISABLED_GpuWithExactPadding) {
   ms.SetDevice(gpu_device);
   ImageBatch input = NArray::MakeNArray(input_size, input_ptr);
   PoolingInfo pooling_info(PoolingInfo::Algorithm::kMax, 3, 3, 1, 1, 1, 1);
-  ImageBatch output = Convolution::PoolingForward(input, pooling_info);
+  ImageBatch output = Convolution::PoolingBackward(input, pooling_info);
   auto output_ptr = output.Get();
   EXPECT_EQ(output.Size(), correct_size);
   for (int i = 0; i < correct_size.Prod(); ++i) {
@@ -42,7 +42,7 @@ TEST(PoolingForward, DISABLED_GpuWithExactPadding) {
   }
 }
 
-TEST(PoolingForward, DISABLED_GpuWithInsufficientPadding) {
+TEST(PoolingBackward, DISABLED_GpuWithInsufficientPadding) {
   float input_raw[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
   float correct_raw[] = {6, 8, 8, 14, 16, 16, 14, 16, 16};
   auto& ms = MinervaSystem::Instance();
@@ -53,7 +53,7 @@ TEST(PoolingForward, DISABLED_GpuWithInsufficientPadding) {
   ms.SetDevice(gpu_device);
   ImageBatch input = NArray::MakeNArray(input_size, input_ptr);
   PoolingInfo pooling_info(PoolingInfo::Algorithm::kMax, 3, 3, 2, 2, 1, 1);
-  ImageBatch output = Convolution::PoolingForward(input, pooling_info);
+  ImageBatch output = Convolution::PoolingBackward(input, pooling_info);
   auto output_ptr = output.Get();
   EXPECT_EQ(output.Size(), correct_size);
   for (int i = 0; i < correct_size.Prod(); ++i) {
@@ -61,7 +61,7 @@ TEST(PoolingForward, DISABLED_GpuWithInsufficientPadding) {
   }
 }
 
-TEST(PoolingForward, DISABLED_GpuWithTooMuchPadding) {
+TEST(PoolingBackward, DISABLED_GpuWithTooMuchPadding) {
   float input_raw[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
   float correct_raw[] = {6, 8, 14, 16};
   auto& ms = MinervaSystem::Instance();
@@ -72,7 +72,7 @@ TEST(PoolingForward, DISABLED_GpuWithTooMuchPadding) {
   ms.SetDevice(gpu_device);
   ImageBatch input = NArray::MakeNArray(input_size, input_ptr);
   PoolingInfo pooling_info(PoolingInfo::Algorithm::kMax, 4, 4, 3, 3, 2, 2);
-  ImageBatch output = Convolution::PoolingForward(input, pooling_info);
+  ImageBatch output = Convolution::PoolingBackward(input, pooling_info);
   auto output_ptr = output.Get();
   EXPECT_EQ(output.Size(), correct_size);
   for (int i = 0; i < correct_size.Prod(); ++i) {
@@ -82,7 +82,7 @@ TEST(PoolingForward, DISABLED_GpuWithTooMuchPadding) {
 
 #endif
 
-TEST(PoolingForward, CpuWithoutPadding) {
+TEST(PoolingBackward, CpuWithoutPadding) {
   float top_raw[] = {5,6,18,18};
   float top_diff_raw[] = {1.0,1.1,1.2,1.3};
   float bottom_raw[] = {1,2,3,4,5,6,7,18,9};
@@ -108,7 +108,8 @@ TEST(PoolingForward, CpuWithoutPadding) {
   }
 }
 
-TEST(PoolingForward, DISABLED_CpuWithExactPadding) {
+/*
+TEST(PoolingBackward, DISABLED_CpuWithExactPadding) {
   float input_raw[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
   float correct_raw[] = {6, 7, 8, 8, 10, 11, 12, 12, 14, 15, 16, 16, 14, 15, 16, 16};
   Scale input_size{4, 4, 1, 1};
@@ -117,7 +118,7 @@ TEST(PoolingForward, DISABLED_CpuWithExactPadding) {
   memcpy(input_ptr.get(), input_raw, input_size.Prod() * sizeof(float));
   ImageBatch input = NArray::MakeNArray(input_size, input_ptr);
   PoolingInfo pooling_info(PoolingInfo::Algorithm::kMax, 3, 3, 1, 1, 1, 1);
-  ImageBatch output = Convolution::PoolingForward(input, pooling_info);
+  ImageBatch output = Convolution::PoolingBackward(input, pooling_info);
   auto output_ptr = output.Get();
   EXPECT_EQ(output.Size(), correct_size);
   for (int i = 0; i < correct_size.Prod(); ++i) {
@@ -125,7 +126,7 @@ TEST(PoolingForward, DISABLED_CpuWithExactPadding) {
   }
 }
 
-TEST(PoolingForward, DISABLED_CpuWithInsufficientPadding) {
+TEST(PoolingBackward, DISABLED_CpuWithInsufficientPadding) {
   float input_raw[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
   float correct_raw[] = {6, 8, 8, 14, 16, 16, 14, 16, 16};
   Scale input_size{4, 4, 1, 1};
@@ -134,7 +135,7 @@ TEST(PoolingForward, DISABLED_CpuWithInsufficientPadding) {
   memcpy(input_ptr.get(), input_raw, input_size.Prod() * sizeof(float));
   ImageBatch input = NArray::MakeNArray(input_size, input_ptr);
   PoolingInfo pooling_info(PoolingInfo::Algorithm::kMax, 3, 3, 2, 2, 1, 1);
-  ImageBatch output = Convolution::PoolingForward(input, pooling_info);
+  ImageBatch output = Convolution::PoolingBackward(input, pooling_info);
   auto output_ptr = output.Get();
   EXPECT_EQ(output.Size(), correct_size);
   for (int i = 0; i < correct_size.Prod(); ++i) {
@@ -142,7 +143,7 @@ TEST(PoolingForward, DISABLED_CpuWithInsufficientPadding) {
   }
 }
 
-TEST(PoolingForward, DISABLED_CpuWithTooMuchPadding) {
+TEST(PoolingBackward, DISABLED_CpuWithTooMuchPadding) {
   float input_raw[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
   float correct_raw[] = {6, 8, 14, 16};
   Scale input_size{4, 4, 1, 1};
@@ -151,10 +152,11 @@ TEST(PoolingForward, DISABLED_CpuWithTooMuchPadding) {
   memcpy(input_ptr.get(), input_raw, input_size.Prod() * sizeof(float));
   ImageBatch input = NArray::MakeNArray(input_size, input_ptr);
   PoolingInfo pooling_info(PoolingInfo::Algorithm::kMax, 4, 4, 3, 3, 2, 2);
-  ImageBatch output = Convolution::PoolingForward(input, pooling_info);
+  ImageBatch output = Convolution::PoolingBackward(input, pooling_info);
   auto output_ptr = output.Get();
   EXPECT_EQ(output.Size(), correct_size);
   for (int i = 0; i < correct_size.Prod(); ++i) {
     EXPECT_NEAR(output_ptr.get()[i], correct_raw[i], 0.001);
   }
 }
+*/

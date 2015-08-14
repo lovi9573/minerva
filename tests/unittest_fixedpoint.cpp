@@ -247,10 +247,10 @@ TEST(FixedPoint, DivMaxFracW){
 	FP f1(b);
 	FP r = f0 / f1;
 	//printf("%f\n",(float)r);
-	EXPECT_NEAR((float)r ,a/b , MAXM(((a + EPSILON)/(b - EPSILON)) - (a/b), 2*EPSILON) );
+	EXPECT_NEAR((float)r ,a/b , MAXM(((a + EPSILON)/(b - EPSILON)) + EPSILON - (a/b), 2*EPSILON) );
 	r = a;
 	r /= c;
-	EXPECT_NEAR((float)r, a/c  , MAXM(((a + EPSILON)/(c - EPSILON)) - (a/c), 2*EPSILON) );
+	EXPECT_NEAR((float)r, a/c  , MAXM(((a + EPSILON)/(c - EPSILON)) + EPSILON - (a/c), 2*EPSILON) );
 }
 
 TEST(FixedPoint, DivMinFracW){
@@ -265,10 +265,10 @@ TEST(FixedPoint, DivMinFracW){
 	FP f1(b);
 	FP r = f0 / f1;
 	//printf("%f\n",(float)r);
-	EXPECT_NEAR((float)r ,a/b , MAXM(((a + EPSILON)/(b - EPSILON)) - (a/b), 2*EPSILON) );
+	EXPECT_NEAR((float)r ,a/b , MAXM(((a + EPSILON)/(b - EPSILON)) + EPSILON - (a/b), 2*EPSILON) );
 	r = a;
 	r /= c;
-	EXPECT_NEAR((float)r, a/c  , MAXM(((a + EPSILON)/(c - EPSILON)) - (a/c), 2*EPSILON) );
+	EXPECT_NEAR((float)r, a/c  , MAXM(((a + EPSILON)/(c - EPSILON)) + EPSILON - (a/c), 2*EPSILON) );
 }
 
 TEST(FixedPoint, DivInt){
@@ -283,10 +283,10 @@ TEST(FixedPoint, DivInt){
 	FP f1(b);
 	FP r = f0 / f1;
 	//printf("%f\n",(float)r);
-	EXPECT_NEAR((float)r ,a/b , MAXM(((a + EPSILON)/(b - EPSILON)) - (a/b), 2*EPSILON) );
+	EXPECT_NEAR((float)r ,a/b , MAXM(((a + EPSILON)/(b - EPSILON)) + EPSILON - (a/b), 2*EPSILON) );
 	r = a;
 	r /= c;
-	EXPECT_NEAR((float)r, a/c  , MAXM(((a + EPSILON)/(c - EPSILON)) - (a/c), 2*EPSILON) );
+	EXPECT_NEAR((float)r, a/c  , MAXM(((a + EPSILON)/(c - EPSILON)) + EPSILON - (a/c), 2*EPSILON) );
 }
 
 
@@ -324,6 +324,13 @@ TEST(FixedPoint, Underflow){
 
 TEST(FixedPoint, Print){
 	FixedPoint<int32_t,int16_t,8> printtest(123.45678f);
-	EXPECT_STREQ("123.457",printtest.str());
+	std::vector<std::string> expected = {"123.457","123.453"};
+	if(std::find(expected.begin(), expected.end(), printtest.str()) != expected.end()){
+		SUCCEED();
+	}
+	else{
+		FAIL();
+	}
+	//EXPECT_STREQ("123.457",printtest.str());
 }
 

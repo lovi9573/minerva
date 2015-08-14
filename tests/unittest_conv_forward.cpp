@@ -1,5 +1,18 @@
 #include "unittest_main.h"
 
+#include <time.h>
+#include <sys/time.h>
+#include <stdlib.h>
+
+double get_wall_time(){
+    struct timeval time;
+    if (gettimeofday(&time,NULL)){
+        //  Handle error
+        return 0;
+    }
+    return (double)time.tv_sec + (double)time.tv_usec * .000001;
+}
+
 using namespace std;
 using namespace minerva;
 
@@ -145,6 +158,36 @@ TEST(ConvForward, CpuWithoutPaddingSmall) {
   for (int i = 0; i < correct_size.Prod(); ++i) {
     EXPECT_NEAR(output_ptr.get()[i], correct_raw[i], 0.001);
   }
+}
+
+TEST(ConvForward, CpuWithoutPaddingLargeTime) {
+  Scale input_size{256, 256, 3, 10};
+  Scale weight_size{11, 11, 3, 2};
+  float input_raw[input_size.Prod()];
+  float weight_raw[weight_size.Prod()];
+  for (int i = 0; i < input_size.Prod(); i ++){
+	  input_raw[i] = rand();
+  }
+  for (int i = 0; i < weight_size.Prod(); i ++){
+  	  weight_raw[i] = rand();
+    }
+  auto& ms = MinervaSystem::Instance();
+  shared_ptr<float> input_ptr(new float[input_size.Prod()], [](float* ptr) { delete[] ptr; });
+  shared_ptr<float> weight_ptr(new float[weight_size.Prod()], [](float* ptr) { delete[] ptr; });
+  memcpy(input_ptr.get(), input_raw, input_size.Prod() * sizeof(float));
+  memcpy(weight_ptr.get(), weight_raw, weight_size.Prod() * sizeof(float));
+
+  ms.SetDevice(cpu_device);
+  ImageBatch input = NArray::MakeNArray(input_size, input_ptr);
+  Filter weight = NArray::MakeNArray(weight_size, weight_ptr);
+  NArray bias = NArray::Zeros({2});
+  ConvInfo conv_info(0, 0, 1, 1);
+  double start =  get_wall_time();
+  ImageBatch output = Convolution::ConvForward(input, weight, bias, conv_info);
+  ms.WaitForAll();
+  auto output_ptr = output.Get();
+  printf("convolution time: %f\n", (get_wall_time() - start));
+  std::cout << "output size: " << output.Size().ToString();
 }
 
 TEST(ConvForward, CpuWithoutPaddingSmallDepth2) {

@@ -1,4 +1,7 @@
 #include "unittest_main.h"
+#include <stdlib.h>
+#include <time.h>
+#include <iostream>
 
 uint64_t cpu_device;
 #ifdef HAS_CUDA
@@ -13,6 +16,9 @@ class MinervaTestEnvironment : public testing::Environment {
   }
   void SetUp() {
     MinervaSystem::Initialize(argc, argv);
+    time_t seed = time(NULL);
+    std::cout <<"Random Seed: "<< seed << "\n";
+    srand(seed);
     cpu_device = MinervaSystem::Instance().device_manager().CreateCpuDevice();
 #ifdef HAS_CUDA
     gpu_device = MinervaSystem::Instance().device_manager().CreateGpuDevice(0);

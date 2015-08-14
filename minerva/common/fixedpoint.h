@@ -23,15 +23,15 @@ public:
 
 	//static const MULTYPE MAXVAL = ~(((MULTYPE)~0) << ((sizeof(TYPE)*8)-1));
 	//static const MULTYPE MINVAL = -(MULTYPE)(((TYPE)1) << ((sizeof(TYPE)*8)-1));
-	static const MULTYPE MAXVAL =  (1 << ((sizeof(TYPE)*8) + FRACW-1))-1;
-	static const MULTYPE MINVAL = -(1 << ((sizeof(TYPE)*8) + FRACW-1));
-	static const MULTYPE MINPREC =     1 << FRACW;
-	static const TYPE FRACTION_MASK = (1 << FRACW) - 1;
+	static const MULTYPE MAXVAL =  ((MULTYPE)1 << ((sizeof(TYPE)*8) + FRACW-1))-1;
+	static const MULTYPE MINVAL = -((MULTYPE)1 << ((sizeof(TYPE)*8) + FRACW-1));
+	static const MULTYPE MINPREC =     (MULTYPE)1 << FRACW;
+	static const TYPE FRACTION_MASK = ((TYPE)1 << FRACW) - 1;
 
 
 	/* Constructors */
 	FixedPoint():value(0){}
-	FixedPoint(int v):value((TYPE)(v<<FRACW)){}
+	//FixedPoint(int v):value((TYPE)(v<<FRACW)){}
 	FixedPoint(double v):value(0){
 		MULTYPE multiplier = ((MULTYPE)1)<< (2*FRACW);
 		value = (TYPE)(round(v*multiplier) >> FRACW);
@@ -118,12 +118,14 @@ private:
 			//printf("MINVAL (%f) exceeded. truncating\n",((float)(MINVAL >> FRACW))/(1<<FRACW));
 			return MINVAL;
 		}
-		TYPE out = (TYPE)(val >> FRACW);
+		//TYPE out = (TYPE)(val >> FRACW);
+		/*
 		if(!out){
-			//printf("Underflow. (< %f)  Setting to minimum precision\n",(1.0f)/(1<<FRACW));
+			printf("Underflow. (< %f)  Setting to minimum precision\n",(1.0f)/(1<<FRACW));
 			return (MULTYPE)(1 << FRACW);
 		}
-		return val;
+		*/
+		return val ;
 	 }
 
 	 inline TYPE add(TYPE a, TYPE b){
