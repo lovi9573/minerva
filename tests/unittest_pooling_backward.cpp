@@ -4,6 +4,8 @@ using namespace std;
 using namespace minerva;
 
 #ifdef HAS_CUDA
+
+/*
 TEST(PoolingBackward, DISABLED_GpuWithoutPadding) {
   float input_raw[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
   float correct_raw[] = {11, 12, 15, 16};
@@ -79,7 +81,7 @@ TEST(PoolingBackward, DISABLED_GpuWithTooMuchPadding) {
     EXPECT_NEAR(output_ptr.get()[i], correct_raw[i], 0.001);
   }
 }
-
+*/
 #endif
 
 TEST(PoolingBackward, CpuWithoutPadding) {
