@@ -19,7 +19,6 @@
 
 namespace minerva {
 
-//TODO(jlovitt): Consider making a MinervaSystem interface to keep mpi bits hidden from owl.
 
 class MinervaSystem :
   public IMinervaSystem,

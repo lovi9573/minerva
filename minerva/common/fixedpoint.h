@@ -101,6 +101,10 @@ public:
 		return (double)this->to_float();
 	}*/
 
+	static float getEpsilon(){
+		return 1.0f/((float)(1 << FRACW));
+	}
+
 	const char* str() {
 		std::ostringstream out;
 		out << (this->to_float());
@@ -115,7 +119,6 @@ public:
 
 private:
 
-	//TODO(Jesse Lovitt): Implement logging of truncations and precision adjusments
 	 inline MULTYPE round(MULTYPE val){
 		val = val + ((MULTYPE)rand() & (MULTYPE)FRACTION_MASK);
 		return val ;
@@ -132,13 +135,11 @@ private:
 			n_MinTruncs++;
 			return (TYPE)MINVAL;
 		}
-		/*
-		if(!val){
-			printf("Underflow. (< %f)  Setting to minimum precision\n",(1.0f)/(1<<FRACW));
+		if(val == 0){
+			//printf("Underflow. (< %f)  Setting to minimum precision\n",(1.0f)/(1<<FRACW));
 			n_UnderFlows++;
-			return (MULTYPE)(1 << FRACW);
+			//return (MULTYPE)(1 << FRACW);
 		}
-		*/
 		return (TYPE)val;
 	 }
 
@@ -167,6 +168,7 @@ private:
 
 
 	/* Bridge Operations */
+	 /*
 	friend inline FixedPoint operator+(const FixedPoint& lhs, double rhs){
 		return lhs + FixedPoint(rhs);
 	}
@@ -179,6 +181,7 @@ private:
 	friend inline FixedPoint operator/(const FixedPoint& lhs, double rhs){
 		return lhs / FixedPoint(rhs);
 	}
+	*/
 
 	friend std::ostream& operator<<(std::ostream& os, const FixedPoint& obj){
 		os << obj.value;

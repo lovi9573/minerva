@@ -23,7 +23,6 @@
 #include <math.h>
 #include "unittest_main.h"
 
-//TODO(jesse lovitt) Does not work for fractional widths > 8
 
 
 //typedef FixedPoint<DOUBLETYPE,SINGLETYPE,0> FP;

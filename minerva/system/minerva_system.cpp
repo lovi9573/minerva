@@ -12,6 +12,7 @@
 #include "common/cuda_utils.h"
 #include <stdio.h>
 #ifdef HAS_MPI
+#include <dlfcn.h>
 #include <mpi.h>
 #include "mpi/mpi_handler.h"
 #include "mpi/mpi_server.h"
@@ -62,7 +63,6 @@ MinervaSystem::~MinervaSystem() {
   //google::ShutdownGoogleLogging(); //XXX comment out since we switch to dmlc/logging
 }
 
-//TODO: 1 Translate symbolic mpi ptr ids to local data ptr.
 pair<Device::MemType, element_t*> MinervaSystem::GetPtr(uint64_t device_id, uint64_t data_id) {
   return device_manager_->GetDevice(device_id)->GetPtr(data_id);
 }
@@ -140,10 +140,10 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
   }
 #endif
 #ifdef HAS_MPI
+  	//Workaround for openMpi's failure to load modules.  Documented at the bottom of this file.
+  	dlopen("libmpi.so", RTLD_NOW | RTLD_GLOBAL);
 
   	int provided;
-  	//TODO: Failure on init here in open-mpi.  See notes below
-  	//TODO: making mpi handle the threading impacts performance.  Change it so we handle this.
   	MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
 	if( provided != MPI_THREAD_SERIALIZED){
 		LOG(FATAL) << "Thread Serialized mpi support is needed.\n";

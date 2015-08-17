@@ -597,7 +597,13 @@ void ConvBackwardData(const DataList& inputs, const DataList& outputs, ConvBackw
     int stride_vertical = closure.stride_vertical;
     int stride_horizontal = closure.stride_horizontal;
 
-
+    /*
+    printf("bottom: (%d,%d) padding: (%d,%d), filter: (%d,%d), top: (%d,%d)\n",
+    		bottom_size[0], bottom_size[1],
+			pad_width, pad_height,
+			filtersize[0], filtersize[1],
+			top_size[0], top_size[1]);
+*/
     int top_index = -1  ;
 
 	for(int element = 0 ; element < bottom_size[3]; element++){
@@ -609,12 +615,17 @@ void ConvBackwardData(const DataList& inputs, const DataList& outputs, ConvBackw
 					for(int channel =0; channel < bottom_size[2]; channel++){
 						for(int filter_y = 0; filter_y < filtersize[1]; filter_y++){
 							for(int filter_x = 0; filter_x < filtersize[0]; filter_x++){
-								if(x >= 0 && x < top_size[0] && y >= 0 && y < top_size[1]){
-									if(x+filter_x < bottom_size[0] && y+filter_y < bottom_size[1]){
-										int bottom_index = (x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*element ;
-										int filter_index = (filtersize[0] -1 -filter_x)+filter_column_stride*(filtersize[1] -1 -filter_y)+filter_channel_stride*channel+filter_offset;
-										bottom_diff[bottom_index] += top_diff[top_index ] * filters[filter_index] ;
+								if(x+filter_x >= 0  && y+filter_y >= 0 && x+filter_x < bottom_size[0] && y+filter_y < bottom_size[1]){
+									int bottom_index = (x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*element ;
+									int filter_index = (filtersize[0] -1 -filter_x)+filter_column_stride*(filtersize[1] -1 -filter_y)+filter_channel_stride*channel+filter_offset;
+									bottom_diff[bottom_index] += top_diff[top_index ] * filters[filter_index] ;
+									/*
+									if (bottom_index == 0){
+										printf("top:(%d,%d) %d ; filter: d(%d,%d) (%d,%d) %d\n", \
+												top_index%top_size[0], top_index/top_size[0], top_index, \
+												filter_x, filter_y,(filtersize[0] -1 -filter_x), (filtersize[1] -1 -filter_y), filter_index);
 									}
+									*/
 								}
 							}
 						}
@@ -828,9 +839,11 @@ void PoolingForward(const DataList& inputs, const DataList& outputs, PoolingForw
 							if(x+filter_x >= 0 && x+filter_x < insize[0] && y+filter_y >= 0 && y+filter_y < insize[1]){
 								////printf("\t\t\t\t\t\top x: %d, y: %d\n",filter_x,filter_y);
 								if(activations[outindex ] < input[sample_index]){
+									/*
 									if(sample_index < 0 ||sample_index >= insize.Prod()){
 										printf("===Pooling sample index error (%d) === \n",sample_index);
 									}
+									*/
 									activations[outindex ] =input[sample_index];
 								}
 								/*
@@ -903,9 +916,11 @@ void PoolingBackward(const DataList& inputs, const DataList& outputs, PoolingBac
 								//TODO(Jesse Lovitt): Caution... float comparison.
 								//printf("top: %f[%d] vs bottom: %f[%d]\n",top.data_[top_index ],top_index, bottom.data_[bottom_index],bottom_index);
 								if(top.data_[top_index ] == bottom.data_[bottom_index]){
+									/*
 									if((x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*image < 0 ||(x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*image >= bottom_size.Prod()){
 										printf("Pooling index error");
 									}
+									*/
 									/*
 									printf("bottom_diff: (%d,%d) += %f (%d,%d) => %f\n",x+filter_x,y+filter_y,
 											top_diff.data_[top_index],x+pad_width,y+pad_height,

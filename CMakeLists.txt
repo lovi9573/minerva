@@ -194,7 +194,7 @@ message(STATUS "build with fixed point support      -- ${FIXED_POINT}")
 if(FIXED_POINT)
     message(STATUS "  fixed point type.             -- ${FIXED_POINT_TYPE}")
     message(STATUS "  fixed point 2x type           -- ${FIXED_POINT_DOUBLE_WIDE_TYPE}")
-    message(STATUS "  fraction width                -- ${FIXED_POINT_FRACTION_WIDTH}")
+    message(STATUS "  fraction width                -- ${FIXED_POINT_FRACTION_WIDTH_N}")
 endif()
 
 add_subdirectory(minerva)
