@@ -634,41 +634,6 @@ void ConvBackwardData(const DataList& inputs, const DataList& outputs, ConvBackw
 			}
 		}
 	}
-
-
-
-    /*
-
-	for(int image = 0 ; image < bottom_size[3]; image++){
-		//printf("element\n");
-		for(int y = -pad_height; y <= bottom_size[1]-filtersize[1]+pad_height; y +=  stride_vertical){
-			//printf("\trow %d / %d X %d\n",y,inputs[0].size_.get(1)-inputs[1].size_.get(1)+pad_height+1,stride_vertical);
-			for(int x = -pad_width; x <= bottom_size[0]-filtersize[0]+pad_width; x += stride_horizontal){
-				//printf("\t\tcolumn %d / %d X %d\n",x,inputs[0].size_.get(0)-inputs[1].size_.get(0)+pad_width+1,stride_horizontal);
-				for(int filter = 0; filter < filtersize[3]; filter++){
-					int top_index = (x+pad_height)/stride_horizontal + top_column_stride*((y+pad_height)/stride_vertical) + top_channel_stride*filter + top_image_stride*image;
-					//printf("\t\t\tfilter %d / %d\n",filter,inputs[1].size_.get(3));
-					for(int channel =0; channel < bottom_size[2]; channel++){
-						//printf("\t\t\t\tchannel %d / %d\n",channel,inputs[1].size_.get(3));
-						for(int filter_y = 0; filter_y < filtersize[1]; filter_y++){
-							for(int filter_x = 0; filter_x < filtersize[0]; filter_x++){
-								if(x >= 0 && x < bottom_size[0] && y >= 0 && y < bottom_size[1]){
-									////printf("\t\t\t\t\t\top x: %d, y: %d\n",filter_x,filter_y);
-									if(x+filter_x < bottom_size[0] && y+filter_y < bottom_size[1]){
-										int bottom_index = (x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*image ;
-										int filter_index = (filtersize[0] -1 -filter_x)+filter_column_stride*(filtersize[1] -1 -filter_y)+filter_channel_stride*channel+filter_element_stride*filter;
-
-										bottom_diff[bottom_index] += top_diff[top_index ] * filters[filter_index] ;
-									}
-								}
-							}
-						}
-					}//End full filter (filter_x*filter_y*channel)
-				}
-			}
-		}
-	}
-	*/
 }
 
 /*
@@ -739,9 +704,9 @@ void ConvBackwardFilter(const DataList& inputs, const DataList& outputs, ConvBac
 
 	element_t* top_diff = inputs[0].data_;
 	Scale top_size = inputs[0].size_;
-	int top_column_stride = top_size[0];
-	int top_channel_stride = top_size[1]*top_size[0];
-	int top_image_stride = top_size[2]*top_size[1]*top_size[0];
+	//int top_column_stride = top_size[0];
+	//int top_channel_stride = top_size[1]*top_size[0];
+	//int top_image_stride = top_size[2]*top_size[1]*top_size[0];
 
 
 	for(int i = 0; i < filtersize.Prod(); i++){
@@ -754,28 +719,21 @@ void ConvBackwardFilter(const DataList& inputs, const DataList& outputs, ConvBac
     int stride_vertical = closure.stride_vertical;
     int stride_horizontal = closure.stride_horizontal;
 
+    int topindex = -1  ;
 
 	for(int element = 0 ; element < bottom_size[3]; element++){
-		//printf("element\n");
-		for(int y = -pad_height; y <=bottom_size[1]-filtersize[1]+pad_height; y = y + stride_vertical){
-			//printf("\trow %d / %d X %d\n",y,inputs[0].size_.get(1)-inputs[1].size_.get(1)+pad_height+1,stride_vertical);
-			for(int x = -pad_width; x <= bottom_size[0]-filtersize[0]+pad_width; x += stride_horizontal){
-				//printf("\t\tcolumn %d / %d X %d\n",x,inputs[0].size_.get(0)-inputs[1].size_.get(0)+pad_width+1,stride_horizontal);
-				for(int filter = 0; filter < filtersize[3]; filter++){
-					int top_index = (x+pad_width)/stride_horizontal + top_column_stride*((y+pad_height)/stride_vertical) + top_channel_stride*filter + top_image_stride*element;
-					//printf("\t\t\tfilter %d / %d\n",filter,inputs[1].size_.get(3));
+		for(int filter = 0; filter < filtersize[3]; filter++){
+			int filter_offset = filter_element_stride*filter;
+			for(int y = -pad_height; y <= bottom_size[1]-filtersize[1]+pad_height; y = y + stride_vertical){
+				for(int x = -pad_width; x <= bottom_size[0]-filtersize[0]+pad_width; x += stride_horizontal){
+					topindex++;
 					for(int channel =0; channel < bottom_size[2]; channel++){
-						//printf("\t\t\t\tchannel %d / %d\n",channel,inputs[1].size_.get(3));
 						for(int filter_y = 0; filter_y < filtersize[1]; filter_y++){
 							for(int filter_x = 0; filter_x < filtersize[0]; filter_x++){
-								if(x >= 0 && x < top_size[0] && y >= 0 && y < top_size[1]){
-									////printf("\t\t\t\t\t\top x: %d, y: %d\n",filter_x,filter_y);
-									if(x+filter_x < bottom_size[0] && y+filter_y < bottom_size[1]){
+								if(x+filter_x >= 0 && y+filter_y >= 0 && x+filter_x < bottom_size[0] && y+filter_y < bottom_size[1]){
 										int bottom_index = (x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*element ;
-										int filter_index = (filtersize[0] -1 -filter_x)+filter_column_stride*(filtersize[1] -1 -filter_y)+filter_channel_stride*channel+filter_element_stride*filter;
-										filter_diff[filter_index] += bottom[bottom_index]* top_diff[top_index ];
-									}
-
+										int filter_index = (filtersize[0] -1 -filter_x)+filter_column_stride*(filtersize[1] -1 -filter_y)+filter_channel_stride*channel+filter_offset;
+										filter_diff[filter_index] += bottom[bottom_index]* top_diff[topindex ];
 								}
 							}
 						}
