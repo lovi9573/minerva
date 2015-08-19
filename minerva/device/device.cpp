@@ -73,29 +73,7 @@ void ThreadedDevice::FreeDataIfExist(uint64_t data_id) {
 void ThreadedDevice::Execute(Task* task, int thrid) {
   PreExecute();
   if (GetMemType() == MemType::kMpi){
-#ifdef HAS_MPI
-	  auto& op = task->op;
-	  CHECK(op.compute_fn);
-	  if(!FLAGS_no_execute) {
-		#ifdef USE_PROFILER
-			Barrier(thrid);
-			WallTimer calculate_timer;
-			calculate_timer.Start();
-		#endif
-			DLOG(INFO) << Name() << " dispatching mpi task #" << task->id << ": " << op.compute_fn->Name();
-			//printf("Dispatching task < %lu > with new data size | %lu | to rank %d\n",task->id, task->outputs.size(), _rank);
-			DoExecute(task, thrid);
-			DLOG(INFO) << Name() << " notified of completion of mpi task #" << task->id << ": " << op.compute_fn->Name();
-		#ifdef USE_PROFILER
-			//printf("a\n");
-			calculate_timer.Stop();
-			//printf("b\n");
-			MinervaSystem::Instance().profiler().RecordTime(TimerType::kMpi, op.compute_fn->Name(), calculate_timer);
-		#endif
-	  }
-#else
-	  common::FatalError("please recompile with macro HAS_MPI");
-#endif
+	  common::FatalError("Cannot call ThreadedDevice::Execute on MPI device.");
   }else{
 	#ifdef USE_PROFILER
 	  WallTimer memory_timer;
@@ -172,9 +150,7 @@ void ThreadedDevice::Execute(Task* task, int thrid) {
   }//end kCpu || kGpu
 
 #ifdef HAS_MPI
-  //printf("MinervaSystem::has_mpi_: %d ; rank_: %d \n",MinervaSystem::has_mpi_, rank_);
   if(MinervaSystem::has_mpi_ == 1 && MinervaSystem::Instance().rank() != 0){
-	  //printf("Worker rank notifying handler of task completion\n");
 	  MinervaSystem::Instance().mpi_handler().FinalizeTask(task->id);
   }else{
 	  //DLOG(INFO) << Name() << " notifying listener of completed task\n";
