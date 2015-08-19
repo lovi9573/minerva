@@ -34,7 +34,7 @@ void ExecutionProfiler::Reset() {
 }
 
 void ExecutionProfiler::PrintResult() {
-  if (time.size() > 0){
+  if (time_.size() > 0){
 	  printf("%33s|%6sMemory%8sCalculation%8sCount\n", "", "", "", "");
 	  for (int i = 0; i < 33; ++i) {
 		printf("-");
@@ -54,7 +54,7 @@ void ExecutionProfiler::PrintResult() {
 	  printf("All Mem Time: %16f  All Cal Time: % 16f  All Time: %16f\n", allmemtime, allcaltime ,allmemtime + allcaltime);
   }
 #ifdef FIXED_POINT
-  FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_FRACTION_WIDTH_N>::Report();
+  FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_WORD_LENGTH_N,FIXED_POINT_FRACTION_WIDTH_N>::Report();
 #endif
 }
 

@@ -6,7 +6,8 @@
  */
 
 
-#define FIXED_POINT_FRACTION_WIDTH_N 14
+#define FIXED_POINT_FRACTION_WIDTH_N 12
+#define FIXED_POINT_WORD_LENGTH_N 15
 #define FIXED_POINT_TYPE int16_t
 #define FIXED_POINT_DOUBLE_WIDE_TYPE int32_t
 
@@ -54,7 +55,7 @@ TEST(FixedPoint, AddMaxFracW){
 	float EPSILON  = getEpsilon(FRACW);
 	float MAX = getMax(FRACW);
 	//float MIN = getMin(FRACW);
-	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FRACW> FP;
+	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_WORD_LENGTH_N,FRACW> FP;
 	float a = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
 	float b = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
 	float c = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
@@ -74,7 +75,7 @@ TEST(FixedPoint, AddMinFracW){
 	float MAX = getMax(FRACW);
 	//printf("MAX: %f", MAX);
 	//float MIN = getMin(FRACW);
-	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FRACW> FP;
+	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_WORD_LENGTH_N,FRACW> FP;
 	float a = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
 	float b = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
 	float c = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
@@ -95,7 +96,7 @@ TEST(FixedPoint, AddInt){
 	float EPSILON  = getEpsilon(FRACW);
 	float MAX = getMax(FRACW);
 	//float MIN = getMin(FRACW);
-	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FRACW> FP;
+	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_WORD_LENGTH_N,FRACW> FP;
 	float a = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
 	float b = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
 	float c = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
@@ -118,7 +119,7 @@ TEST(FixedPoint, SubMaxFracW){
 	float MAX = getMax(FRACW);
 	//float MIN = getMin(FRACW);
 
-	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FRACW> FP;
+	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_WORD_LENGTH_N,FRACW> FP;
 	float a = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
 	float b = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
 	float c = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
@@ -139,7 +140,7 @@ TEST(FixedPoint, SubMinFracW){
 	float EPSILON  = getEpsilon(FRACW);
 	float MAX = getMax(FRACW);
 	//float MIN = getMin(FRACW);
-	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FRACW> FP;
+	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_WORD_LENGTH_N,FRACW> FP;
 	float a = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
 	float b = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
 	float c = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
@@ -159,7 +160,7 @@ TEST(FixedPoint, SubInt){
 	const int FRACW = 0;
 	float EPSILON  = getEpsilon(FRACW);
 	float MAX = getMax(FRACW);
-	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FRACW> FP;
+	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_WORD_LENGTH_N,FRACW> FP;
 	float a = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
 	float b = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
 	float c = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX/2);
@@ -182,7 +183,7 @@ TEST(FixedPoint, MulMaxFracW){
 	const int FRACW = 15;
 	float EPSILON  = getEpsilon(FRACW);
 	float MAX = getMax(FRACW);
-	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FRACW> FP;
+	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_WORD_LENGTH_N,FRACW> FP;
 	float a = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* sqrt(static_cast<float>(MAX));
 	float b = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* sqrt(static_cast<float>(MAX));
 	float c = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* sqrt(static_cast<float>(MAX));
@@ -199,7 +200,7 @@ TEST(FixedPoint, MulMinFracW){
 	const int FRACW = 1;
 	float EPSILON  = getEpsilon(FRACW);
 	float MAX = getMax(FRACW);
-	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FRACW> FP;
+	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_WORD_LENGTH_N,FRACW> FP;
 	float a = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* sqrt(static_cast<float>(MAX));
 	float b = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* sqrt(static_cast<float>(MAX));
 	float c = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* sqrt(static_cast<float>(MAX));
@@ -217,7 +218,7 @@ TEST(FixedPoint, MulInt){
 	const int FRACW = 0;
 	float EPSILON  = getEpsilon(FRACW);
 	float MAX = getMax(FRACW);
-	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FRACW> FP;
+	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_WORD_LENGTH_N,FRACW> FP;
 	float a = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* sqrt(static_cast<float>(MAX));
 	float b = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* sqrt(static_cast<float>(MAX));
 	float c = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* sqrt(static_cast<float>(MAX));
@@ -238,7 +239,7 @@ TEST(FixedPoint, DivMaxFracW){
 	const int FRACW = 15;
 	float EPSILON  = getEpsilon(FRACW);
 	float MAX = getMax(FRACW);
-	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FRACW> FP;
+	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_WORD_LENGTH_N,FRACW> FP;
 	float a = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX);
 	float b = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* (static_cast<float>(MAX) - a/static_cast<float>(MAX)) + a/static_cast<float>(MAX);
 	float c = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* (static_cast<float>(MAX) - a/static_cast<float>(MAX)) + a/static_cast<float>(MAX);
@@ -256,7 +257,7 @@ TEST(FixedPoint, DivMinFracW){
 	const int FRACW = 1;
 	float EPSILON  = getEpsilon(FRACW);
 	float MAX = getMax(FRACW);
-	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FRACW> FP;
+	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_WORD_LENGTH_N,FRACW> FP;
 	float a = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX);
 	float b = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* (static_cast<float>(MAX) - a/static_cast<float>(MAX)) + a/static_cast<float>(MAX);
 	float c = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* (static_cast<float>(MAX) - a/static_cast<float>(MAX)) + a/static_cast<float>(MAX);
@@ -274,7 +275,7 @@ TEST(FixedPoint, DivInt){
 	const int FRACW = 0;
 	float EPSILON  = getEpsilon(FRACW);
 	float MAX = getMax(FRACW);
-	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FRACW> FP;
+	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_WORD_LENGTH_N,FRACW> FP;
 	float a = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* static_cast<float>(MAX);
 	float b = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* (static_cast<float>(MAX) - a/static_cast<float>(MAX)) + a/static_cast<float>(MAX);
 	float c = (static_cast<float>(rand())/ static_cast<float>(RAND_MAX))* (static_cast<float>(MAX) - a/static_cast<float>(MAX)) + a/static_cast<float>(MAX);
@@ -294,7 +295,7 @@ TEST(FixedPoint, Overflow){
 	float EPSILON  = getEpsilon(FRACW);
 	float MAX = getMax(FRACW);
 	float min = getMin(FRACW);
-	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FRACW> FP;
+	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_WORD_LENGTH_N,FRACW> FP;
 	FP f0((float)(1 << (sizeof(FIXED_POINT_TYPE)*8 - FRACW -1)));
 	//printf("%f\n",(float)f0);
 	FP f1((float)(1 << (sizeof(FIXED_POINT_TYPE)*8 - FRACW -1)));
@@ -313,7 +314,7 @@ TEST(FixedPoint, DISABLED_Underflow){
 	float EPSILON  = getEpsilon(FRACW);
 	//float MAX = getMax(FRACW);
 	//float min = getMin(FRACW);
-	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FRACW> FP;
+	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_WORD_LENGTH_N,FRACW> FP;
 	FP f0(0.001f);
 	FP f1(123.0f);
 	FP r = f0 / f1;
@@ -324,7 +325,7 @@ TEST(FixedPoint, DISABLED_Underflow){
 
 TEST(FixedPoint, Equality){
 	const int FRACW = 8;
-	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FRACW> FP;
+	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_WORD_LENGTH_N,FRACW> FP;
 	FP f0(0.13f);
 	FP f1(0.13f);
 	EXPECT_TRUE(f0 == f1);
@@ -334,7 +335,7 @@ TEST(FixedPoint, Equality){
 }
 
 TEST(FixedPoint, Print){
-	FixedPoint<int32_t,int16_t,8> printtest(123.45678f);
+	FixedPoint<int32_t,int16_t,15,8> printtest(123.45678f);
 	std::vector<std::string> expected = {"123.457","123.453"};
 	if(std::find(expected.begin(), expected.end(), printtest.str()) != expected.end()){
 		SUCCEED();

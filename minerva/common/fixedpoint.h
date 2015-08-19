@@ -17,15 +17,15 @@
 #include <stdint.h>
 
 
-template<typename MULTYPE, typename TYPE, int FRACW>
+template<typename MULTYPE, typename TYPE, int WORDLEN, int FRACW>
 class FixedPoint{
 public:
 	TYPE value;
 
 	//static const MULTYPE MAXVAL = ~(((MULTYPE)~0) << ((sizeof(TYPE)*8)-1));
 	//static const MULTYPE MINVAL = -(MULTYPE)(((TYPE)1) << ((sizeof(TYPE)*8)-1));
-	static const MULTYPE MAXVAL =  ((MULTYPE)1 << ((sizeof(TYPE)*8) -1))-1;
-	static const MULTYPE MINVAL = -((MULTYPE)1 << ((sizeof(TYPE)*8) -1));
+	static const MULTYPE MAXVAL =  ((MULTYPE)1 << (WORDLEN ))-1;
+	static const MULTYPE MINVAL = -((MULTYPE)1 << (WORDLEN ));
 	//static const MULTYPE MINPREC =     (MULTYPE)1 << FRACW;
 	static const TYPE FRACTION_MASK = ((TYPE)1 << FRACW) - 1;
 
@@ -190,12 +190,12 @@ private:
 
 };
 
-template<typename MULTYPE, typename TYPE, int FRACW>
-uint64_t FixedPoint<MULTYPE,TYPE,FRACW>::n_MaxTruncs = 0;
-template<typename MULTYPE, typename TYPE, int FRACW>
-uint64_t FixedPoint<MULTYPE,TYPE,FRACW>::n_MinTruncs = 0;
-template<typename MULTYPE, typename TYPE, int FRACW>
-uint64_t FixedPoint<MULTYPE,TYPE,FRACW>::n_UnderFlows = 0;
+template<typename MULTYPE, typename TYPE, int WORDLEN, int FRACW>
+uint64_t FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW>::n_MaxTruncs = 0;
+template<typename MULTYPE, typename TYPE, int WORDLEN, int FRACW>
+uint64_t FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW>::n_MinTruncs = 0;
+template<typename MULTYPE, typename TYPE, int WORDLEN, int FRACW>
+uint64_t FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW>::n_UnderFlows = 0;
 
 #endif /* fixed point */
 

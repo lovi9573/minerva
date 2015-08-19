@@ -12,7 +12,7 @@
 
 
 #if defined(FIXED_POINT) || defined(HAS_FPGA)
-	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE, FIXED_POINT_TYPE, FIXED_POINT_FRACTION_WIDTH_N> element_t;
+	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE, FIXED_POINT_TYPE, FIXED_POINT_WORD_LENGTH_N, FIXED_POINT_FRACTION_WIDTH_N> element_t;
 #else
 	typedef float element_t;
 #endif

@@ -4,6 +4,8 @@
 using namespace std;
 using namespace minerva;
 
+#ifndef FIXED_POINT
+
 TEST(ArithmeticConst, CpuAdd) {
   auto& ms = MinervaSystem::Instance();
   ms.SetDevice(cpu_device);
@@ -127,3 +129,5 @@ TEST(ArithmeticConst, GpuDiv) {
   }
 }
 #endif
+
+#endif //FIXED_POINT

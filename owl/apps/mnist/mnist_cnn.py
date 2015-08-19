@@ -139,9 +139,9 @@ def multi_dev_merge(l, base, layer):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='MNIST CNN')
-    parser.add_argument('-g', '--gpu', help='use gpus', action='store_true', type=int, default=0)
-    parser.add_argument('-m', '--mpi', help='use mpi', action='store_true', type=int, default=0)
-    (args, remain) = parser.parse_args()
+    parser.add_argument('-g', '--gpu', help='use gpus', action='store_true', default=0)
+    parser.add_argument('-m', '--mpi', help='use mpi', action='store_true',  default=0)
+    args = parser.parse_args()
     #assert(1 <= args.num)
     usempi = False
     if args.mpi == 1:
@@ -154,13 +154,17 @@ if __name__ == '__main__':
     if usempi:
         nodes = owl.get_mpi_node_count()
         if usegpu:
+            print "Using MPI GPU's"
             devs += [owl.create_mpi_device(i,d) for i in range(nodes) for d in owl.get_mpi_device_count(i)]
         else:
+            print "Using MPI nodes"
             devs += [owl.create_mpi_device(i,0) for i in range(nodes)]
     else:
         if usegpu:
+            print "Using available GPU's"
             devs += [owl.create_gpu_device(i) for i in range(owl.get_gpu_device_count())]
         else:
+            print "Using CPU only"
             pass
     owl.set_device(devs[0])
     model = MNISTCNNModel()

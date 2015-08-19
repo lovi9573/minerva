@@ -7,6 +7,7 @@
 
 
 #define FIXED_POINT_FRACTION_WIDTH_N 14
+#define FIXED_POINT_WORD_LENGTH_N 15
 #define FIXED_POINT_TYPE int16_t
 #define FIXED_POINT_DOUBLE_WIDE_TYPE int32_t
 
@@ -34,8 +35,8 @@ double get_wall_time(){
 #define SINGLETYPE int16_t
 #define DOUBLETYPE int32_t
 
-typedef FixedPoint<DOUBLETYPE,SINGLETYPE,0> FP;
-typedef FixedPoint<DOUBLETYPE,SINGLETYPE,FRACTION_WIDTH> FP8;
+typedef FixedPoint<DOUBLETYPE,SINGLETYPE,15,0> FP;
+typedef FixedPoint<DOUBLETYPE,SINGLETYPE,FIXED_POINT_WORD_LENGTH_N,FRACTION_WIDTH> FP8;
 
 #define MAXM(X, Y) (((X) > (Y)) ? (X) : (Y))
 
