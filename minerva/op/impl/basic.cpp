@@ -520,11 +520,12 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 	//int top_channel_stride = top_size[1]*top_size[0];
 	//int top_image_stride = top_size[2]*top_size[1]*top_size[0];
 
-	/*
+/*
 	for(int i = 0; i < top_size.Prod(); i++){
 		top[i] = 0.0f;
 	}
-	*/
+*/
+	//printf("bottom #channels: %d\n",bottom_size[2]);
 
     int pad_height = closure.pad_height;
     int pad_width = closure.pad_width;
@@ -543,12 +544,19 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 					for(int channel =0; channel < bottom_size[2]; channel++){
 						for(int filter_y = 0; filter_y < filtersize[1]; filter_y++){
 							for(int filter_x = 0; filter_x < filtersize[0]; filter_x++){
-								if(x >= 0 && x < top_size[0] && y >= 0 && y < top_size[1]){
-									if(x+filter_x < bottom_size[0] && y+filter_y < bottom_size[1]){
-										int inindex = (x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*element ;
-										int filter_index = (filtersize[0] -1 -filter_x)+filter_column_stride*(filtersize[1] -1 -filter_y)+filter_channel_stride*channel+filter_offset;
-										top[outindex ] += bottom[inindex] * filters[filter_index] ;
+								//printf("\tx+filter_x: %d, y+filter_y: %d\n",x+filter_x, y+filter_y);
+								if(x+filter_x >= 0  && y+filter_y >= 0 && x+filter_x < bottom_size[0] && y+filter_y < bottom_size[1]){
+									//printf("IN %d\n",outindex);
+									int inindex = (x+filter_x)+bottom_column_stride*(y+filter_y)+bottom_channel_stride*channel+bottom_image_stride*element ;
+									int filter_index = (filtersize[0] -1 -filter_x)+filter_column_stride*(filtersize[1] -1 -filter_y)+filter_channel_stride*channel+filter_offset;
+									top[outindex ] += bottom[inindex] * filters[filter_index] ;
+									/*
+									if(outindex == 4){
+										printf("filter: (%d,%d) %f * bottom: (%d,%d) %f\n",
+												x +filter_x, y + filter_y,filters[filter_index],
+												filter_x, filter_y,bottom[inindex]);
 									}
+									*/
 								}
 							}
 						}

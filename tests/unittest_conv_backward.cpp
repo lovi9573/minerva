@@ -809,7 +809,7 @@ TEST(ConvBackwardFilter, CpuWithPaddingSmall) {
   ImageBatch bottom = NArray::MakeNArray(bottom_size, bottom_ptr);
 
   ConvInfo conv_info(3, 2, 3, 2);
-  ms.SetDevice(gpu_device);
+
   ImageBatch output = Convolution::ConvBackwardFilter(input, bottom, weight, conv_info);
   auto output_ptr = output.Get();
   for (int i = 0; i < correct_size.Prod(); ++i) {

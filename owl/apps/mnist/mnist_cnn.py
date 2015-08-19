@@ -11,34 +11,41 @@ lazy_cycle = 4
 
 class MNISTCNNModel:
     def __init__(self):
+        self.filters = [8,16]  
+        self.filtersizes = [5,5]
+        n = pow((((28-self.filtersizes[0] - 1)/2)/2 -self.filtersizes[1] - 1)/2/2, 2)*self.filters[-1]     
         self.convs = [
             conv.Convolver(0, 0, 1, 1),
-            conv.Convolver(2, 2, 1, 1),
+            conv.Convolver(0, 0, 1, 1),
         ];
         self.poolings = [
             conv.Pooler(2, 2, 2, 2, 0, 0, conv.pool_op.max),
-            conv.Pooler(3, 3, 3, 3, 0, 0, conv.pool_op.max)
+            conv.Pooler(2, 2, 2, 2, 0, 0, conv.pool_op.max)
         ];
 
     def init_random(self):
         self.weights = [
-            owl.randn([5, 5, 1, 16], 0.0, 0.1),
-            owl.randn([5, 5, 16, 32], 0.0, 0.1),
-            owl.randn([10, 512], 0.0, 0.1)
+            owl.randn([self.filtersizes[0], self.filtersizes[0], 1, self.filters[0]], 0.0, 0.1),
+            owl.randn([self.filtersizes[1], self.filtersizes[1], self.filters[0], self.filters[1]], 0.0, 0.1),
+            owl.randn([128, 256], 0.0, 0.1),
+            owl.randn([10, 128], 0.0, 0.1)
         ];
         self.weightdelta = [
-            owl.zeros([5, 5, 1, 16]),
-            owl.zeros([5, 5, 16, 32]),
-            owl.zeros([10, 512])
+            owl.zeros([self.filtersizes[0], self.filtersizes[0], 1, self.filters[0]]),
+            owl.zeros([self.filtersizes[1], self.filtersizes[1], self.filters[0], self.filters[1]]),
+            owl.zeros([128, 256]),
+            owl.zeros([10, 128])
         ];
         self.bias = [
-            owl.zeros([16]),
-            owl.zeros([32]),
+            owl.zeros([self.filters[0]]),
+            owl.zeros([self.filters[1]]),
+            owl.zeros([128, 1]),
             owl.zeros([10, 1])
         ];
         self.biasdelta = [
-            owl.zeros([16]),
-            owl.zeros([32]),
+            owl.zeros([self.filters[0]]),
+            owl.zeros([self.filters[1]]),
+            owl.zeros([128, 1]),
             owl.zeros([10, 1])
         ];
 
@@ -49,9 +56,9 @@ def print_training_accuracy(o, t, mbsize, prefix):
     print prefix, 'error: {}'.format((mbsize - correct) * 1.0 / mbsize)
 
 def bpprop(model, samples, label):
-    num_layers = 6
+    num_layers = 7
     num_samples = samples.shape[-1]
-    fc_shape = [512, num_samples]
+    fc_shape = [256, num_samples]
 
     acts = [None] * num_layers
     errs = [None] * num_layers
@@ -64,15 +71,19 @@ def bpprop(model, samples, label):
     acts[3] = ele.relu(model.convs[1].ff(acts[2], model.weights[1], model.bias[1]))
     acts[4] = model.poolings[1].ff(acts[3])
     acts[5] = model.weights[2] * acts[4].reshape(fc_shape) + model.bias[2]
+    acts[6] = model.weights[3] * acts[5] + model.bias[3]
 
-    out = conv.softmax(acts[5], conv.soft_op.instance)
+    out = conv.softmax(acts[6], conv.soft_op.instance)
 
-    errs[5] = out - label
+    errs[6] = out - label
+    errs[5] = (model.weights[3].trans() * errs[6]).reshape(acts[5].shape)
     errs[4] = (model.weights[2].trans() * errs[5]).reshape(acts[4].shape)
     errs[3] = ele.relu_back(model.poolings[1].bp(errs[4], acts[4], acts[3]), acts[3])
     errs[2] = model.convs[1].bp(errs[3], acts[2], model.weights[1])
     errs[1] = ele.relu_back(model.poolings[0].bp(errs[2], acts[2], acts[1]), acts[1])
-
+  
+    weightgrad[3] = errs[6] * acts[5].trans()
+    biasgrad[3] = errs[6].sum(1)  
     weightgrad[2] = errs[5] * acts[4].reshape(fc_shape).trans()
     biasgrad[2] = errs[5].sum(1)
     weightgrad[1] = model.convs[1].weight_grad(errs[3], acts[2], model.weights[1])
