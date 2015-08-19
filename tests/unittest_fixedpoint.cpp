@@ -322,6 +322,16 @@ TEST(FixedPoint, DISABLED_Underflow){
 	EXPECT_NEAR((float)r ,EPSILON, EPSILON/2);
 }
 
+TEST(FixedPoint, Equality){
+	const int FRACW = 8;
+	typedef FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FRACW> FP;
+	FP f0(0.13f);
+	FP f1(0.13f);
+	EXPECT_TRUE(f0 == f1);
+	FP f2(0.000000013f);
+	FP f3(0.000000013f);
+	EXPECT_TRUE(f2 == f3);
+}
 
 TEST(FixedPoint, Print){
 	FixedPoint<int32_t,int16_t,8> printtest(123.45678f);
