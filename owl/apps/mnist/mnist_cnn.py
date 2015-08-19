@@ -121,7 +121,7 @@ def train_network(model, num_epochs=100, minibatch_size=256, lr=0.1, lr_decay= 0
                     model.weights[k] += model.weightdelta[k]
                     model.bias[k] += model.biasdelta[k]
                 if count % (len(devs) * lazy_cycle) == 0:
-                    print_training_accuracy(out, label, num_samples, 'Training')
+                    print_training_accuracy(out, label, num_samples, 'Training ' + str(count))
                     owl.print_profiler_result()
         print '---End of Epoch #', i, 'time:', time.time() - last
         lr = lr*lr_decay

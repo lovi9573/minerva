@@ -1,0 +1,55 @@
+Q.6.14
+Using CPU only
+Training data: 235 mini-batches
+Test data: 10000 samples
+(256, 10)
+---Epoch # 0
+Training error: 0.6875 : Maximum Overflows: 2049 : Minimum Overflows: 0 : Underflows: 667944954
+Training error: 0.32421875 : Maximum Overflows: 2823 : Minimum Overflows: 154 : Underflows: 1449172040
+Training error: 0.3046875 : Maximum Overflows: 55867 : Minimum Overflows: 8650 : Underflows: 2267190367
+Training error: 0.1875 : Maximum Overflows: 70037 : Minimum Overflows: 19150 : Underflows: 3193707943
+Training error: 0.140625 : Maximum Overflows: 70385 : Minimum Overflows: 19150 : Underflows: 4223726107
+Training error: 0.125 : Maximum Overflows: 71506 : Minimum Overflows: 19150 : Underflows: 5350027898
+Training error: 0.09375 : Maximum Overflows: 73442 : Minimum Overflows: 19150 : Underflows: 6448491907
+Training error: 0.0703125 : Maximum Overflows: 73442 : Minimum Overflows: 19150 : Underflows: 7565872716
+Training error: 0.078125 : Maximum Overflows: 73509 : Minimum Overflows: 19150 : Underflows: 8693712938
+Training error: 0.0390625 : Maximum Overflows: 73509 : Minimum Overflows: 19150 : Underflows: 9828158311
+Training error: 0.09765625 : Maximum Overflows: 73509 : Minimum Overflows: 19150 : Underflows: 10984401987
+Training error: 0.03515625 : Maximum Overflows: 73509 : Minimum Overflows: 19150 : Underflows: 12141043067
+Training error: 0.0625 : Maximum Overflows: 73509 : Minimum Overflows: 19150 : Underflows: 13309639418
+Training error: 0.07421875 : Maximum Overflows: 73509 : Minimum Overflows: 19150 : Underflows: 14486905027
+Training error: 0.05078125 : Maximum Overflows: 73509 : Minimum Overflows: 19150 : Underflows: 15635701530
+Training error: 0.05078125 : Maximum Overflows: 73509 : Minimum Overflows: 19150 : Underflows: 16792170724
+Training error: 0.03515625 : Maximum Overflows: 73509 : Minimum Overflows: 19150 : Underflows: 17971633106
+Training error: 0.06640625 : Maximum Overflows: 73509 : Minimum Overflows: 19150 : Underflows: 19149693009
+Training error: 0.0703125 : Maximum Overflows: 73509 : Minimum Overflows: 19150 : Underflows: 20307811378
+Training error: 0.046875 : Maximum Overflows: 74042 : Minimum Overflows: 19150 : Underflows: 21465313611
+Training error: 0.03515625 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 22640751897
+Training error: 0.03515625 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 23834657158
+Training error: 0.05078125 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 25031850644
+Training error: 0.01953125 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 26198266841
+Training error: 0.03515625 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 27362499980
+Training error: 0.03125 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 28529127627
+Training error: 0.03515625 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 29717679143
+Training error: 0.0625 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 30917096643
+Training error: 0.0390625 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 32115124040
+Training error: 0.04296875 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 33298592043
+Training error: 0.015625 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 34487486236
+Training error: 0.05078125 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 35664214186
+Training error: 0.0390625 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 36854208682
+Training error: 0.03515625 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 38056346344
+Training error: 0.02734375 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 39254787365
+Training error: 0.03515625 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 40448213257
+Training error: 0.02734375 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 41632763860
+Training error: 0.04296875 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 42824017802
+Training error: 0.0234375 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 44004521876
+Training error: 0.01171875 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 45173180680
+Training error: 0.015625 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 46353876947
+Training error: 0.0234375 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 47550880508
+Training error: 0.0390625 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 48750726681
+Training error: 0.0390625 : Maximum Overflows: 75371 : Minimum Overflows: 19150 : Underflows: 49919200355
+Training error: 0.01953125 : Maximum Overflows: 75706 : Minimum Overflows: 19150 : Underflows: 51096521699
+Training error: 0.03515625 : Maximum Overflows: 75706 : Minimum Overflows: 19150 : Underflows: 52291042331
+Training error: 0.04296875 : Maximum Overflows: 75706 : Minimum Overflows: 19150 : Underflows: 53489963313
+Training error: 0.03125 : Maximum Overflows: 75706 : Minimum Overflows: 19150 : Underflows: 54679983448
+
