@@ -34,23 +34,25 @@ void ExecutionProfiler::Reset() {
 }
 
 void ExecutionProfiler::PrintResult() {
-  printf("%33s|%6sMemory%8sCalculation%8sCount\n", "", "", "", "");
-  for (int i = 0; i < 33; ++i) {
-    printf("-");
+  if (time.size() > 0){
+	  printf("%33s|%6sMemory%8sCalculation%8sCount\n", "", "", "", "");
+	  for (int i = 0; i < 33; ++i) {
+		printf("-");
+	  }
+	  printf("|");
+	  for (int i = 0; i < 34; ++i) {
+		printf("-");
+	  }
+	  printf("\n");
+	  float allmemtime = 0;
+	  float allcaltime = 0;
+	  for (auto it : time_) {
+		printf("%32.32s | %16f %16f %16d\n", it.first.c_str(), it.second[0], it.second[1], static_cast<int>(it.second[2]));
+		allmemtime += it.second[0];
+		allcaltime += it.second[1];
+	  }
+	  printf("All Mem Time: %16f  All Cal Time: % 16f  All Time: %16f\n", allmemtime, allcaltime ,allmemtime + allcaltime);
   }
-  printf("|");
-  for (int i = 0; i < 34; ++i) {
-    printf("-");
-  }
-  printf("\n");
-  float allmemtime = 0;
-  float allcaltime = 0;
-  for (auto it : time_) {
-    printf("%32.32s | %16f %16f %16d\n", it.first.c_str(), it.second[0], it.second[1], static_cast<int>(it.second[2]));
-	allmemtime += it.second[0];
-	allcaltime += it.second[1];
-  }
-  printf("All Mem Time: %16f  All Cal Time: % 16f  All Time: %16f\n", allmemtime, allcaltime ,allmemtime + allcaltime);
 #ifdef FIXED_POINT
   FixedPoint<FIXED_POINT_DOUBLE_WIDE_TYPE,FIXED_POINT_TYPE,FIXED_POINT_FRACTION_WIDTH_N>::Report();
 #endif

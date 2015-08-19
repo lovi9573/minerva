@@ -33,6 +33,7 @@ class GpuDevice : public ThreadedDevice {
   void DoExecute(const DataList&, const DataList&, PhysicalOp&, int) override;
   void DoExecute(Task* task, int thrid) override;
 //  void DoExecute(Task* task, int thrid) override;
+
 };
 #endif
 

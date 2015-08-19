@@ -11,8 +11,10 @@ lazy_cycle = 4
 
 class MNISTCNNModel:
     def __init__(self):
+        self.layers = 7 #includeing input layer
         self.filters = [8,16]  
         self.filtersizes = [5,5]
+        self.convolution_output_size = 256
         n = pow((((28-self.filtersizes[0] - 1)/2)/2 -self.filtersizes[1] - 1)/2/2, 2)*self.filters[-1]     
         self.convs = [
             conv.Convolver(0, 0, 1, 1),
@@ -27,13 +29,13 @@ class MNISTCNNModel:
         self.weights = [
             owl.randn([self.filtersizes[0], self.filtersizes[0], 1, self.filters[0]], 0.0, 0.1),
             owl.randn([self.filtersizes[1], self.filtersizes[1], self.filters[0], self.filters[1]], 0.0, 0.1),
-            owl.randn([128, 256], 0.0, 0.1),
+            owl.randn([128, self.convolution_output_size], 0.0, 0.1),
             owl.randn([10, 128], 0.0, 0.1)
         ];
         self.weightdelta = [
             owl.zeros([self.filtersizes[0], self.filtersizes[0], 1, self.filters[0]]),
             owl.zeros([self.filtersizes[1], self.filtersizes[1], self.filters[0], self.filters[1]]),
-            owl.zeros([128, 256]),
+            owl.zeros([128, self.convolution_output_size]),
             owl.zeros([10, 128])
         ];
         self.bias = [
@@ -56,9 +58,9 @@ def print_training_accuracy(o, t, mbsize, prefix):
     print prefix, 'error: {}'.format((mbsize - correct) * 1.0 / mbsize)
 
 def bpprop(model, samples, label):
-    num_layers = 7
+    num_layers = model.layers
     num_samples = samples.shape[-1]
-    fc_shape = [256, num_samples]
+    fc_shape = [model.convolution_output_size, num_samples]
 
     acts = [None] * num_layers
     errs = [None] * num_layers
@@ -92,9 +94,9 @@ def bpprop(model, samples, label):
     biasgrad[0] = model.convs[0].bias_grad(errs[1])
     return (out, weightgrad, biasgrad)
 
-def train_network(model, num_epochs=100, minibatch_size=256, lr=0.01, mom=0.75, wd=5e-4):
+def train_network(model, num_epochs=100, minibatch_size=256, lr=0.1, lr_decay= 0.95, mom=0.9, wd=5e-4):
     # load data
-    (train_data, test_data) = mnist_io.load_mb_from_mat('mnist_all.mat', minibatch_size / len(gpu))
+    (train_data, test_data) = mnist_io.load_mb_from_mat('mnist_all.mat', minibatch_size / len(devs))
     num_test_samples = test_data[0].shape[0]
     test_samples = owl.from_numpy(test_data[0]).reshape([28, 28, 1, num_test_samples])
     test_labels = owl.from_numpy(test_data[1])
@@ -102,46 +104,65 @@ def train_network(model, num_epochs=100, minibatch_size=256, lr=0.01, mom=0.75, 
         print "---Epoch #", i
         last = time.time()
         count = 0
-        weightgrads = [None] * len(gpu)
-        biasgrads = [None] * len(gpu)
+        weightgrads = [None] * len(devs)
+        biasgrads = [None] * len(devs)
         for (mb_samples, mb_labels) in train_data:
             count += 1
-            current_gpu = count % len(gpu)
-            owl.set_device(gpu[current_gpu])
+            current_dev = count % len(devs)
+            owl.set_device(devs[current_dev])
             num_samples = mb_samples.shape[0]
             data = owl.from_numpy(mb_samples).reshape([28, 28, 1, num_samples])
             label = owl.from_numpy(mb_labels)
-            out, weightgrads[current_gpu], biasgrads[current_gpu] = bpprop(model, data, label)
-            if current_gpu == 0:
+            out, weightgrads[current_dev], biasgrads[current_dev] = bpprop(model, data, label)
+            if current_dev == 0:
                 for k in range(len(model.weights)):
-                    model.weightdelta[k] = mom * model.weightdelta[k] - lr / num_samples / len(gpu) * multi_gpu_merge(weightgrads, 0, k) - lr * wd * model.weights[k]
-                    model.biasdelta[k] = mom * model.biasdelta[k] - lr / num_samples / len(gpu) * multi_gpu_merge(biasgrads, 0, k)
+                    model.weightdelta[k] = mom * model.weightdelta[k] - lr / num_samples / len(devs) * multi_dev_merge(weightgrads, 0, k) - lr * wd * model.weights[k]
+                    model.biasdelta[k] = mom * model.biasdelta[k] - lr / num_samples / len(devs) * multi_dev_merge(biasgrads, 0, k)
                     model.weights[k] += model.weightdelta[k]
                     model.bias[k] += model.biasdelta[k]
-                if count % (len(gpu) * lazy_cycle) == 0:
+                if count % (len(devs) * lazy_cycle) == 0:
                     print_training_accuracy(out, label, num_samples, 'Training')
+                    owl.print_profiler_result()
         print '---End of Epoch #', i, 'time:', time.time() - last
+        lr = lr*lr_decay
         # do test
         out, _, _  = bpprop(model, test_samples, test_labels)
         print_training_accuracy(out, test_labels, num_test_samples, 'Testing')
 
-def multi_gpu_merge(l, base, layer):
+def multi_dev_merge(l, base, layer):
     if len(l) == 1:
         return l[0][layer]
-    left = multi_gpu_merge(l[:len(l) / 2], base, layer)
-    right = multi_gpu_merge(l[len(l) / 2:], base + len(l) / 2, layer)
+    left = multi_dev_merge(l[:len(l) / 2], base, layer)
+    right = multi_dev_merge(l[len(l) / 2:], base + len(l) / 2, layer)
     owl.set_device(base)
     return left + right
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='MNIST CNN')
-    parser.add_argument('-n', '--num', help='number of GPUs to use', action='store', type=int, default=1)
-    (args, remain) = parser.parse_known_args()
-    assert(1 <= args.num)
-    print 'Using %d GPU(s)' % args.num
-    gpu = [owl.create_gpu_device(i) for i in range(args.num)]
-    #owl.set_device(gpu[0])
-    owl.set_device(owl.create_cpu_device())
+    parser.add_argument('-g', '--gpu', help='use gpus', action='store_true', type=int, default=0)
+    parser.add_argument('-m', '--mpi', help='use mpi', action='store_true', type=int, default=0)
+    (args, remain) = parser.parse_args()
+    #assert(1 <= args.num)
+    usempi = False
+    if args.mpi == 1:
+        usempi = True
+    usegpu = False
+    if args.gpu == 1:
+        usegpu = True
+        
+    devs = [owl.create_cpu_device()]
+    if usempi:
+        nodes = owl.get_mpi_node_count()
+        if usegpu:
+            devs += [owl.create_mpi_device(i,d) for i in range(nodes) for d in owl.get_mpi_device_count(i)]
+        else:
+            devs += [owl.create_mpi_device(i,0) for i in range(nodes)]
+    else:
+        if usegpu:
+            devs += [owl.create_gpu_device(i) for i in range(owl.get_gpu_device_count())]
+        else:
+            pass
+    owl.set_device(devs[0])
     model = MNISTCNNModel()
     model.init_random()
     train_network(model)

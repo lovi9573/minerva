@@ -36,7 +36,7 @@ public:
 
 	/* Constructors */
 	FixedPoint():value(0){}
-	FixedPoint(int v):value((TYPE)(v<<FRACW)){}
+	//FixedPoint(int v):value((TYPE)(v<<FRACW)){}
 	inline FixedPoint(double v):value(0){
 		MULTYPE multiplier = ((MULTYPE)1)<< (2*FRACW);
 		value = (TYPE)trunc(round(v*multiplier) >> FRACW);

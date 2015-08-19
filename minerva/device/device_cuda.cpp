@@ -131,5 +131,6 @@ void GpuDevice::DoExecute(Task* task, int thrid){
 }
 #endif
 
+
 }  // namespace minerva
 
