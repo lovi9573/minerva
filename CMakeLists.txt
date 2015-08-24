@@ -43,13 +43,13 @@ endfunction()
 function(check_mpi_cuda_support)  
     EXECUTE_PROCESS(COMMAND ompi_info "--parsable" "-l" "9" "--all"
                     COMMAND grep "mpi_built_with_cuda_support:value"
-                    COMMAND awk "BEGIN {FS = \":\"} ; {print $7}"
+                    COMMAND awk "BEGIN {FS = \":\"} ; {printf $7}"
                     OUTPUT_VARIABLE TEMP)            
-    if(TEMP EQUAL "true")
+    if(TEMP STREQUAL "true")
         set(MPI_CUDA_SUPPORT 1)
-    else(TEMP EQUAL "true")
+    else()
         message(FATAL_ERROR "MPI implementation is not cuda-aware")
-    endif(TEMP EQUAL "true")
+    endif()
 endfunction()
 
 function(find_ps)
