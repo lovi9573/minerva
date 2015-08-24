@@ -58,10 +58,6 @@ HT_MODEL_TYPE=sysc
 # enable fixed point calculations
 # Note: This will override compiling with Gpu support.
 FIXED_POINT=1
-# C type to hold intermediate multiplication results
-FIXED_POINT_DOUBLE_WIDE_TYPE=int64_t
-# C type used to hold the fixed point representation
-FIXED_POINT_TYPE=int32_t
 # Word length excluding the sign bit.
 FIXED_POINT_WORD_LENGTH_N=20
 # bit width of the fractional part.
@@ -78,3 +74,8 @@ if [ $BUILD_WITH_MPI -eq 1 ]; then
 	CXX=mpicxx
 	CC=mpicc
 fi
+
+# C type to hold intermediate multiplication results
+FIXED_POINT_DOUBLE_WIDE_TYPE=int64_t
+# C type used to hold the fixed point representation
+FIXED_POINT_TYPE=int32_t

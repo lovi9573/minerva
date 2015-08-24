@@ -85,7 +85,7 @@ void MpiDevice::Execute(Task* task, int thrid){
 	PreExecute();
 	auto& op = task->op;
 	CHECK(op.compute_fn);
-	if(!FLAGS_no_execute) {
+
 	#ifdef USE_PROFILER
 		Barrier(thrid);
 		WallTimer calculate_timer;
@@ -103,6 +103,7 @@ void MpiDevice::Execute(Task* task, int thrid){
 	#endif
 	//DLOG(INFO) << Name() << " notifying listener of completed task\n";
 	listener_->OnOperationComplete(task);
+
 }
 
 

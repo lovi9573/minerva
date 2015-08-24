@@ -37,7 +37,7 @@ class NetTrainer:
             self.gpu = [owl.create_cpu_device()] 
             nodes = [owl.get_mpi_device_count(i) for i in range(owl.get_mpi_node_count())]
             for n in range(len(nodes)):
-                self.gpu +=  [owl.create_mpi_device(n,i) for i in range(nodes[n])]
+                self.gpu +=  [owl.create_mpi_device(n,i+1) for i in range(nodes[n])]
             self.num_gpu = len(self.gpu)
         else:
             self.gpu = [owl.create_cpu_device()] + [owl.create_gpu_device(i) for i in range(num_gpu)]
