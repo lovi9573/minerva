@@ -139,8 +139,8 @@ def multi_dev_merge(l, base, layer):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='MNIST CNN')
-    parser.add_argument('-g', '--gpu', help='use gpus',  default=0)
-    parser.add_argument('-m', '--mpi', help='use mpi',   default=0)
+    parser.add_argument('gpu', help='use gpus',  default=0)
+    parser.add_argument('mpi', help='use mpi', type=int,   default=0)
     args = parser.parse_args()
     #assert(1 <= args.num)
     usempi = False
