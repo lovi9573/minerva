@@ -167,8 +167,8 @@ if __name__ == '__main__':
             devs += [owl.create_mpi_device(i,d+1) for i in range(nodes) for d in owl.get_mpi_device_count(i)]
             print "Using {} MPI GPU's".format(len(devs))
         else:
-            print "Using MPI nodes"
             devs += [owl.create_mpi_device(i,0) for i in range(nodes)]
+            print "Using {} MPI nodes".format(len(devs))
     else:
         if usegpu:
             print "Using available GPU's"
