@@ -48,7 +48,7 @@ function(check_mpi_cuda_support)
     if(TEMP STREQUAL "true")
         set(MPI_CUDA_SUPPORT 1)
     else()
-        message(FATAL_ERROR "MPI implementation is not cuda-aware: |${TEMP}|")
+        message(FATAL_ERROR "MPI implementation is not cuda-aware")
     endif()
 endfunction()
 
