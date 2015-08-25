@@ -7,7 +7,7 @@ import owl
 import owl.elewise as ele
 import owl.conv as conv
 
-lazy_cycle = 4
+lazy_cycle = 1
 
 class MNISTCNNModel:
     def __init__(self):
@@ -98,9 +98,9 @@ def bpprop(model, samples, label):
     print "\tBackprop complete."
     return (out, weightgrad, biasgrad)
 
-def train_network(model, num_epochs=5, minibatch_size=256, lr=0.1, lr_decay= 0.95, mom=0.9, wd=5e-4):
+def train_network(filename, model, num_epochs=5, minibatch_size=256, lr=0.1, lr_decay= 0.95, mom=0.9, wd=5e-4):
     # load data
-    (train_data, test_data) = mnist_io.load_mb_from_mat('/home/jesselovitt/data/mnist/mnist_all.mat', minibatch_size / len(devs))
+    (train_data, test_data) = mnist_io.load_mb_from_mat(filename, minibatch_size / len(devs))
     print "Data loaded as numpy"
     num_test_samples = test_data[0].shape[0]
     test_samples = owl.from_numpy(test_data[0]).reshape([28, 28, 1, num_test_samples])
@@ -148,6 +148,7 @@ def multi_dev_merge(l, base, layer):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='MNIST CNN')
+    parser.add_argument('data_file', help='mnist.mat data file')
     parser.add_argument('gpu', help='use gpus', type=int,  default=0)
     parser.add_argument('mpi', help='use mpi', type=int,   default=0)
     args = parser.parse_args()
@@ -181,4 +182,4 @@ if __name__ == '__main__':
     print "Starting random initialization"
     model.init_random()
     print "Starting training"
-    train_network(model)
+    train_network(args.data_file,model)
