@@ -147,11 +147,13 @@ def multi_dev_merge(l, base, layer):
     return left + right
 
 if __name__ == '__main__':
+    print "Main start"
     parser = argparse.ArgumentParser(description='MNIST CNN')
     parser.add_argument('data_file', help='mnist.mat data file')
     parser.add_argument('gpu', help='use gpus', type=int,  default=0)
     parser.add_argument('mpi', help='use mpi', type=int,   default=0)
     args = parser.parse_args()
+    print "arguments parsed"
     #assert(1 <= args.num)
     usempi = False
     if args.mpi == 1:
@@ -159,8 +161,9 @@ if __name__ == '__main__':
     usegpu = False
     if args.gpu == 1:
         usegpu = True
-        
-    devs = [owl.create_cpu_device()]
+    
+    devs = []    
+    #devs = [owl.create_cpu_device()]
     if usempi:
         nodes = owl.get_mpi_node_count()
         if usegpu:

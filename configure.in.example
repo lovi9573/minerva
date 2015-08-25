@@ -75,7 +75,14 @@ if [ $BUILD_WITH_MPI -eq 1 ]; then
 	CC=mpicc
 fi
 
-# C type to hold intermediate multiplication results
-FIXED_POINT_DOUBLE_WIDE_TYPE=int64_t
-# C type used to hold the fixed point representation
-FIXED_POINT_TYPE=int32_t
+if [ "$FIXED_POINT_WORD_LENGTH_N" -gt 15 ]; then
+	# C type to hold intermediate multiplication results
+	FIXED_POINT_DOUBLE_WIDE_TYPE=int64_t
+	# C type used to hold the fixed point representation
+	FIXED_POINT_TYPE=int32_t
+else
+	# C type to hold intermediate multiplication results
+	FIXED_POINT_DOUBLE_WIDE_TYPE=int32_t
+	# C type used to hold the fixed point representation
+	FIXED_POINT_TYPE=int16_t
+fi
