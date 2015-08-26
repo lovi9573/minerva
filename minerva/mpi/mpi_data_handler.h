@@ -28,8 +28,10 @@ protected:
 	std::condition_variable mpi_request_complete_;
 	int rank_;
 private:
-	char* next_response_buffer;
-	uint64_t next_data_id;
+	char* pending_data_buffer;
+	uint64_t pending_data_id;
+	MPI_Request fulfillment_request;
+	int fulfillment_complete ;
 };
 
 } /* namespace minerva */

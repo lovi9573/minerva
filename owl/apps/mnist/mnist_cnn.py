@@ -7,7 +7,7 @@ import owl
 import owl.elewise as ele
 import owl.conv as conv
 
-lazy_cycle = 1
+lazy_cycle = 8
 
 class MNISTCNNModel:
     def __init__(self):
@@ -67,7 +67,6 @@ def bpprop(model, samples, label):
     weightgrad = [None] * len(model.weights)
     biasgrad = [None] * len(model.bias)
 
-    print "\tBackprop prep done"
     acts[0] = samples
     acts[1] = ele.relu(model.convs[0].ff(acts[0], model.weights[0], model.bias[0]))
     acts[2] = model.poolings[0].ff(acts[1])
@@ -75,7 +74,6 @@ def bpprop(model, samples, label):
     acts[4] = model.poolings[1].ff(acts[3])
     acts[5] = model.weights[2] * acts[4].reshape(fc_shape) + model.bias[2]
     acts[6] = model.weights[3] * acts[5] + model.bias[3]
-    print "\tForward activation done"
 
     out = conv.softmax(acts[6], conv.soft_op.instance)
 
@@ -85,7 +83,6 @@ def bpprop(model, samples, label):
     errs[3] = ele.relu_back(model.poolings[1].bp(errs[4], acts[4], acts[3]), acts[3])
     errs[2] = model.convs[1].bp(errs[3], acts[2], model.weights[1])
     errs[1] = ele.relu_back(model.poolings[0].bp(errs[2], acts[2], acts[1]), acts[1])
-    print "\tErrors computed."  
 
     weightgrad[3] = errs[6] * acts[5].trans()
     biasgrad[3] = errs[6].sum(1)  
@@ -95,17 +92,14 @@ def bpprop(model, samples, label):
     biasgrad[1] = model.convs[1].bias_grad(errs[3])
     weightgrad[0] = model.convs[0].weight_grad(errs[1], acts[0], model.weights[0])
     biasgrad[0] = model.convs[0].bias_grad(errs[1])
-    print "\tBackprop complete."
     return (out, weightgrad, biasgrad)
 
 def train_network(filename, model, num_epochs=5, minibatch_size=256, lr=0.1, lr_decay= 0.95, mom=0.9, wd=5e-4):
     # load data
     (train_data, test_data) = mnist_io.load_mb_from_mat(filename, minibatch_size / len(devs))
-    print "Data loaded as numpy"
     num_test_samples = test_data[0].shape[0]
     test_samples = owl.from_numpy(test_data[0]).reshape([28, 28, 1, num_test_samples])
     test_labels = owl.from_numpy(test_data[1])
-    print "Test Data imported to minerva format"
     for i in xrange(num_epochs):
         print "---Epoch #", i
         last = time.time()
@@ -115,14 +109,13 @@ def train_network(filename, model, num_epochs=5, minibatch_size=256, lr=0.1, lr_
         for (mb_samples, mb_labels) in train_data:
             count += 1
             current_dev = count % len(devs)
-            print "starting minibatch {} using device {}".format(count,current_dev)
             owl.set_device(devs[current_dev])
             num_samples = mb_samples.shape[0]
             data = owl.from_numpy(mb_samples).reshape([28, 28, 1, num_samples])
             label = owl.from_numpy(mb_labels)
-            print "\t[{}]Train Data imported to minerva format".format(count)
+            #print "\t[{}]Train Data imported to minerva format".format(count)
             out, weightgrads[current_dev], biasgrads[current_dev] = bpprop(model, data, label)
-            print "\t[{}]Backprop complete".format(count)
+            #print "\t[{}]Backprop complete".format(count)
             if current_dev == 0:
                 for k in range(len(model.weights)):
                     model.weightdelta[k] = mom * model.weightdelta[k] - lr / num_samples / len(devs) * multi_dev_merge(weightgrads, 0, k) - lr * wd * model.weights[k]
