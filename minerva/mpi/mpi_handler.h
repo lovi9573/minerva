@@ -28,7 +28,7 @@ private:
 	void Handle_Device_Count(MPI_Status& );
 	void Handle_Create_Device(MPI_Status&);
 	void Handle_Task(MPI_Status&);
-	int rank_;
+
 };
 
 

@@ -10,6 +10,8 @@
 #include "mpi/mpi_handler.h"
 #include "system/minerva_system.h"
 #include <unistd.h>
+#include <thread>         // std::this_thread::sleep_for
+#include <chrono>
 
 
 namespace minerva {
@@ -26,7 +28,7 @@ namespace minerva {
 
 extern MPI_Datatype MPI_TASKDATA;
 
-MpiHandler::MpiHandler(int rank) : rank_ (rank){
+MpiHandler::MpiHandler(int rank) : MpiDataHandler(rank){
 	//printf("MpiHandler initialized on rank %d\n",rank);
 //	MPI_Init(0,NULL);
 //	rank_  = ::MPI::COMM_WORLD.Getrank_ ();
@@ -57,8 +59,8 @@ void MpiHandler::MainLoop(){
 			case MPI_TASK:
 				Handle_Task(status);
 				break;
-			case MPI_TASK_DATA:
-				Handle_Task_Data(status);
+			case MPI_TASK_DATA_RESPONSE:
+				Handle_Task_Data_Response(status);
 				break;
 			case MPI_TASK_DATA_REQUEST:
 				Handle_Task_Data_Request(status);

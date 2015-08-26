@@ -104,6 +104,14 @@ uint64_t MinervaSystem::CreateMpiDevice(int rank, int id ) {
 	}
 	CHECK(has_mpi_) << "Cannot create MPI device.  Recompile with MPI support.";
 	uint64_t device_id = UINT64_C(0xffffffffffffffff) ;
+	if(rank == 0){
+		if(id == 0){
+			return CreateCpuDevice();
+		}
+		else {
+			return CreateGpuDevice(id);
+		}
+	}
 #ifdef HAS_MPI
 	device_id =  MinervaSystem::Instance().device_manager().CreateMpiDevice(rank,id);
 	mpiserver_->CreateMpiDevice(rank, id, device_id);
@@ -131,9 +139,7 @@ void MinervaSystem::WorkerRun(){
 
 MinervaSystem::MinervaSystem(int* argc, char*** argv)
   : data_id_counter_(0), task_id_counter_(0), current_device_id_(0), rank_(0), worker_(false) {
-	printf("a\n");
   gflags::ParseCommandLineFlags(argc, argv, true);
-  printf("system args parsed\n");
 #ifndef HAS_PS
   // glog is initialized in PS::main, and also here, so we will hit a
   // double-initalize error when compiling with PS
@@ -144,7 +150,6 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
 #ifdef HAS_MPI
   	//Workaround for openMpi's failure to load modules.  Documented at the bottom of this file.
   	dlopen("libmpi.so", RTLD_NOW | RTLD_GLOBAL);
-  	printf("openmpi lib loaded\n");
 
   	int provided =MPI_THREAD_SERIALIZED ;
   	//MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
@@ -152,11 +157,8 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
 	if( provided != MPI_THREAD_SERIALIZED){
 		LOG(FATAL) << "Thread Serialized mpi support is needed.\n";
 	}
-	printf("mpi init done\n");
 
 	rank_ = ::MPI::COMM_WORLD.Get_rank();
-	printf("Rank %d loop starting\n",rank_);
-	fflush(stdout);
 	if(rank_ != 0){
 		worker_ = true;
 		mpihandler_ = new MpiHandler(rank_);
@@ -167,7 +169,6 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
 		std::thread t(&MpiServer::MainLoop, mpiserver_);
 		t.detach();
 	}
-	printf("Rank %d escape from MPI main loop \n",rank_);
 #endif
   physical_dag_ = new PhysicalDag();
   profiler_ = new ExecutionProfiler();

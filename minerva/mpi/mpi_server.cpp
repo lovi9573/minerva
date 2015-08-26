@@ -19,9 +19,13 @@ namespace minerva {
 
 MPI_Datatype MPI_TASKDATA;
 
+MpiServer::MpiServer(): MpiDataHandler(0){
+
+}
+
 void MpiServer::init(){
 //	MPI_Init(0,NULL);
-//	_rank = ::MPI::COMM_WORLD.Get_rank();
+//	rank_ = ::MPI::COMM_WORLD.Get_rank();
 	//_pendingTasks = ConcurrentUnorderedSet<uint64_t>();
 }
 
@@ -35,13 +39,19 @@ void MpiServer::MainLoop(){
 			MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &pending_message, &status);
 		}
 		if(pending_message){
-			DLOG(INFO) << "[" << _rank << "] Handling message " << status.MPI_TAG << ".\n";
+			DLOG(INFO) << "[" << rank_ << "] Handling message " << status.MPI_TAG ;
 			switch(status.MPI_TAG){
 			case MPI_TASK_DATA_REQUEST:
 				Handle_Task_Data_Request(status);
 				break;
+			case MPI_TASK_DATA_RESPONSE:
+				Handle_Task_Data_Response(status);
+				break;
 			case MPI_FINALIZE_TASK:
 				Handle_Finalize_Task(status);
+				break;
+			default:
+				Discard(status);
 				break;
 			}
 			pending_message = 0;
@@ -51,7 +61,7 @@ void MpiServer::MainLoop(){
 
 
 int MpiServer::rank(){
-	return _rank;
+	return rank_;
 }
 
 int MpiServer::GetMpiNodeCount(){
@@ -126,6 +136,15 @@ void MpiServer::Wait_On_Task(uint64_t task_id){
 	while(pending_tasks_.Count(task_id) > 0){
 		task_complete_condition_.wait(lock);
 	}
+}
+
+void MpiServer::Discard(MPI_Status status){
+	int count;
+	std::unique_lock<std::mutex> lock(mpi_mutex_);
+	MPI_Get_count(&status, MPI_BYTE, &count);
+	char dummy[count];
+	MPI_Recv(&dummy, count, MPI_CHAR, status.MPI_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	DLOG(FATAL) << "[" << rank_ << "] Discarding message " << status.MPI_TAG << ".\n";
 }
 
 
