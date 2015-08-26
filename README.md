@@ -113,7 +113,7 @@ Additionally, since libmpi.so is being loaded lazily by the minerva library, it'
 
 ##Requirements
 Cython
-CMake >2.8
+CMake 2.8.4
 OpenMpi for MPI support
 Git >1.6.5
 

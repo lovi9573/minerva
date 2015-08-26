@@ -11,6 +11,7 @@ template<typename T>
 class EverlastingSingleton {
  public:
   static T& Instance() {
+	  //TODO(jesselovitt): Got one of the below errors at the natural end of an mpi run.
     CHECK(data_) << "please initialize before use";
     return *data_;
   }

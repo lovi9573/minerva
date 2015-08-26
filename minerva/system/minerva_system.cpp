@@ -104,6 +104,14 @@ uint64_t MinervaSystem::CreateMpiDevice(int rank, int id ) {
 	}
 	CHECK(has_mpi_) << "Cannot create MPI device.  Recompile with MPI support.";
 	uint64_t device_id = UINT64_C(0xffffffffffffffff) ;
+	if(rank == 0){
+		if(id == 0){
+			return CreateCpuDevice();
+		}
+		else {
+			return CreateGpuDevice(id);
+		}
+	}
 #ifdef HAS_MPI
 	device_id =  MinervaSystem::Instance().device_manager().CreateMpiDevice(rank,id);
 	mpiserver_->CreateMpiDevice(rank, id, device_id);
@@ -143,15 +151,14 @@ MinervaSystem::MinervaSystem(int* argc, char*** argv)
   	//Workaround for openMpi's failure to load modules.  Documented at the bottom of this file.
   	dlopen("libmpi.so", RTLD_NOW | RTLD_GLOBAL);
 
-  	int provided;
-  	MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
+  	int provided =MPI_THREAD_SERIALIZED ;
+  	//MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
+	MPI_Init(argc, argv);
 	if( provided != MPI_THREAD_SERIALIZED){
 		LOG(FATAL) << "Thread Serialized mpi support is needed.\n";
 	}
 
-	//MPI_Init(argc, argv);
 	rank_ = ::MPI::COMM_WORLD.Get_rank();
-	fflush(stdout);
 	if(rank_ != 0){
 		worker_ = true;
 		mpihandler_ = new MpiHandler(rank_);

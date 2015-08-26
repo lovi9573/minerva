@@ -11,18 +11,27 @@
 #ifdef HAS_MPI
 #include <mutex>
 #include <mpi.h>
+#include <condition_variable>
 
 namespace minerva {
 
 class MpiDataHandler {
 public:
-	MpiDataHandler();
+	MpiDataHandler(int);
 	virtual ~MpiDataHandler();
 	void Request_Data(char*, size_t, int , uint64_t , uint64_t );
 protected:
-	void Handle_Task_Data(MPI_Status&);
+	void Handle_Task_Data_Response(MPI_Status status);
 	void Handle_Task_Data_Request(MPI_Status&);
 	std::mutex mpi_mutex_;
+	std::condition_variable mpi_receive_complete_;
+	std::condition_variable mpi_request_complete_;
+	int rank_;
+private:
+	char* pending_data_buffer;
+	uint64_t pending_data_id;
+	MPI_Request fulfillment_request;
+	int fulfillment_complete ;
 };
 
 } /* namespace minerva */
