@@ -81,6 +81,10 @@ void MpiDevice::DoCopyRemoteData(element_t* dst, element_t* src, size_t size, in
 	LOG(FATAL) << "Cannot copy over Mpi using pointers.";
 }
 
+void MpiDevice::FreeDataIfExist(uint64_t data_id){
+	MinervaSystem::Instance().FreeMpiDataIfExist(rank_, data_id);
+}
+
 void MpiDevice::Execute(Task* task, int thrid){
 	PreExecute();
 	auto& op = task->op;

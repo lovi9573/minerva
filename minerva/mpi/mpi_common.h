@@ -21,7 +21,8 @@ namespace minerva {
 #define MPI_TASK_DATA_REQUEST 4
 #define MPI_TASK_DATA_RESPONSE 5
 #define MPI_FINALIZE_TASK 6
-#define MPI_TERMINATE 7
+#define MPI_FREE_DATA 7
+#define MPI_TERMINATE 8
 
 #endif
 

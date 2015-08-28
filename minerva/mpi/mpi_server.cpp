@@ -147,6 +147,13 @@ void MpiServer::Discard(MPI_Status status){
 	DLOG(FATAL) << "[" << rank_ << "] Discarding message " << status.MPI_TAG << ".\n";
 }
 
+void MpiServer::Free_Data(int rank, uint64_t data_id){
+	char buffer[sizeof(uint64_t)];
+	int offset = 0;
+	SERIALIZE(buffer, offset, data_id, uint64_t)
+	MPI_Send(buffer, offset, MPI_CHAR, rank,MPI_FREE_DATA, MPI_COMM_WORLD);
+}
+
 
 } // end namespace minerva
 #endif

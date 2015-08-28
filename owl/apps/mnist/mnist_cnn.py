@@ -182,4 +182,4 @@ if __name__ == '__main__':
     print "Starting random initialization"
     model.init_random()
     print "Starting training"
-    train_network(args.data_file,model)
+    train_network(args.data_file,model, minibatch_size=256*len(devs))

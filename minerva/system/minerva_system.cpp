@@ -197,6 +197,24 @@ void MinervaSystem::Request_Data(char* buffer, size_t bytes, int rank, uint64_t 
 	}
 }
 
+void MinervaSystem::FreeMpiDataIfExist(int rank, uint64_t data_id){
+	if(worker_){
+		LOG(FATAL) << "Cannot issue a 'free mpi data' from a worker node.";
+	}else{
+		//printf("[0] free mpi send to rank %d for data %lu\n",rank, data_id);
+		mpiserver_->Free_Data(rank, data_id);
+	}
+}
+
+void MinervaSystem::FreeDataIfExist(uint64_t data_id){
+	if(!worker_){
+		LOG(FATAL) << "Cannot issue a 'free data' from a server system instance.";
+	}else{
+		//printf("[%d] Recieved free for data %lu\n",rank(), data_id);
+		device_manager_->FreeData(data_id);
+	}
+}
+
 #endif //end HAS_MPI
 
 

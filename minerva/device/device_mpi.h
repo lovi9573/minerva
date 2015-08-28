@@ -21,6 +21,7 @@ class MpiDevice : public ThreadedDevice {
   ~MpiDevice();
   MemType GetMemType() const override;
   std::string Name() const override;
+  void FreeDataIfExist(uint64_t data_id) override;
 
  private:
   static size_t constexpr kParallelism = 4;

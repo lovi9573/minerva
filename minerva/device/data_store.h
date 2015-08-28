@@ -20,15 +20,17 @@ class DataStore {
   virtual void FreeData(uint64_t);
   virtual size_t GetTotalBytes() const;
 
+
  protected:
   struct DataState {
     void* ptr;
     size_t length;
   };
   mutable std::mutex access_mutex_;
-  std::unordered_map<uint64_t, DataState> data_states_;
   std::function<void*(size_t)> allocator_;
   std::function<void(void*)> deallocator_;
+ public:
+  std::unordered_map<uint64_t, DataState> data_states_;
 };
 
 }  // namespace minerva

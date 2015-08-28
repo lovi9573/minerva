@@ -76,6 +76,8 @@ class MinervaSystem :
 	  return *mpihandler_;
   }
   // device master
+  void FreeMpiDataIfExist(int rank, uint64_t data_id);
+  void FreeDataIfExist(uint64_t data_id);
 #endif
 
 #if defined(FIXED_POINT) || defined(HAS_FPGA)
