@@ -133,6 +133,7 @@ void MpiHandler::FinalizeTask(uint64_t task_id){
 }
 
 void MpiHandler::Handle_Free_Data(MPI_Status& status){
+	std::unique_lock<std::mutex> lock(mpi_mutex_);
 	uint64_t data_id;
 	int count = 0;
 	MPI_Get_count(&status,MPI_BYTE, &count);

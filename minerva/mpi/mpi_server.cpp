@@ -148,10 +148,13 @@ void MpiServer::Discard(MPI_Status status){
 }
 
 void MpiServer::Free_Data(int rank, uint64_t data_id){
+	std::unique_lock<std::mutex> lock(mpi_mutex_);
 	char buffer[sizeof(uint64_t)];
 	int offset = 0;
 	SERIALIZE(buffer, offset, data_id, uint64_t)
-	MPI_Send(buffer, offset, MPI_CHAR, rank,MPI_FREE_DATA, MPI_COMM_WORLD);
+	//TODO(jesselovitt) This is not guaranteed to work.  This Isend should have a test before ANY other send's occur.
+	MPI_Request request;
+	MPI_Isend(buffer, offset, MPI_CHAR, rank,MPI_FREE_DATA, MPI_COMM_WORLD, &request);
 }
 
 
