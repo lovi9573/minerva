@@ -99,12 +99,13 @@ void MpiServer::CreateMpiDevice(int rank, int id, uint64_t device_id){
 void MpiServer::MPI_Send_task(const Task& task,const Context& ctx ){
 	DLOG(INFO) << "Task #"<< task.id << " being sent to rank #" << ctx.rank;
 	size_t bufsize = task.GetSerializedSize();
-	char buffer[bufsize];
+	char* buffer = new char[bufsize];
 	size_t usedbytes = task.Serialize(buffer);
 	CHECK_EQ(bufsize, usedbytes);
 	std::unique_lock<std::mutex> lock(mpi_mutex_);
 	MPI_Send(buffer, bufsize, MPI_BYTE, ctx.rank, MPI_TASK, MPI_COMM_WORLD);
 	pending_tasks_.Insert(task.id);
+	delete[] buffer;
 }
 
 void MpiServer::MPI_Terminate(){

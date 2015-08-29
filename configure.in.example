@@ -15,8 +15,13 @@ CUDA_ROOT=
 # Root path to find cudnn
 CUDNN_ROOT=$HOME/include
 
+# Set to build with mpi support.
+# Note: This will override the compiler settings.
+BUILD_WITH_MPI=0
+
 # Root path to find mpi headers
 MPI_HEADER_ROOT=
+MPI_BIN_ROOT=
 
 # build type: (Release | Debug | RelWithDebInfo)
 BUILD_TYPE=Release
@@ -43,9 +48,6 @@ BUILD_CPU_ONLY=1
 BUILD_WITH_BLAS=0
 BLAS_ROOT=
 
-# Set to build with mpi support.
-# Note: This will override the compiler settings.
-BUILD_WITH_MPI=0
 
 # whether build with fpga support.
 BUILD_WITH_FPGA=0
