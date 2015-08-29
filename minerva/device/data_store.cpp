@@ -22,7 +22,6 @@ element_t* DataStore::CreateData(uint64_t id, size_t length) {
   auto& ds = it.first->second;
   ds.length = length;
   ds.ptr = allocator_(length);
-  printf("[?] Create Dev:? DataSize:%lu\n",data_states_.size());
   return static_cast<element_t*>(ds.ptr);
 }
 

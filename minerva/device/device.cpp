@@ -68,7 +68,7 @@ void ThreadedDevice::PushTask(Task* task) {
 void ThreadedDevice::FreeDataIfExist(uint64_t data_id) {
   copy_locks_.Erase(data_id);
   Device::FreeDataIfExist(data_id);
-  printf("[%d] Free Dev:%lu, DataSize:%lu\n",rank_, device_id_,data_store_->data_states_.size());
+  //printf("[%d] Free Dev:%lu, DataSize:%lu\n",rank_, device_id_,data_store_->data_states_.size());
 }
 
 void ThreadedDevice::Execute(Task* task, int thrid) {

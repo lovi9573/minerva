@@ -137,7 +137,7 @@ void MpiHandler::Handle_Free_Data(MPI_Status& status){
 	int count = 0;
 	MPI_Get_count(&status,MPI_BYTE, &count);
 	MPI_Recv(&data_id, count, MPI_CHAR, status.MPI_SOURCE, MPI_FREE_DATA, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
+	MinervaSystem::Instance().FreeDataIfExist(data_id);
 }
 
 
