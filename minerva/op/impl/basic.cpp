@@ -671,17 +671,11 @@ void ConvBackwardBias(const DataList& inputs, const DataList& outputs, ConvBackw
 		//printf("element\n");
 		for(int filter = 0; filter < top_size[2]; filter++){
 			int bottom_index = filter; //+ element*bottom_image_stride;
-			if( bottom_index < 0 || bottom_index >= bottom_size.Prod()){
-				printf("Bad index: ConvBackwardBias::bottom_index %d\n",bottom_index);
-			}
 			for(int y = 0; y < top_size[1]; y++){
 				//printf("\trow %d / %d X %d\n",y,inputs[0].size_.get(1)-inputs[1].size_.get(1)+pad_height+1,stride_vertical);
 				for(int x = 0; x < top_size[0]; x ++){
 					//printf("\t\tcolumn %d / %d X %d\n",x,inputs[0].size_.get(0)-inputs[1].size_.get(0)+pad_width+1,stride_horizontal);
 						int top_index = x + top_column_stride*y + top_channel_stride*filter + top_image_stride*element;
-						if( top_index < 0 || top_index >= top_size.Prod()){
-							printf("Bad index: ConvBackwardBias::top_index %d \n",top_index);
-						}
 						bottom_diff[bottom_index] += top_diff[top_index];
 				}
 			}
@@ -790,9 +784,6 @@ void PoolingForward(const DataList& inputs, const DataList& outputs, PoolingForw
 					int outindex = (x+pad_width)/stride_horizontal + out_column*((y+pad_height)/stride_vertical) + out_channel*channel + out_element*image;
 					int sample_index = (x)+in_column*(y)+in_channel*channel+in_element*image;
 					if(x > 0 && x < insize[0] && y > 0 && y < insize[1]){
-						if(sample_index < 0 || sample_index >= insize.Prod()){
-							printf("===Pooling initial sample index error (%d) ===\n ",sample_index);
-						}
 						activations[outindex] = input[x+in_column*y+in_channel*channel+in_element*image];
 					}else{
 						activations[outindex] = 0.0f;

@@ -162,8 +162,9 @@ if __name__ == '__main__':
         nodes = owl.get_mpi_node_count()
         print "{} mpi nodes found".format(nodes)
         if usegpu:
-            devs += [owl.create_gpu_device(i) for i in range(owl.get_gpu_device_count())]
-            devs += [owl.create_mpi_device(i,d+1) for i in range(1,nodes) for d in owl.get_mpi_device_count(i)]
+            #devs += [owl.create_gpu_device(i) for i in range(owl.get_gpu_device_count())]
+            devs = [owl.create_cpu_device()]
+            devs += [owl.create_mpi_device(i,d+1) for i in range(1,nodes) for d in range(owl.get_mpi_device_count(i))]
             print "Using {} MPI GPU's".format(len(devs))
         else:
             devs = [owl.create_cpu_device()]
@@ -182,4 +183,4 @@ if __name__ == '__main__':
     print "Starting random initialization"
     model.init_random()
     print "Starting training"
-    train_network(args.data_file,model)
+    train_network(args.data_file,model, minibatch_size=256*len(devs))

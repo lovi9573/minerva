@@ -31,6 +31,7 @@ public:
 	void CreateMpiDevice(int rank, int id, uint64_t);
 	void MPI_Send_task(const Task& task,const Context& ctx );
 	void MPI_Terminate();
+	void Free_Data(int, uint64_t );
 private:
 	ConcurrentUnorderedSet<uint64_t> pending_tasks_;
 	std::mutex task_complete_mutex_;

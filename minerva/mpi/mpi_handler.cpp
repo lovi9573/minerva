@@ -65,6 +65,9 @@ void MpiHandler::MainLoop(){
 			case MPI_TASK_DATA_REQUEST:
 				Handle_Task_Data_Request(status);
 				break;
+			case MPI_FREE_DATA:
+				Handle_Free_Data(status);
+				break;
 			case MPI_TERMINATE:
 				term = true;
 				break;
@@ -129,7 +132,14 @@ void MpiHandler::FinalizeTask(uint64_t task_id){
 	MPI_Send(&task_id, sizeof(uint64_t), MPI_CHAR, 0, MPI_FINALIZE_TASK, MPI_COMM_WORLD);
 }
 
-
+void MpiHandler::Handle_Free_Data(MPI_Status& status){
+	std::unique_lock<std::mutex> lock(mpi_mutex_);
+	uint64_t data_id;
+	int count = 0;
+	MPI_Get_count(&status,MPI_BYTE, &count);
+	MPI_Recv(&data_id, count, MPI_CHAR, status.MPI_SOURCE, MPI_FREE_DATA, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	MinervaSystem::Instance().FreeDataIfExist(data_id);
+}
 
 
 #endif

@@ -99,12 +99,13 @@ void MpiServer::CreateMpiDevice(int rank, int id, uint64_t device_id){
 void MpiServer::MPI_Send_task(const Task& task,const Context& ctx ){
 	DLOG(INFO) << "Task #"<< task.id << " being sent to rank #" << ctx.rank;
 	size_t bufsize = task.GetSerializedSize();
-	char buffer[bufsize];
+	char* buffer = new char[bufsize];
 	size_t usedbytes = task.Serialize(buffer);
 	CHECK_EQ(bufsize, usedbytes);
 	std::unique_lock<std::mutex> lock(mpi_mutex_);
 	MPI_Send(buffer, bufsize, MPI_BYTE, ctx.rank, MPI_TASK, MPI_COMM_WORLD);
 	pending_tasks_.Insert(task.id);
+	delete[] buffer;
 }
 
 void MpiServer::MPI_Terminate(){
@@ -145,6 +146,16 @@ void MpiServer::Discard(MPI_Status status){
 	char dummy[count];
 	MPI_Recv(&dummy, count, MPI_CHAR, status.MPI_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	DLOG(FATAL) << "[" << rank_ << "] Discarding message " << status.MPI_TAG << ".\n";
+}
+
+void MpiServer::Free_Data(int rank, uint64_t data_id){
+	std::unique_lock<std::mutex> lock(mpi_mutex_);
+	char buffer[sizeof(uint64_t)];
+	int offset = 0;
+	SERIALIZE(buffer, offset, data_id, uint64_t)
+	//TODO(jesselovitt) This is not guaranteed to work.  This Isend should have a test before ANY other send's occur.
+	MPI_Request request;
+	MPI_Isend(buffer, offset, MPI_CHAR, rank,MPI_FREE_DATA, MPI_COMM_WORLD, &request);
 }
 
 
