@@ -102,10 +102,64 @@ void MpiServer::MPI_Send_task(const Task& task,const Context& ctx ){
 	char* buffer = new char[bufsize];
 	size_t usedbytes = task.Serialize(buffer);
 	CHECK_EQ(bufsize, usedbytes);
-	std::unique_lock<std::mutex> lock(mpi_mutex_);
-	MPI_Send(buffer, bufsize, MPI_BYTE, ctx.rank, MPI_TASK, MPI_COMM_WORLD);
-	pending_tasks_.Insert(task.id);
+	{
+		std::unique_lock<std::mutex> lock(mpi_mutex_);
+		MPI_Request request;
+		MPI_Isend(buffer, bufsize, MPI_BYTE, ctx.rank, MPI_TASK, MPI_COMM_WORLD, &request);
+	}
 	delete[] buffer;
+	{
+		std::unique_lock<std::mutex> lock(task_complete_mutex_);
+		pending_tasks_.Insert(task.id);
+	}
+}
+
+void MpiServer::Wait_On_Task(uint64_t task_id){
+	std::unique_lock<std::mutex> lock(task_complete_mutex_);
+	while(pending_tasks_.Count(task_id) > 0){
+		task_complete_condition_.wait(lock);
+	}
+}
+
+/**
+ *  Signal Received From worker Rank that a task is complete
+ */
+void MpiServer::Handle_Finalize_Task(MPI_Status status){
+	int count;
+	uint64_t task_id;
+	{
+		std::unique_lock<std::mutex> lock(mpi_mutex_);
+		MPI_Get_count(&status, MPI_BYTE, &count);
+		//char buffer[count];
+		MPI_Recv(&task_id, count, MPI_CHAR, status.MPI_SOURCE, MPI_FINALIZE_TASK, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		//printf("notified of finalization of task %lu\n",task_id);
+	}
+	{
+		std::unique_lock<std::mutex> task_lock(task_complete_mutex_);
+		pending_tasks_.Erase(task_id);
+	}
+	task_complete_condition_.notify_all();
+}
+
+
+
+void MpiServer::Free_Data(int rank, uint64_t data_id){
+	std::unique_lock<std::mutex> lock(mpi_mutex_);
+	char buffer[sizeof(uint64_t)];
+	int offset = 0;
+	SERIALIZE(buffer, offset, data_id, uint64_t)
+	//TODO(jesselovitt) This is not guaranteed to work.  This Isend should have a test before ANY other send's occur.
+	MPI_Request request;
+	MPI_Isend(buffer, offset, MPI_CHAR, rank,MPI_FREE_DATA, MPI_COMM_WORLD, &request);
+}
+
+void MpiServer::Discard(MPI_Status status){
+	int count;
+	std::unique_lock<std::mutex> lock(mpi_mutex_);
+	MPI_Get_count(&status, MPI_BYTE, &count);
+	char dummy[count];
+	MPI_Recv(&dummy, count, MPI_CHAR, status.MPI_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	DLOG(FATAL) << "[" << rank_ << "] Discarding message " << status.MPI_TAG << ".\n";
 }
 
 void MpiServer::MPI_Terminate(){
@@ -118,46 +172,6 @@ void MpiServer::MPI_Terminate(){
 	}
 	MPI_Finalize();
 }
-
-void MpiServer::Handle_Finalize_Task(MPI_Status status){
-	int count;
-	uint64_t task_id;
-	std::unique_lock<std::mutex> lock(mpi_mutex_);
-	MPI_Get_count(&status, MPI_BYTE, &count);
-	//char buffer[count];
-	MPI_Recv(&task_id, count, MPI_CHAR, status.MPI_SOURCE, MPI_FINALIZE_TASK, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-	//printf("notified of finalization of task %lu\n",task_id);
-	pending_tasks_.Erase(task_id);
-	std::unique_lock<std::mutex> task_lock(task_complete_mutex_);
-	task_complete_condition_.notify_all();
-}
-
-void MpiServer::Wait_On_Task(uint64_t task_id){
-	std::unique_lock<std::mutex> lock(task_complete_mutex_);
-	while(pending_tasks_.Count(task_id) > 0){
-		task_complete_condition_.wait(lock);
-	}
-}
-
-void MpiServer::Discard(MPI_Status status){
-	int count;
-	std::unique_lock<std::mutex> lock(mpi_mutex_);
-	MPI_Get_count(&status, MPI_BYTE, &count);
-	char dummy[count];
-	MPI_Recv(&dummy, count, MPI_CHAR, status.MPI_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-	DLOG(FATAL) << "[" << rank_ << "] Discarding message " << status.MPI_TAG << ".\n";
-}
-
-void MpiServer::Free_Data(int rank, uint64_t data_id){
-	std::unique_lock<std::mutex> lock(mpi_mutex_);
-	char buffer[sizeof(uint64_t)];
-	int offset = 0;
-	SERIALIZE(buffer, offset, data_id, uint64_t)
-	//TODO(jesselovitt) This is not guaranteed to work.  This Isend should have a test before ANY other send's occur.
-	MPI_Request request;
-	MPI_Isend(buffer, offset, MPI_CHAR, rank,MPI_FREE_DATA, MPI_COMM_WORLD, &request);
-}
-
 
 } // end namespace minerva
 #endif
