@@ -37,24 +37,24 @@ CPersApplyfilter::PersApplyfilter()
 		case CONV_LD_IMG_SAMPLE: {
 			BUSY_RETRY(ReadMemBusy());
 			//printf("img read\n");
-			ReadMem_img_val(PR_imgAddr+2*(PR_yIdx*SR_img_dim*SR_img_channels+
+			ReadMem_img_val(PR_imgAddr+(MemAddr_t)(2*(PR_yIdx*SR_img_dim*SR_img_channels+
 										  PR_xIdx*SR_img_channels+
-										  PR_cIdx)); //2* for 16-bit align
+										  PR_cIdx))); //2* for 16-bit align
 			ReadMemPause(CONV_LD_FILTER_SAMPLE);
 		}
 		break;
 		case CONV_LD_FILTER_SAMPLE: {
 			BUSY_RETRY(ReadMemBusy());
 			//printf("filter read address set to %d\n",PR_filter_yIdx*SR_filter_dim*SR_img_channels+PR_filter_xIdx*SR_img_channels+PR_filter_cIdx);
-			ReadMem_filter_val(PR_filterAddr+2*(PR_yIdx*SR_filter_dim*SR_img_channels+
+			ReadMem_filter_val(PR_filterAddr+(MemAddr_t)(2*(PR_yIdx*SR_filter_dim*SR_img_channels+
 											    PR_xIdx*SR_img_channels+
-											    PR_cIdx));
+											    PR_cIdx)));
 			ReadMemPause(CONV_APPLY);
 		}
 		break;
 		case CONV_APPLY: {
 			//printf("filter read\n");
-			int32_t result = (( ((int32_t)PR_img_val) * ((int32_t)PR_filter_val) ) >> SR_fractionW) +(int32_t)PR_accum;
+			int32_t result = (int32_t)((( ((int32_t)PR_img_val) * ((int32_t)PR_filter_val) ) >> SR_fractionW) +(int32_t)PR_accum);
 
 			if(result >= 0x00007FFFL){
 				P_accum = 0x7FFF;
@@ -68,7 +68,7 @@ CPersApplyfilter::PersApplyfilter()
 				P_accum = (int16_t)result;
 			}
 			P_cIdx++;
-			printf("accum  %d * %d  >> %d = %d\n",PR_img_val,PR_filter_val, SR_fractionW,P_accum);
+			//printf("accum (img:%lu, x%d,y:%d,c:%d) %d * %d  >> %d = %d\n", PR_imgAddr.to_int(),PR_xIdx, PR_yIdx, PR_cIdx,PR_img_val,PR_filter_val, SR_fractionW,P_accum);
 			HtContinue(CONV_LOOP_BRANCH);
 		}
 		break;

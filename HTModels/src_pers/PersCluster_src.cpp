@@ -59,16 +59,16 @@ CPersCluster::PersCluster()
 		case SG_FILTER_GROUP_MERGE: {
 			RecvReturnJoin_applyfilter();
 			int shift = 16*PR_out_index;
-			uint64_t mask = 0x000000000000FFFFULL << shift;
+			uint64_t mask = (uint64_t)(0x000000000000FFFFULL << shift);
 			//printf("accum: %d << %d mask %lx\n",PR_accum,shift,mask);
-			uint64_t shifted_accum = ((uint64_t)PR_accum) << shift ;
+			uint64_t shifted_accum = (uint64_t)(((uint64_t)PR_accum) << shift) ;
 			//printf("shifted accum: %lx\n",shifted_accum);
 			P_activation_group = (PR_activation_group & ~mask) | (shifted_accum & mask);
 		}
 		break;
 		case SG_FILTER_GROUP_WRITE: {
 			BUSY_RETRY(WriteMemBusy());
-			printf("write activation: %lx \n",PR_activation_group);
+			//printf("write activation: %x <= %lx \n", PR_out_Addr.to_int(),PR_activation_group);
 			WriteMem(PR_out_Addr, P_activation_group);
 			WriteMemPause(SG_FILTER_GROUP_RTN);
 		}
