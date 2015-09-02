@@ -18,96 +18,157 @@
 
 namespace minerva {
 
-MpiDataHandler::MpiDataHandler(int r): rank_(r), pending_data_buffer(nullptr), pending_data_id(0), fulfillment_complete(1) {
+MpiDataHandler::MpiDataHandler(int r): rank_(r), id_(r), send_complete_(1) {
+	std::unique_lock<std::mutex> lock(id_mutex_);
+	MPI_Comm_size(MPI_COMM_WORLD, &id_stride_);
 }
 
 MpiDataHandler::~MpiDataHandler() {
 }
 
+void MpiDataHandler::MainLoop(){
+	bool term = false;
+	int pending_message = 0;
+	MPI_Status status;
+	int count ;
+	uint64_t id;
+	bool notify = false;
+	//MPI_Status st;
+	while (!term){
+		MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &pending_message, &status);
+		if(pending_message){
+			DLOG(INFO) << "[" << rank_  << "] Handling message" << status.MPI_TAG << ".\n";
+			MPI_Get_count(&status, MPI_BYTE, &count);
+			char* buffer = new char[count];
+			MPI_Recv(buffer, count, MPI_BYTE, status.MPI_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
+			int offset = 0;
+			DESERIALIZE(buffer, id, offset, uint64_t)
+			char* message = buffer + offset;
+			count = count - offset;
+			switch(status.MPI_TAG){
+				case MPI_TASK_DATA_RESPONSE:
+					Handle_Task_Data_Response(id, message, count, status.MPI_SOURCE);
+					break;
+				case MPI_TASK_DATA_REQUEST:
+					Handle_Task_Data_Request(id, message, count, status.MPI_SOURCE);
+					break;
+				case MPI_TERMINATE:
+					term = true;
+					break;
+				default:
+					Default_Handler(id, message, count, status.MPI_SOURCE, status.MPI_TAG);
+			}
+			pending_message = 0;
+			delete[] buffer;
+			{
+				std::unique_lock<std::mutex> lock(recv_mutex_);
+				if(recv_buffer_.find(id) != recv_buffer_.end()){
+					recv_buffer_.at(id).ready = 1;
+					notify = true;
+				}
+			}
+			if(notify){
+				recv_complete_.notify_all();
+				notify = false;
+			}
+		}
+		MPI_Test(&send_request_, &send_complete_, MPI_STATUS_IGNORE);
+		if(send_complete_){
+			std::unique_lock<std::mutex> lock(send_mutex_);
+			if(send_queue_.size() > 0){
+				send_complete_ = 0;
+				SendItem& s = send_queue_.front();
+				MPI_Isend(s.buffer, s.size, MPI_BYTE, s.dest_rank, s.tag, MPI_COMM_WORLD, &send_request_);
+				send_queue_.pop();
+			}
+		}
+	}
+	MPI_Finalize();
+}
 
 void MpiDataHandler::Request_Data(char* devbuffer, size_t bytes, int rank, uint64_t device_id, uint64_t data_id){
-	{
-		//std::cout << "[" << rank_ << "] R-pre-request A " << data_id << "\n";
-		std::unique_lock<std::mutex> lock(mpi_mutex_);
-		//std::cout << "[" << rank_ << "] R-post-request A " << data_id << "\n";
-		while( pending_data_buffer != nullptr){
-			mpi_request_complete_.wait(lock);
-			//std::cout << "[" << rank_ << "] R-post-wake A " << data_id << "\n";
-		}
-		//std::cout << "[" << rank_ << "] R-sending  data request for data id: " << data_id << "\n";
+		//Serialize message
 		int size = sizeof(size_t) + 2*sizeof(uint64_t);
 		char msgbuffer[size];
 		int offset = 0;
 		SERIALIZE(msgbuffer, offset, device_id, uint64_t);
 		SERIALIZE(msgbuffer, offset, data_id, uint64_t);
 		SERIALIZE(msgbuffer, offset, bytes, size_t);
-		pending_data_buffer = devbuffer;
-		pending_data_id = data_id;
-		MPI_Send(msgbuffer, size, MPI_BYTE, rank, MPI_TASK_DATA_REQUEST, MPI_COMM_WORLD);
-		//printf("[%d] Mpi data handler recieving %lu element_t's\n", MinervaSystem::Instance().rank(),(bytes/sizeof(element_t)));
-		//MPI_Recv(devbuffer, bytes, MPI_BYTE, rank, MPI_TASK_DATA_RESPONSE, MPI_COMM_WORLD, &status);
 
-	//TODO(jesselovitt) We can't just let the thread out of this method.  It will continue because it thinks it has the data.
-		while ( pending_data_buffer != nullptr){
-			//std::cout << "[" << rank_ << "] R-pre-sleep B " << data_id << "\n";
-			mpi_receive_complete_.wait(lock);
-			//std::cout << "[" << rank_ << "] R-post-wake B " << data_id << "\n";
-		}
-		//std::cout << "[" << rank_ << "] R-post-wait B " << data_id << "\n";
-	}
-	mpi_receive_complete_.notify_all();
-	mpi_request_complete_.notify_all();
+		//Get a unique id and queue the message up.
+		uint64_t mpi_id = Send(msgbuffer,size,rank,MPI_TASK_DATA_REQUEST);
+
+		//prepare receive structure and wait for response.
+		Wait_For_Recv(mpi_id, devbuffer);
 }
 
-//TODO(jesselovitt): Defer handling requests until lower data id requests are fulfilled.
-void MpiDataHandler::Handle_Task_Data_Request(MPI_Status& status){
-	//std::cout << "[" << rank_ << "] Aquiring lock in order to handle data request" << "\n";
-	std::unique_lock<std::mutex> lock(mpi_mutex_);
-	while (!fulfillment_complete){
-		MPI_Test(&fulfillment_request, &fulfillment_complete, MPI_STATUS_IGNORE);
+int MpiServer::rank(){
+	return rank_;
+}
+
+/*
+ *  ========= Protected and Private =========
+ */
+
+
+uint64_t MpiDataHandler::Get_Mpi_Id(){
+	std::unique_lock<std::mutex> lock(id_mutex_);
+	id_ += id_stride_;
+	return id_;
+}
+
+uint64_t MpiDataHandler::Send(char* msgbuffer, int size, int rank, int tag){
+	//Get a unique id and queue the message up.
+	uint64_t mpi_id = Get_Mpi_Id();
+	SendItem item(mpi_id,msgbuffer,size,rank,MPI_TASK_DATA_REQUEST);
+	{
+		std::unique_lock<std::mutex> lock(send_mutex_);
+		send_queue_.push(item);
 	}
-	int count ;
-	MPI_Get_count(&status, MPI_BYTE, &count);
-	char buffer[count];
+	return mpi_id;
+}
+
+void MpiDataHandler::Wait_For_Recv(uint64_t mpi_id, char* buffer){
+	std::unique_lock<std::mutex> lock(recv_mutex_);
+	RecvItem r_item(buffer);
+	recv_buffer_.insert( std::pair<uint64_t,RecvItem>(mpi_id, r_item) );
+	while ( !recv_buffer_.at(mpi_id).ready ){
+		recv_complete_.wait(lock);
+	}
+	recv_buffer_.erase(mpi_id);
+}
+
+
+/*
+ *  ======== Receive Handlers =========
+ */
+
+void MpiDataHandler::Handle_Task_Data_Request(uint64_t id, char* buffer, size_t size, int rank){
+
+	//Get and deserialize message.
 	int offset = 0;
 	uint64_t device_id;
 	uint64_t data_id;
 	uint64_t bytes;
-	MPI_Recv(buffer, count, MPI_BYTE, status.MPI_SOURCE,MPI_TASK_DATA_REQUEST, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
 	DESERIALIZE(buffer, offset, device_id, uint64_t)
 	DESERIALIZE(buffer, offset, data_id, uint64_t)
 	DESERIALIZE(buffer, offset, bytes, uint64_t)
-/*	while( pending_data_buffer != nullptr && data_id > pending_data_id){
-		mpi_receive_complete_.wait(lock);
-	}
-	*/
 	//std::cout << "[" << rank_ << "] handling data request for data id: " << data_id << "\n";
 	std::pair<Device::MemType, element_t*> devptr = MinervaSystem::Instance().GetPtr(device_id, data_id);
-	//char outbuffer[bytes];
-	//MinervaSystem::Instance().UniversalMemcpy(to, devptr, bytes);
-/*	for(uint64_t i =0; i < bytes/sizeof(element_t); i ++){
-		printf("%f, ", *(to.second+i));
-	}*/
-
-	//printf("[%d] Mpi data handler sending %lu element_t's over\n", MinervaSystem::Instance().rank(),(bytes/sizeof(elemnt_t)));
-	MPI_Isend(devptr.second, bytes, MPI_BYTE, status.MPI_SOURCE, MPI_TASK_DATA_RESPONSE, MPI_COMM_WORLD, &fulfillment_request);
-	fulfillment_complete= 0;
+	Send(reinterpret_cast<char*>(devptr.second), bytes, rank, MPI_TASK_DATA_RESPONSE);
 }
 
 
-void MpiDataHandler::Handle_Task_Data_Response(MPI_Status status){
-	{
-		//std::cout << "[" << rank_ << "] pre-handle A " << pending_data_id << "\n";
-		std::unique_lock<std::mutex> lock(mpi_mutex_);
-		//std::cout << "[" << rank_ << "] post-handle A " << pending_data_id << "\n";
-		int bytes;
-		MPI_Get_count(&status, MPI_BYTE, &bytes);
-		MPI_Recv(pending_data_buffer, bytes, MPI_BYTE, status.MPI_SOURCE, MPI_TASK_DATA_RESPONSE, MPI_COMM_WORLD, &status);
-		//std::cout << "[" << rank_ << "] received data from last request:  " << pending_data_id  << "\n";
-		pending_data_buffer = nullptr;
-		pending_data_id = 0;
-	}
-	mpi_receive_complete_.notify_all();
+void MpiDataHandler::Handle_Task_Data_Response(uint64_t id, char* buffer, size_t size, int rank){
+		std::unique_lock<std::mutex> lock(recv_mutex_);
+		if(recv_buffer_.find(id) != recv_buffer_.end()){
+			recv_buffer_.at(id).ready = 1;
+			std::memcpy(recv_buffer_.at(id).buffer, buffer, size);
+		}
+}
+
+void MpiDataHandler::Default_Handler(uint64_t id, char* buffer, size_t size, int rank, int tag){
+	return;
 }
 
 } /* namespace minerva */
