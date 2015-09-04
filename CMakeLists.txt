@@ -50,6 +50,7 @@ function(check_mpi_cuda_support)
     else()
         message(FATAL_ERROR "MPI implementation is not cuda-aware")
     endif()
+
 endfunction()
 
 function(find_ps)

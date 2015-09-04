@@ -56,9 +56,6 @@ void ConvForward(const DataList& inputs, const DataList& outputs, ConvForwardClo
 	size_t output_numbers = outputs[0].size_.Prod();
 	size_t output_bytes = output_numbers*sizeof(element_t);
 
-
-
-
 	printf("num_img: %d, img_dim: %d, img_channels: %d, num_filters: %d, filter_dim: %d, stride: %d",
 			inputs[0].size_[3], inputs[0].size_[1], inputs[0].size_[2],
 			inputs[1].size_[3], inputs[1].size_[1], closure.stride_vertical);
@@ -172,6 +169,39 @@ void ConvBackwardFilter(const DataList& inputs, const DataList& outputs, ConvBac
 
 	for(int i = 0; i < filtersize.Prod(); i++){
 		filter_diff[i] = 0.0f;
+	char *input_q88_data = (char *)malloc(img_bytes);
+	char *filter_q88_data = (char *)malloc(filter_bytes);
+	char *output_q88_data = (char *)malloc(output_bytes);
+
+	float2qxx(input_data, input_q88_data,img_numbers,16,frac_width);
+	float2qxx(filter_data, filter_q88_data,filter_numbers,16,frac_width);
+
+	for(size_t i =0; i < img_numbers; i++){
+		printf("%f,",input_data[i]);
+	}
+	/*
+	  closure.pad_height;
+	  int pad_width;
+	  closure.stride_vertical;
+	  int stride_horizontal;
+
+	conv_forward(input_q88_data, size_t num_img, size_t img_dim, size_t img_channels, size_t img_alloc,
+			 void *filters_q88_data, size_t num_filters, closure.pad_height, closure.stride_vertical, size_t filter_alloc,
+			 void *output_q88_data, size_t output_alloc,
+			 uint16_t fraction_width);
+	*/
+	printf("num_img: %d, img_dim: %d, img_channels: %d, num_filters: %d, filter_dim: %d, stride: %d",
+			inputs[0].size_[3], inputs[0].size_[1], inputs[0].size_[2],
+			inputs[1].size_[3], inputs[1].size_[1], closure.stride_vertical);
+
+	conv_forward(input_q88_data, inputs[0].size_[3], inputs[0].size_[1], inputs[0].size_[2], img_bytes,
+				 filter_q88_data, inputs[1].size_[3], inputs[1].size_[1], closure.stride_vertical, filter_bytes,
+				 output_q88_data, output_bytes,
+				 frac_width);
+
+	qxx2float(output_q88_data, output_data, output_numbers,16,frac_width);
+	for(size_t i = 0; i < output_numbers; i++){
+		printf("%f\n",output_data[i]);
 	}
 
 

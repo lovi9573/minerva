@@ -137,5 +137,6 @@ void conv_backward_data_ht(void* top_diff, size_t top_alloc,
 
 	//Copy results out.
 	pHtHif->MemCpy(bottom_diff, ht_bottom_data, bottom_alloc);
+
 }
 

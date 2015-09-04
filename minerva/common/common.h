@@ -48,7 +48,6 @@
 # define __attribute__(A) /* do nothing */
 # endif
 
-
 namespace minerva {
 
 class Serializable{

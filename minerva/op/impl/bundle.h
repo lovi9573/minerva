@@ -18,7 +18,6 @@ void NO_IMPL(const I & i, const O & o, C & c, Args&&...) {
 }
 //TODO(jlovitt): 1 Replace fpga NO_IMPL's with proper function calls as implemented.
 
-
 INSTALL_COMPUTE_FN(ArithmeticClosure, basic::Arithmetic, NO_IMPL, cuda::Arithmetic, NO_IMPL);
 INSTALL_COMPUTE_FN(ArithmeticConstClosure, basic::ArithmeticConst, NO_IMPL, cuda::ArithmeticConst, NO_IMPL);
 INSTALL_COMPUTE_FN(MatMultClosure, basic::MatMult, NO_IMPL, cuda::MatMult, NO_IMPL);
@@ -32,6 +31,7 @@ INSTALL_COMPUTE_FN(ThresholdNormClosure, basic::ThresholdNorm, NO_IMPL, NO_IMPL,
 INSTALL_COMPUTE_FN(SigmoidForwardClosure, basic::SigmoidForward, NO_IMPL, cuda::SigmoidForward, NO_IMPL);
 INSTALL_COMPUTE_FN(SigmoidBackwardClosure, NO_IMPL, NO_IMPL, cuda::SigmoidBackward, NO_IMPL);
 INSTALL_COMPUTE_FN(ReluForwardClosure, basic::ReluForward, NO_IMPL, cuda::ReluForward, fpga::ReluForward);
+INSTALL_COMPUTE_FN(ThresholdNormClosure, basic::ThresholdNorm, NO_IMPL, NO_IMPL, NO_IMPL);
 INSTALL_COMPUTE_FN(ReluBackwardClosure, basic::ReluBackward, NO_IMPL, cuda::ReluBackward, NO_IMPL);
 INSTALL_COMPUTE_FN(TanhForwardClosure, basic::TanhForward, NO_IMPL, cuda::TanhForward, NO_IMPL);
 INSTALL_COMPUTE_FN(TanhBackwardClosure, NO_IMPL, NO_IMPL, cuda::TanhBackward, NO_IMPL);
