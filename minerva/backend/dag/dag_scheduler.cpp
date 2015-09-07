@@ -65,9 +65,11 @@ void DagScheduler::Wait(BackendChunk* data) {
   unique_lock<mutex> lck(finish_mutex_);
   auto node_id = CHECK_NOTNULL(dynamic_cast<DagChunk*>(data))->node()->node_id_;
   target_ = node_id;
+//  std::cout << "[0] {backend} entering wait for id: "<< node_id << "\n";
   while (rt_info_.GetState(node_id) != NodeState::kCompleted) {
     finish_cond_.wait(lck);
   }
+//  std::cout << "[0] {backend} leaving wait for id: "<< node_id << "\n";
   target_ = -1;
 }
 

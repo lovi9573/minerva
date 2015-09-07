@@ -9,12 +9,25 @@
 
 
 #include <mpi.h>
+#include <thread>
 #include "mpi_server.h"
 
 
 using namespace std;
 
 namespace minerva {
+
+
+
+void MpiServer::printPendingTasks(){
+	std::cout << "Pending Tasks:\n";
+		for(auto i = pending_tasks_.begin(); i != pending_tasks_.end(); i++){
+			std::cout << *i <<", ";
+		}
+	std::cout <<"\n";
+}
+
+
 
 
 MPI_Datatype MPI_TASKDATA;
@@ -42,49 +55,60 @@ int MpiServer::GetMpiDeviceCount(int rank){
 	if (rank >= size || rank == 0){
 		return 0;
 	}
-	DLOG(INFO) << "Device count requested from rank #" << rank;
+	MPILOG << "Device count requested from rank #" << rank;
 	int count;
-	uint64_t id = Send(0,0,rank,MPI_DEVICE_COUNT);
-	Wait_For_Recv(id,reinterpret_cast<char*>(&count));
+	RecvItem r_item(reinterpret_cast<char*>(&count));
+	uint64_t mpi_id = Get_Mpi_Id();
+	{
+		std::unique_lock<std::mutex> lock(recv_mutex_);
+		recv_buffer_.insert( std::pair<uint64_t,RecvItem>(mpi_id, r_item) );
+	}
+	Send(mpi_id,0,0,rank,MPI_DEVICE_COUNT);
+	Wait_For_Recv(mpi_id,reinterpret_cast<char*>(&count));
 	return count;
 }
 
 void MpiServer::CreateMpiDevice(int rank, int id, uint64_t device_id){
-	DLOG(INFO) << "Creating device #" << id << " at rank "<< rank <<", uid " << device_id << "\n";
+	MPILOG << "Creating device #" << id << " at rank "<< rank <<", uid " << device_id << "\n";
 	int size = sizeof(int)+sizeof(uint64_t);
 	//TODO: delete this buffer when the message is sent.
 	char* buffer = new char[size];
 	int offset = 0;
-	SERIALIZE(buffer, offset, id, int)
 	SERIALIZE(buffer, offset, device_id, uint64_t)
+	SERIALIZE(buffer, offset, id, int)
 	Send(buffer,size,rank,MPI_CREATE_DEVICE);
 }
 
 
 void MpiServer::MPI_Send_task(const Task& task,const Context& ctx ){
-	DLOG(INFO) << "Task #"<< task.id << " being sent to rank #" << ctx.rank;
+	MPILOG_TASK << "[0]=> {" << std::this_thread::get_id() << "} Task #"<< task.id << " being sent to rank #" << ctx.rank <<"\n";
 	size_t bufsize = task.GetSerializedSize();
 	char* buffer = new char[bufsize];
 	size_t usedbytes = task.Serialize(buffer);
 	CHECK_EQ(bufsize, usedbytes);
+	{
+		std::unique_lock<std::mutex> lock(task_complete_mutex_);
+		pending_tasks_.insert(task.id);
+//		printPendingTasks();
+	}
 	Send(buffer, bufsize, ctx.rank, MPI_TASK);
 	//TODO: delete the buffer only after the message has been sent.
 	//delete[] buffer;
 	//TODO:(jesselovitt) Maybe a wait_for_recv would do the trick here.
-	{
-		std::unique_lock<std::mutex> lock(task_complete_mutex_);
-		pending_tasks_.Insert(task.id);
-	}
 }
 
 void MpiServer::Wait_On_Task(uint64_t task_id){
+	MPILOG_TASK << "[0]== {" << std::this_thread::get_id() << "} waiting on task "<< task_id << "\n";
 	std::unique_lock<std::mutex> lock(task_complete_mutex_);
-	while(pending_tasks_.Count(task_id) > 0){
+//	printPendingTasks();
+	while(pending_tasks_.count(task_id) > 0){
 		task_complete_condition_.wait(lock);
 	}
+	MPILOG_TASK << "[0]== {" << std::this_thread::get_id() << "} awoken on completed task "<< task_id << "\n";
 }
 
 void MpiServer::Free_Data(int rank, uint64_t data_id){
+	MPILOG << "[0]=> {" << std::this_thread::get_id() << "} Free data "<< data_id << "\n";
 	char* buffer = new char[sizeof(uint64_t)];
 	int offset = 0;
 	SERIALIZE(buffer, offset, data_id, uint64_t)
@@ -97,7 +121,6 @@ void MpiServer::Free_Data(int rank, uint64_t data_id){
  */
 
 void MpiServer::Default_Handler(uint64_t id, char* buffer, size_t size, int rank, int tag){
-	DLOG(INFO) << "[" << rank_ << "] Handling message " << tag ;
 	switch(tag){
 		case MPI_FINALIZE_TASK:
 			Handle_Finalize_Task(id, buffer, size, rank);
@@ -113,10 +136,14 @@ void MpiServer::Default_Handler(uint64_t id, char* buffer, size_t size, int rank
  */
 
 void MpiServer::Handle_Finalize_Task(uint64_t id, char* buffer, size_t size, int rank ){
-	uint64_t task_id = *(reinterpret_cast<uint64_t*>(buffer));
+	int offset = 0;
+	uint64_t task_id;
+	DESERIALIZE(buffer, offset, task_id, uint64_t)
+	MPILOG_TASK << "[0]<= {mainloop} Finalizing task "<< task_id << "\n";
 	{
 		std::unique_lock<std::mutex> task_lock(task_complete_mutex_);
-		pending_tasks_.Erase(task_id);
+		pending_tasks_.erase(task_id);
+//		printPendingTasks();
 	}
 	task_complete_condition_.notify_all();
 }

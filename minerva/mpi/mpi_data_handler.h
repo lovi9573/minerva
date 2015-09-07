@@ -46,6 +46,7 @@ protected:
 	void Handle_Task_Data_Response(uint64_t id, char* buffer, size_t size, int rank);
 	void Handle_Task_Data_Request(uint64_t id, char* buffer, size_t size, int rank);
 	uint64_t Send(char* msgbuffer, int size, int rank, int tag);
+	uint64_t Send(uint64_t mpi_id, char* msgbuffer, int size, int rank, int tag);
 	void Wait_For_Recv(uint64_t mpi_id, char* buffer);
 	int rank_;
 	std::mutex id_mutex_;
@@ -53,12 +54,13 @@ protected:
 	std::mutex recv_mutex_;
 	std::condition_variable recv_complete_;
 	std::map<uint64_t, RecvItem> recv_buffer_;
-private:
 	uint64_t Get_Mpi_Id();
+private:
 	uint64_t id_;
 	int id_stride_;
-	MPI_Request send_request_;
 	int send_complete_ ;
+	MPI_Request send_request_;
+	bool send_request_valid_;
 	std::queue<SendItem> send_queue_;
 };
 

@@ -105,7 +105,7 @@ void MpiDevice::Execute(Task* task, int thrid){
 		//printf("b\n");
 		MinervaSystem::Instance().profiler().RecordTime(TimerType::kMpi, op.compute_fn->Name()+"[mpi]", calculate_timer);
 	#endif
-	//DLOG(INFO) << Name() << " notifying listener of completed task\n";
+	DLOG(INFO) << Name() << " notifying listener of completed task\n";
 	listener_->OnOperationComplete(task);
 
 }
