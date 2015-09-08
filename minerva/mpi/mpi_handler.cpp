@@ -117,12 +117,13 @@ void MpiHandler::Handle_Task(MPI_Status& status){
 	std::unique_lock<std::mutex> lock(mpi_mutex_);
 	int count;
 	MPI_Get_count(&status,MPI_BYTE, &count);
-	char bytes[count];
-	MPI_Recv(&bytes, count, MPI_BYTE, status.MPI_SOURCE,MPI_TASK, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	char* bytes = new char[count];
+	MPI_Recv(bytes, count, MPI_BYTE, status.MPI_SOURCE,MPI_TASK, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	int bytesconsumed = 0;
 	Task& td = Task::DeSerialize(bytes,&bytesconsumed);
 	DLOG(INFO) << "[" << rank_  << "] Handling task #" << td.id;
 	MinervaSystem::Instance().device_manager().GetDevice(td.op.device_id)->PushTask(&td);
+	delete[] bytes;
 }
 
 

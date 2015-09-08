@@ -7,7 +7,7 @@ import owl
 import owl.elewise as ele
 import owl.conv as conv
 
-lazy_cycle = 8
+lazy_cycle = 1
 
 class MNISTCNNModel:
     def __init__(self):
@@ -52,9 +52,13 @@ class MNISTCNNModel:
         ];
 
 def print_training_accuracy(o, t, mbsize, prefix):
+    print "a"
     predict = o.reshape([10, mbsize]).max_index(0)
+    print "b"
     ground_truth = t.reshape([10, mbsize]).max_index(0)
+    print "c"
     correct = (predict - ground_truth).count_zero()
+    print "d"
     print prefix, 'error: {}'.format((mbsize - correct) * 1.0 / mbsize)
 
 def bpprop(model, samples, label):
@@ -116,12 +120,18 @@ def train_network(filename, model, num_epochs=5, minibatch_size=256, lr=0.1, lr_
             #print "\t[{}]Train Data imported to minerva format".format(count)
             out, weightgrads[current_dev], biasgrads[current_dev] = bpprop(model, data, label)
             #print "\t[{}]Backprop complete".format(count)
+            print "dev {}".format(current_dev)
             if current_dev == 0:
+                print "pre-merge"
                 for k in range(len(model.weights)):
+                    print k
                     model.weightdelta[k] = mom * model.weightdelta[k] - lr / num_samples / len(devs) * multi_dev_merge(weightgrads, 0, k) - lr * wd * model.weights[k]
+                    print "\t weight merge"
                     model.biasdelta[k] = mom * model.biasdelta[k] - lr / num_samples / len(devs) * multi_dev_merge(biasgrads, 0, k)
+                    print "\t bias merge"
                     model.weights[k] += model.weightdelta[k]
                     model.bias[k] += model.biasdelta[k]
+                print "post-merge"
                 if count % (len(devs) * lazy_cycle) == 0:
                     print_training_accuracy(out, label, num_samples, 'Training ' + str(count))
                     owl.print_profiler_result()
@@ -134,8 +144,11 @@ def train_network(filename, model, num_epochs=5, minibatch_size=256, lr=0.1, lr_
 def multi_dev_merge(l, base, layer):
     if len(l) == 1:
         return l[0][layer]
+    print "pre-multi"
     left = multi_dev_merge(l[:len(l) / 2], base, layer)
+    print "post-left"
     right = multi_dev_merge(l[len(l) / 2:], base + len(l) / 2, layer)
+    print "post-right"
     owl.set_device(base)
     return left + right
 
@@ -167,7 +180,7 @@ if __name__ == '__main__':
             devs += [owl.create_mpi_device(i,d+1) for i in range(1,nodes) for d in range(owl.get_mpi_device_count(i))]
             print "Using {} MPI GPU's".format(len(devs))
         else:
-            devs = [owl.create_cpu_device()]
+            #devs = [owl.create_cpu_device()]
             devs += [owl.create_mpi_device(i,0) for i in range(1,nodes)]
             print "Using {} MPI nodes".format(len(devs))
     else:
