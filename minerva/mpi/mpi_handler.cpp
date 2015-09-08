@@ -37,8 +37,8 @@ void MpiHandler::FinalizeTask(uint64_t task_id){
 	char* buffer = new char[sizeof(uint64_t)];
 	int offset = 0;
 	SERIALIZE(buffer, offset, task_id, uint64_t)
-	//TODO(JesseLovitt): Delete[] the buffer when the send occurs.
 	Send(buffer, sizeof(uint64_t), 0, MPI_FINALIZE_TASK);
+	delete[] buffer;
 }
 
 /*
@@ -72,6 +72,7 @@ void MpiHandler::Handle_Device_Count(uint64_t mpi_id, char* dummy, size_t size, 
 	int offset = 0;
 	SERIALIZE(buffer, offset, count, int)
 	Send(mpi_id, buffer, sizeof(int), rank, MPI_DEVICE_COUNT);
+	delete[] buffer;
 }
 
 void MpiHandler::Handle_Create_Device(uint64_t id, char* buffer, size_t size, int rank){

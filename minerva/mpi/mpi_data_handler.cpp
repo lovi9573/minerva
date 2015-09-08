@@ -90,44 +90,28 @@ void MpiDataHandler::MainLoop(){
 				if(send_queue_.size() > 0){
 					send_complete_ = 0;
 					SendItem& s = send_queue_.front();
-					char* buffer = new char[s.size + sizeof(uint64_t)];
-					int offset = 0;
-					SERIALIZE(buffer, offset, s.id, uint64_t)
-					#ifdef HAS_CUDA
-					  	  CUDA_CALL(cudaMemcpy(buffer+offset, s.buffer,  s.size, cudaMemcpyDefault));
-					#else
-						std::memcpy(buffer+offset, s.buffer, s.size);
-					#endif
+					delete[] send_buffer_;
+					send_buffer_ = s.buffer;
 					MPILOG << "[" << rank_  << "]=> {mainloop} ==== Sending message tag " << s.tag << " id "<< s.id <<". ====\n";
-					MPI_Isend(buffer, s.size+offset, MPI_BYTE, s.dest_rank, s.tag, MPI_COMM_WORLD, &send_request_);
+					MPI_Isend(send_buffer_, s.size, MPI_BYTE, s.dest_rank, s.tag, MPI_COMM_WORLD, &send_request_);
 					send_queue_.pop();
-					//delete[] buffer;
 				}
 			}
 		}else{
 			if(send_queue_.size() > 0){
 				send_complete_ = 0;
 				SendItem& s = send_queue_.front();
-				char* buffer = new char[s.size + sizeof(uint64_t)];
-				int offset = 0;
-				SERIALIZE(buffer, offset, s.id, uint64_t)
-				#ifdef HAS_CUDA
-					  CUDA_CALL(cudaMemcpy(buffer+offset, s.buffer,  s.size, cudaMemcpyDefault));
-				#else
-					std::memcpy(buffer+offset, s.buffer, s.size);
-				#endif
-				MPI_Isend(buffer, s.size+offset, MPI_BYTE, s.dest_rank, s.tag, MPI_COMM_WORLD, &send_request_);
+				send_buffer_ = s.buffer;
+				MPI_Isend(send_buffer_, s.size, MPI_BYTE, s.dest_rank, s.tag, MPI_COMM_WORLD, &send_request_);
 				MPILOG << "[" << rank_  << "]=> {mainloop} ==== Sending message tag " << s.tag << " id "<< s.id <<". ====\n";
 				send_queue_.pop();
 				send_request_valid_ = true;
-//				delete[] buffer;
 			}
 		}
 	}
 	MPI_Finalize();
 }
 
-//TODO(JesseLovitt): There is still a deadlock here for some reason.
 void MpiDataHandler::Request_Data(char* devbuffer, size_t bytes, int rank, uint64_t device_id, uint64_t data_id){
 		//Serialize message
 		int size = sizeof(size_t) + 2*sizeof(uint64_t);
@@ -171,10 +155,22 @@ uint64_t MpiDataHandler::Send(char* msgbuffer, int size, int rank, int tag){
 	return Send(mpi_id, msgbuffer, size, rank, tag);
 }
 
+/*
+ * Embeds the mpi_id into the given msgbuffer and queues it to be sent.
+ * Upon return, the msgbuffer is free to be garbage collected.
+ */
 uint64_t MpiDataHandler::Send(uint64_t mpi_id, char* msgbuffer, int size, int rank, int tag){
 	//Get a unique id and queue the message up.
 	MPILOG << "[" << rank_  << "]=> {" << std::this_thread::get_id() << "} Queuing "<< size <<" Byte message, type " << tag << " for rank "<< rank << ".\n";
-	SendItem item(mpi_id,msgbuffer,size,rank,tag);
+	char *buf = new char[size + sizeof(uint64_t)];
+	int offset = 0;
+	SERIALIZE(buf, offset, mpi_id, uint64_t)
+	#ifdef HAS_CUDA
+		  CUDA_CALL(cudaMemcpy(buf+offset, msgbuffer,  size, cudaMemcpyDefault));
+	#else
+		std::memcpy(buf+offset, msgbuffer, size);
+	#endif
+	SendItem item(mpi_id,buf,size+offset,rank,tag);
 	{
 		std::unique_lock<std::mutex> lock(send_mutex_);
 		send_queue_.push(item);

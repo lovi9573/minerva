@@ -77,6 +77,7 @@ void MpiServer::CreateMpiDevice(int rank, int id, uint64_t device_id){
 	SERIALIZE(buffer, offset, device_id, uint64_t)
 	SERIALIZE(buffer, offset, id, int)
 	Send(buffer,size,rank,MPI_CREATE_DEVICE);
+	delete[] buffer;
 }
 
 
@@ -93,7 +94,7 @@ void MpiServer::MPI_Send_task(const Task& task,const Context& ctx ){
 	}
 	Send(buffer, bufsize, ctx.rank, MPI_TASK);
 	//TODO: delete the buffer only after the message has been sent.
-	//delete[] buffer;
+	delete[] buffer;
 	//TODO:(jesselovitt) Maybe a wait_for_recv would do the trick here.
 }
 
@@ -114,6 +115,7 @@ void MpiServer::Free_Data(int rank, uint64_t data_id){
 	SERIALIZE(buffer, offset, data_id, uint64_t)
 	//TODO: delete the buffer only after the message has been sent.
 	Send(buffer, offset, rank, MPI_FREE_DATA);
+	delete[] buffer;
 }
 
 /*

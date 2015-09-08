@@ -62,6 +62,7 @@ private:
 	MPI_Request send_request_;
 	bool send_request_valid_;
 	std::queue<SendItem> send_queue_;
+	char* send_buffer_;
 };
 
 } /* namespace minerva */
