@@ -9,6 +9,7 @@
 
 
 #include <mpi.h>
+#include <thread>
 #include "mpi_server.h"
 
 
@@ -17,56 +18,34 @@ using namespace std;
 namespace minerva {
 
 
+
+void MpiServer::printPendingTasks(){
+	std::cout << "Pending Tasks:\n";
+		for(auto i = pending_tasks_.begin(); i != pending_tasks_.end(); i++){
+			std::cout << *i <<", ";
+		}
+	std::cout <<"\n";
+}
+
+
+
+
 MPI_Datatype MPI_TASKDATA;
 
 MpiServer::MpiServer(): MpiDataHandler(0){
 
 }
 
+
+/*
+ *  ======== Publicly callable ========
+ */
 void MpiServer::init(){
-//	MPI_Init(0,NULL);
-//	rank_ = ::MPI::COMM_WORLD.Get_rank();
-	//_pendingTasks = ConcurrentUnorderedSet<uint64_t>();
 }
 
-void MpiServer::MainLoop(){
-	int pending_message = 0;
-	MPI_Status status;
-	//MPI_Status st;
-	while (listen_){
-		{
-			std::unique_lock<std::mutex> lock(mpi_mutex_);
-			MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &pending_message, &status);
-		}
-		if(pending_message){
-			DLOG(INFO) << "[" << rank_ << "] Handling message " << status.MPI_TAG ;
-			switch(status.MPI_TAG){
-			case MPI_TASK_DATA_REQUEST:
-				Handle_Task_Data_Request(status);
-				break;
-			case MPI_TASK_DATA_RESPONSE:
-				Handle_Task_Data_Response(status);
-				break;
-			case MPI_FINALIZE_TASK:
-				Handle_Finalize_Task(status);
-				break;
-			default:
-				Discard(status);
-				break;
-			}
-			pending_message = 0;
-		}
-	}
-}
-
-
-int MpiServer::rank(){
-	return rank_;
-}
 
 int MpiServer::GetMpiNodeCount(){
 	int size = 0;
-	std::unique_lock<std::mutex> lock(mpi_mutex_);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	return size;
 }
@@ -76,100 +55,119 @@ int MpiServer::GetMpiDeviceCount(int rank){
 	if (rank >= size || rank == 0){
 		return 0;
 	}
-	DLOG(INFO) << "Device count requested from rank #" << rank;
+	MPILOG << "Device count requested from rank #" << rank;
 	int count;
-	std::unique_lock<std::mutex> lock(mpi_mutex_);
-	MPI_Send(0,0,MPI_INT, rank,MPI_DEVICE_COUNT, MPI_COMM_WORLD);
-	MPI_Recv((void*)&count, 1, MPI_INT, rank,MPI_DEVICE_COUNT, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	RecvItem r_item(reinterpret_cast<char*>(&count));
+	uint64_t mpi_id = Get_Mpi_Id();
+	{
+		std::unique_lock<std::mutex> lock(recv_mutex_);
+		recv_buffer_.insert( std::pair<uint64_t,RecvItem>(mpi_id, r_item) );
+	}
+	Send(mpi_id,0,0,rank,MPI_DEVICE_COUNT);
+	Wait_For_Recv(mpi_id,reinterpret_cast<char*>(&count));
 	return count;
 }
 
 void MpiServer::CreateMpiDevice(int rank, int id, uint64_t device_id){
-	DLOG(INFO) << "Creating device #" << id << " at rank "<< rank <<", uid " << device_id << "\n";
+	MPILOG << "Creating device #" << id << " at rank "<< rank <<", uid " << device_id << "\n";
 	int size = sizeof(int)+sizeof(uint64_t);
-	char buffer[size];
+	//TODO: delete this buffer when the message is sent.
+	char* buffer = new char[size];
 	int offset = 0;
-	SERIALIZE(buffer, offset, id, int)
 	SERIALIZE(buffer, offset, device_id, uint64_t)
-	std::unique_lock<std::mutex> lock(mpi_mutex_);
-	MPI_Send(buffer,size, MPI_BYTE,rank,MPI_CREATE_DEVICE, MPI_COMM_WORLD);
+	SERIALIZE(buffer, offset, id, int)
+	Send(buffer,size,rank,MPI_CREATE_DEVICE);
+	delete[] buffer;
 }
 
 
 void MpiServer::MPI_Send_task(const Task& task,const Context& ctx ){
-	DLOG(INFO) << "Task #"<< task.id << " being sent to rank #" << ctx.rank;
+	MPILOG_TASK << "[0]=> {" << std::this_thread::get_id() << "} Task #"<< task.id << " being sent to rank #" << ctx.rank <<"\n";
 	size_t bufsize = task.GetSerializedSize();
 	char* buffer = new char[bufsize];
 	size_t usedbytes = task.Serialize(buffer);
 	CHECK_EQ(bufsize, usedbytes);
 	{
-		std::unique_lock<std::mutex> lock(mpi_mutex_);
-		MPI_Request request;
-		MPI_Isend(buffer, bufsize, MPI_BYTE, ctx.rank, MPI_TASK, MPI_COMM_WORLD, &request);
-	}
-	delete[] buffer;
-	{
 		std::unique_lock<std::mutex> lock(task_complete_mutex_);
-		pending_tasks_.Insert(task.id);
+		pending_tasks_.insert(task.id);
+//		printPendingTasks();
 	}
+	Send(buffer, bufsize, ctx.rank, MPI_TASK);
+	//TODO: delete the buffer only after the message has been sent.
+	delete[] buffer;
+	//TODO:(jesselovitt) Maybe a wait_for_recv would do the trick here.
 }
 
 void MpiServer::Wait_On_Task(uint64_t task_id){
+	MPILOG_TASK << "[0]== {" << std::this_thread::get_id() << "} waiting on task "<< task_id << "\n";
 	std::unique_lock<std::mutex> lock(task_complete_mutex_);
-	while(pending_tasks_.Count(task_id) > 0){
+//	printPendingTasks();
+	while(pending_tasks_.count(task_id) > 0){
 		task_complete_condition_.wait(lock);
+	}
+	MPILOG_TASK << "[0]== {" << std::this_thread::get_id() << "} awoken on completed task "<< task_id << "\n";
+}
+
+void MpiServer::Free_Data(int rank, uint64_t data_id){
+	MPILOG << "[0]=> {" << std::this_thread::get_id() << "} Free data "<< data_id << "\n";
+	char* buffer = new char[sizeof(uint64_t)];
+	int offset = 0;
+	SERIALIZE(buffer, offset, data_id, uint64_t)
+	//TODO: delete the buffer only after the message has been sent.
+	Send(buffer, offset, rank, MPI_FREE_DATA);
+	delete[] buffer;
+}
+
+/*
+ *  ========= Default_Handler =========
+ */
+
+void MpiServer::Default_Handler(uint64_t id, char* buffer, size_t size, int rank, int tag){
+	switch(tag){
+		case MPI_FINALIZE_TASK:
+			Handle_Finalize_Task(id, buffer, size, rank);
+			break;
+		case MPI_DEVICE_COUNT:
+			Handle_Device_Count(id, buffer, size, rank);
+			break;
 	}
 }
 
-/**
- *  Signal Received From worker Rank that a task is complete
+/*
+ *  ======== Receive Handlers =========
  */
-void MpiServer::Handle_Finalize_Task(MPI_Status status){
-	int count;
+
+void MpiServer::Handle_Finalize_Task(uint64_t id, char* buffer, size_t size, int rank ){
+	int offset = 0;
 	uint64_t task_id;
-	{
-		std::unique_lock<std::mutex> lock(mpi_mutex_);
-		MPI_Get_count(&status, MPI_BYTE, &count);
-		//char buffer[count];
-		MPI_Recv(&task_id, count, MPI_CHAR, status.MPI_SOURCE, MPI_FINALIZE_TASK, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		//printf("notified of finalization of task %lu\n",task_id);
-	}
+	DESERIALIZE(buffer, offset, task_id, uint64_t)
+	MPILOG_TASK << "[0]<= {mainloop} Finalizing task "<< task_id << "\n";
 	{
 		std::unique_lock<std::mutex> task_lock(task_complete_mutex_);
-		pending_tasks_.Erase(task_id);
+		pending_tasks_.erase(task_id);
+//		printPendingTasks();
 	}
 	task_complete_condition_.notify_all();
 }
 
-
-
-void MpiServer::Free_Data(int rank, uint64_t data_id){
-	std::unique_lock<std::mutex> lock(mpi_mutex_);
-	char buffer[sizeof(uint64_t)];
-	int offset = 0;
-	SERIALIZE(buffer, offset, data_id, uint64_t)
-	//TODO(jesselovitt) This is not guaranteed to work.  This Isend should have a test before ANY other send's occur.
-	MPI_Request request;
-	MPI_Isend(buffer, offset, MPI_CHAR, rank,MPI_FREE_DATA, MPI_COMM_WORLD, &request);
+void MpiServer::Handle_Device_Count(uint64_t id, char* buffer, size_t size, int rank){
+	std::unique_lock<std::mutex> lock(recv_mutex_);
+	if(recv_buffer_.find(id) != recv_buffer_.end()){
+		recv_buffer_.at(id).ready = 1;
+		std::memcpy(recv_buffer_.at(id).buffer, buffer, size);
+	}
 }
 
-void MpiServer::Discard(MPI_Status status){
-	int count;
-	std::unique_lock<std::mutex> lock(mpi_mutex_);
-	MPI_Get_count(&status, MPI_BYTE, &count);
-	char dummy[count];
-	MPI_Recv(&dummy, count, MPI_CHAR, status.MPI_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-	DLOG(FATAL) << "[" << rank_ << "] Discarding message " << status.MPI_TAG << ".\n";
-}
+
 
 void MpiServer::MPI_Terminate(){
 	listen_ = false;
 	int n = GetMpiNodeCount();
 	//TODO(jlovitt): wait for mainloop to terminate
-	std::unique_lock<std::mutex> lock(mpi_mutex_);
 	for(int i = 1; i < n; i++ ){
-		MPI_Send(NULL,0, MPI_BYTE, i, MPI_TERMINATE, MPI_COMM_WORLD);
+		Send(NULL,0, i, MPI_TERMINATE);
 	}
+	//TODO(JesseLovitt):Wait for send queue to empty.
 	MPI_Finalize();
 }
 

@@ -21,14 +21,14 @@ namespace minerva {
 class MpiHandler: public MpiDataHandler{
 public:
 	MpiHandler(int rank);
-	void MainLoop();
 	int rank();
 	void FinalizeTask(uint64_t);
 private:
-	void Handle_Device_Count(MPI_Status& );
-	void Handle_Create_Device(MPI_Status&);
-	void Handle_Task(MPI_Status&);
-	void Handle_Free_Data(MPI_Status&);
+	void Default_Handler(uint64_t id, char* buffer, size_t size, int rank, int tag) override;
+	void Handle_Device_Count(uint64_t id, char* buffer, size_t size, int rank );
+	void Handle_Create_Device(uint64_t id, char* buffer, size_t size, int rank);
+	void Handle_Task(uint64_t id, char* buffer, size_t size, int rank);
+	void Handle_Free_Data(uint64_t id, char* buffer, size_t size, int rank);
 
 };
 
