@@ -30,7 +30,7 @@ class NetTrainer:
     def __init__(self, solver_file, snapshot = 0, gpu = 1, sync_freq=1, report=False):
         self.solver_file = solver_file
         self.snapshot = snapshot
-        self.num_gpu = num_gpu
+        self.num_gpu = gpu
         self.sync_freq = sync_freq
         self.report = report
         if owl.has_mpi():
@@ -43,7 +43,7 @@ class NetTrainer:
                 self.num_gpu = len(self.gpu)
             else:
 		self.gpu += [owl.create_cpu_device()]
-                self.gpu += [owl.create_mpi_device(n,0) for n in range(owl.get_mpi_node_count()]
+                self.gpu += [owl.create_mpi_device(n,0) for n in range(owl.get_mpi_node_count())]
 		self.num_gpu = len(self.gpu)
 		print "using {} cpu's over all nodes".format(self.num_gpu)
         else:
