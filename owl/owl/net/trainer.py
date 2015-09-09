@@ -27,21 +27,28 @@ class NetTrainer:
                          speed. Normally, the higher value is given, the faster the training speed but the more memory is used
                          during execution.
     '''
-    def __init__(self, solver_file, snapshot = 0, num_gpu = 1, sync_freq=1, report=False):
+    def __init__(self, solver_file, snapshot = 0, gpu = 1, sync_freq=1, report=False):
         self.solver_file = solver_file
         self.snapshot = snapshot
         self.num_gpu = num_gpu
         self.sync_freq = sync_freq
         self.report = report
         if owl.has_mpi():
-            self.gpu = [] 
-            nodes = [owl.get_mpi_device_count(i) for i in range(owl.get_mpi_node_count())]
-            for n in range(1,len(nodes)):
-                self.gpu +=  [owl.create_mpi_device(n,i+1) for i in range(nodes[n])]
-		print "using {} gpu's on node {}\n".format(nodes[n],n)
-            self.num_gpu = len(self.gpu)
+            self.gpu = []
+            if gpu == 1: 
+                nodes = [owl.get_mpi_device_count(i) for i in range(owl.get_mpi_node_count())]
+                for n in range(1,len(nodes)):
+                    self.gpu +=  [owl.create_mpi_device(n,i+1) for i in range(nodes[n])]
+	    	    print "using {} gpu's on node {}\n".format(nodes[n],n)
+                self.num_gpu = len(self.gpu)
+            else:
+		self.gpu += [owl.create_cpu_device()]
+                self.gpu += [owl.create_mpi_device(n,0) for n in range(owl.get_mpi_node_count()]
+		self.num_gpu = len(self.gpu)
+		print "using {} cpu's over all nodes".format(self.num_gpu)
         else:
             self.gpu = [owl.create_cpu_device()] + [owl.create_gpu_device(i) for i in range(num_gpu)]
+	    self.num_gpu = len(self.gpu)
 	    print "using {} gpus's".format(len(self.gpu))
 
     def build_net(self):
