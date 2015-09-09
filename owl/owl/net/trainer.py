@@ -34,13 +34,15 @@ class NetTrainer:
         self.sync_freq = sync_freq
         self.report = report
         if owl.has_mpi():
-            self.gpu = [owl.create_cpu_device()] 
+            self.gpu = [] 
             nodes = [owl.get_mpi_device_count(i) for i in range(owl.get_mpi_node_count())]
-            for n in range(len(nodes)):
+            for n in range(1,len(nodes)):
                 self.gpu +=  [owl.create_mpi_device(n,i+1) for i in range(nodes[n])]
+		print "using {} gpu's on node {}\n".format(nodes[n],n)
             self.num_gpu = len(self.gpu)
         else:
             self.gpu = [owl.create_cpu_device()] + [owl.create_gpu_device(i) for i in range(num_gpu)]
+	    print "using {} gpus's".format(len(self.gpu))
 
     def build_net(self):
         ''' Build network structure using Caffe's proto definition. It will also initialize
@@ -55,6 +57,7 @@ class NetTrainer:
         self.builder.build_net(self.owl_net, self.num_gpu)
         self.owl_net.compute_size()
         self.builder.init_net_from_file(self.owl_net, self.snapshot_dir, self.snapshot)
+	print "net built"
 
     def run(s):
         ''' Run the training algorithm on multiple GPUs
@@ -126,8 +129,11 @@ class NetTrainer:
             # train on multi-gpu
             for gpuid in range(s.num_gpu):
                 owl.set_device(s.gpu[gpuid])
+		print "running gpu".format(s.gpu[gpuid])
                 s.owl_net.forward('TRAIN')
+		print "\tForward complete on gpu {}".format(s.gpu[gpuid])
                 s.owl_net.backward('TRAIN')
+		print "\tBackward complete on gpu {}".format(s.gpu[gpuid])
                 for wid in wunits:
                     wgrad[gpuid].append(s.owl_net.units[wid].weightgrad)
                     bgrad[gpuid].append(s.owl_net.units[wid].biasgrad)
