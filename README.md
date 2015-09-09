@@ -113,8 +113,11 @@ Additionally, since libmpi.so is being loaded lazily by the minerva library, it'
 
 ##Requirements
 Cython
+Numpy
+Scipy (requires some BLAS/LAPACK)
 CMake 2.8.4
-OpenMpi for MPI support
+Nvidia CUDA and cuDNN libraries
+OpenMpi for MPI support [Cuda Aware MPI](http://www.open-mpi.org/faq/?category=buildcuda)
 Git >1.6.5
 
 ## Next Plan

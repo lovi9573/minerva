@@ -72,4 +72,4 @@ HTModels/hostapp/conv_sysc
 tests/unittest_fixedpoint
 suppressions.supp
 *.log
-libowl.cpp
+*libowl.cpp
