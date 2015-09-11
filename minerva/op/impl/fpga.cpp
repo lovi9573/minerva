@@ -113,9 +113,7 @@ void ConvBackwardData(const DataList& inputs, const DataList& outputs, ConvBackw
 							FIXED_POINT_FRACTION_WIDTH)
 }
 
-/*
- * NOTE: This implementation is not designed to be fast.  If you want that, use a GPU.  It is meant to provide feature completeness and the ability to develop on a GPU-less machine.
- */
+
 void ConvBackwardBias(const DataList& inputs, const DataList& outputs, ConvBackwardBiasClosure& closure){
 	CHECK_EQ(inputs.size(), 1) << " Convolution #inputs are wrong.\n";
 	CHECK_EQ(outputs.size(), 1) << " Convolution #outputs are wrong.\n";
@@ -136,7 +134,9 @@ void ConvBackwardBias(const DataList& inputs, const DataList& outputs, ConvBackw
 		bottom_diff[i] = 0.0f;
 	}
 
-	//TODO: write for fpga
+	ConvBackwardBias_ht(top_diff, top_size,	top_column_stride, top_channel_stride, top_image_stride,
+						bottom_diff,
+						FIXED_POINT_FRACTION_WIDTH);
 }
 
 /*
@@ -179,31 +179,6 @@ void ConvBackwardFilter(const DataList& inputs, const DataList& outputs, ConvBac
 	for(size_t i =0; i < img_numbers; i++){
 		printf("%f,",input_data[i]);
 	}
-	/*
-	  closure.pad_height;
-	  int pad_width;
-	  closure.stride_vertical;
-	  int stride_horizontal;
-
-	conv_forward(input_q88_data, size_t num_img, size_t img_dim, size_t img_channels, size_t img_alloc,
-			 void *filters_q88_data, size_t num_filters, closure.pad_height, closure.stride_vertical, size_t filter_alloc,
-			 void *output_q88_data, size_t output_alloc,
-			 uint16_t fraction_width);
-	*/
-	printf("num_img: %d, img_dim: %d, img_channels: %d, num_filters: %d, filter_dim: %d, stride: %d",
-			inputs[0].size_[3], inputs[0].size_[1], inputs[0].size_[2],
-			inputs[1].size_[3], inputs[1].size_[1], closure.stride_vertical);
-
-	conv_forward(input_q88_data, inputs[0].size_[3], inputs[0].size_[1], inputs[0].size_[2], img_bytes,
-				 filter_q88_data, inputs[1].size_[3], inputs[1].size_[1], closure.stride_vertical, filter_bytes,
-				 output_q88_data, output_bytes,
-				 frac_width);
-
-	qxx2float(output_q88_data, output_data, output_numbers,16,frac_width);
-	for(size_t i = 0; i < output_numbers; i++){
-		printf("%f\n",output_data[i]);
-	}
-
 
     int pad_height = closure.pad_height;
     int pad_width = closure.pad_width;
@@ -211,6 +186,18 @@ void ConvBackwardFilter(const DataList& inputs, const DataList& outputs, ConvBac
     int stride_horizontal = closure.stride_horizontal;
 
     int topindex = -1  ;
+	printf("num_img: %d, img_dim: %d, img_channels: %d, num_filters: %d, filter_dim: %d, stride: %d",
+			inputs[0].size_[3], inputs[0].size_[1], inputs[0].size_[2],
+			inputs[1].size_[3], inputs[1].size_[1], closure.stride_vertical);
+
+	ConvBackwardFilter_ht(top_diff,top_size,
+				 bottom, bottom_size, bottom_column_stride, bottom_channel_stride, bottom_image_stride,
+				 filter_diff, filter_size, filter_column_stride, filter_channel_stride, filter_element_stride,
+				 frac_width,
+				 FIXED_POINT_FRACTION_WIDTH);
+
+
+
 
     //TODO: write for fpga
 }

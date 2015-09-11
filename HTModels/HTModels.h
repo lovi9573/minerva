@@ -10,11 +10,23 @@
 
 //#include <Ht.h>
 
+
+#define CONV_FORWARD 1
+#define CONV_BACKWARD_DATA 2
+#define CONV_BACKWARD_BIAS 3
+#define CONV_BACKWARD_FILTER 4
+
 //void relu_forward(char *input_q88_data, char *output_q88_data, size_t numbers );
 void conv_forward(void *input_q88_data, size_t num_img, size_t img_dim, size_t img_channels, size_t img_alloc,
 		 void *filters_q88_data, size_t num_filters, size_t filter_dim, size_t stride, size_t filter_alloc,
 		 void *output_q88_data, size_t output_alloc,
 		 uint16_t fraction_width);
+
+void conv_backward_data_ht(void* top_diff, size_t top_alloc,
+							void* filter_data, size_t num_filters, size_t filter_dim, size_t stride, size_t filter_alloc,
+							void* bottom_diff, int bottom_width, int bottom_height, int bottom_channels, int bottom_samples, size_t bottom_alloc,
+							int frac_w );
+
 
 
 
