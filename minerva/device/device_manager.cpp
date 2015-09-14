@@ -85,7 +85,6 @@ int DeviceManager::GetGpuDeviceCount() {
   CUDA_CALL(cudaGetDeviceCount(&ret));
   return ret;
 #else
-  common::FatalError("please recompile with macro HAS_CUDA");
   return 0;
 #endif
 }
@@ -94,6 +93,7 @@ int DeviceManager::GetMpiNodeCount() {
 #ifdef HAS_MPI
   return MinervaSystem::Instance().mpi_server().GetMpiNodeCount();
 #else
+  return 0;
   common::FatalError("please recompile with macro HAS_MPI");
 #endif
 }
@@ -102,6 +102,7 @@ int DeviceManager::GetMpiDeviceCount(int rank) {
 #ifdef HAS_MPI
   return MinervaSystem::Instance().mpi_server().GetMpiDeviceCount(rank);
 #else
+  return 0;
   common::FatalError("please recompile with macro HAS_MPI");
 #endif
 }
