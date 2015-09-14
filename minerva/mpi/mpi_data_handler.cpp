@@ -215,7 +215,11 @@ void MpiDataHandler::Handle_Task_Data_Response(uint64_t id, char* buffer, size_t
 		MPILOG_DATA << "[" << rank_ << "]<= {mainloop} handling data response for data, mpi_id: " << id << "\n";
 		if(recv_buffer_.find(id) != recv_buffer_.end()){
 			recv_buffer_.at(id).ready = 1;
+		#ifdef HAS_CUDA
+			CUDA_CALL(cudaMemcpy(recv_buffer_.at(id).buffer, buffer,  size, cudaMemcpyDefault));
+		#else
 			std::memcpy(recv_buffer_.at(id).buffer, buffer, size);
+		#endif
 		}
 		recv_complete_.notify_all();
 }
