@@ -897,6 +897,69 @@ void PoolingBackward(const DataList& inputs, const DataList& outputs, PoolingBac
 }
 
 
+void LRNForward(const DataList& inputs, const DataList& outputs, LRNForwardClosure& closure) {
+  CHECK_EQ(inputs.size(), 2) << "(LRNForward) #inputs is wrong!";
+  CHECK_EQ(outputs.size(), 1) << "(LRNForward) #outputs is wrong!";
+  element_t* bottom_data = inputs[0].data_;
+  element_t* scale_data = inputs[1].data_;
+  element_t* res_data = outputs[0].data_;
+  int local_size = closure.local_size;
+  element_t alpha = closure.alpha;
+  element_t beta = closure.beta;
+  int num_img = closure.data_shape[3];
+  int channel = closure.data_shape[2];
+  int width = closure.data_shape[1];
+  int height = closure.data_shape[0];
+
+  int channel_stride = width*height;
+  int img_stride = channel_stride*channel;
+
+  for(int i = 0; i < inputs[1].size_.Prod(); i++){
+  	  scale_data[i] = 0;
+   }
+
+  for(int img = 0; img < num_img; img++){
+	  for(int c = 0; c < channel; c++){
+		  for(int h = 0; h < height; h++){
+			  for(int w = 0; w < width; w++){
+				  //Not sure about the bounds here. split in half(yes according to Krizhevsky paper)? What about odd/even?
+				  for(int j = c -local_size/2; j <= c+local_size/2; j++){
+					  if(j >=0 && j < channel){
+						  scale_data[h + height*w + channel_stride*c + img_stride*img] +=
+								  bottom_data[h + height*w + channel_stride*j + img_stride*img]*bottom_data[h + height*w + channel_stride*j + img_stride*img];
+					  }
+				  }
+			  }
+		  }
+	  }
+  }
+  //res_data[i] = bottom_data[i] / pow((alpha * sum_squared_neighbors),beta)
+  for(int i = 0; i < inputs[1].size_.Prod(); i++){
+	  scale_data[i] = pow((1.0+(alpha/local_size)*scale_data[i]),beta);
+	  res_data[i] = bottom_data[i]/scale_data[i];
+  }
+}
+
+/*
+void LRNBackward(const DataList& inputs, const DataList& outputs, LRNBackwardClosure& closure) {
+  CHECK_EQ(inputs.size(), 4) << "(LRNBackward) #inputs is wrong!";
+  CHECK_EQ(outputs.size(), 1) << "(LRNBackward) #outputs is wrong!";
+  element_t* bottom_data = inputs[0].data_;
+  element_t* top_data = inputs[1].data_;
+  element_t* scale_data = inputs[2].data_;
+  element_t* top_diff = inputs[3].data_;
+  element_t* bottom_diff = outputs[0].data_;
+  int local_size = closure.local_size;
+  element_t alpha = closure.alpha;
+  element_t beta = closure.beta;
+  int num_img = closure.data_shape[3];
+  int channel = closure.data_shape[2];
+  int weight = closure.data_shape[1];
+  int height = closure.data_shape[0];
+  DLOG(FATAL) << "LRNBackward not yet implemented\n";
+}
+*/
+
 void Index(const DataList& inputs, const DataList& outputs, IndexClosure& closure) {
 	CHECK_EQ(inputs.size(), 1) << "(activation forward) #inputs wrong";
 	CHECK_EQ(outputs.size(), 1) << "(activation forward) #outputs wrong";

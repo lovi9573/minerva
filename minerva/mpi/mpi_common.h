@@ -33,18 +33,18 @@ namespace minerva {
 		#define MPILOG_TASK std::cout
 	#else
 		#define MPILOG  true ? (void) 0 : dmlc::LogMessageVoidify() & LOG(INFO)
-	#endif
 
-	#ifdef MPI_DATA_LOGGING
-		#define MPILOG_DATA std::cout
-	#else
-		#define MPILOG_DATA  true ? (void) 0 : dmlc::LogMessageVoidify() & LOG(INFO)
-	#endif
+		#ifdef MPI_DATA_LOGGING
+			#define MPILOG_DATA std::cout
+		#else
+			#define MPILOG_DATA  true ? (void) 0 : dmlc::LogMessageVoidify() & LOG(INFO)
+		#endif
 
-	#ifdef MPI_TASK_LOGGING
-		#define MPILOG_TASK std::cout
-	#else
-		#define MPILOG_TASK  true ? (void) 0 : dmlc::LogMessageVoidify() & LOG(INFO)
+		#ifdef MPI_TASK_LOGGING
+			#define MPILOG_TASK std::cout
+		#else
+			#define MPILOG_TASK  true ? (void) 0 : dmlc::LogMessageVoidify() & LOG(INFO)
+		#endif
 	#endif
 
 #endif

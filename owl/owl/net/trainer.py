@@ -136,7 +136,7 @@ class NetTrainer:
             # train on multi-gpu
             for gpuid in range(s.num_gpu):
                 owl.set_device(s.gpu[gpuid])
-		print "running gpu".format(s.gpu[gpuid])
+		print "running gpu {}".format(s.gpu[gpuid])
                 s.owl_net.forward('TRAIN')
 		print "\tForward complete on gpu {}".format(s.gpu[gpuid])
                 s.owl_net.backward('TRAIN')

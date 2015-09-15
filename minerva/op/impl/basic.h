@@ -42,6 +42,8 @@ void ConvBackwardFilter(const DataList& inputs, const DataList& outputs, ConvBac
 void PoolingForward(const DataList& inputs, const DataList& outputs, PoolingForwardClosure& closure);
 void PoolingBackward(const DataList& inputs, const DataList& outputs, PoolingBackwardClosure& closure);
 
+void LRNForward(const DataList& inputs, const DataList& outputs, LRNForwardClosure& closure);
+
 void SoftmaxForward(const DataList&, const DataList&, SoftmaxForwardClosure&);
 void Index(const DataList&, const DataList&, IndexClosure&);
 }  // end of namespace basic

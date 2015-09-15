@@ -69,6 +69,7 @@ GpuDevice::Impl::~Impl() {
 }
 
 void GpuDevice::Impl::ActivateDevice() const {
+
   CUDA_CALL(cudaSetDevice(device));
 }
 
@@ -78,11 +79,15 @@ GpuDevice::GpuDevice(uint64_t device_id, DeviceListener* l, int gpu_id) : Thread
   auto allocator = [this](size_t len) -> void* {
     void* ret;
     impl_->ActivateDevice();
+    //size_t free, total;
+    //cudaMemGetInfo(&free,&total);
+    //printf("Allocating %lu on GPU device_id %d with %lu free of %lu\n",len,impl_->device,free,total);
     CUDA_CALL(cudaMalloc(&ret, len));
     return ret;
   };
   auto deallocator = [this](void* ptr) {
     impl_->ActivateDevice();
+    //printf("Free'ing on GPU device_id: %d\n",impl_->device);
     CUDA_CALL(cudaFree(ptr));
   };
   data_store_ = common::MakeUnique<PooledDataStore>(DEFAULT_POOL_SIZE, allocator, deallocator);

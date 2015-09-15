@@ -1087,6 +1087,7 @@ class Net:
             from_btm = {}
             for btm in self.reverse_adjacent[u]:
                 from_btm.update(unit_to_tops[btm])
+            print "\t\tforward on {}".format(u)
             self.units[u].forward(from_btm, unit_to_tops[u], phase)
 
     def forward_check(self):
