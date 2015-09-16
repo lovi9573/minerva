@@ -940,7 +940,7 @@ void LRNForward(const DataList& inputs, const DataList& outputs, LRNForwardClosu
   }
 }
 
-/*
+
 void LRNBackward(const DataList& inputs, const DataList& outputs, LRNBackwardClosure& closure) {
   CHECK_EQ(inputs.size(), 4) << "(LRNBackward) #inputs is wrong!";
   CHECK_EQ(outputs.size(), 1) << "(LRNBackward) #outputs is wrong!";
@@ -958,7 +958,7 @@ void LRNBackward(const DataList& inputs, const DataList& outputs, LRNBackwardClo
   int height = closure.data_shape[0];
   DLOG(FATAL) << "LRNBackward not yet implemented\n";
 }
-*/
+
 
 void Index(const DataList& inputs, const DataList& outputs, IndexClosure& closure) {
 	CHECK_EQ(inputs.size(), 1) << "(activation forward) #inputs wrong";
