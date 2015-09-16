@@ -173,6 +173,7 @@ class NetTrainer:
                 lossunits = s.owl_net.get_loss_units()
                 for lu in lossunits:
                     print "Training Loss %s: %f" % (lu.name, lu.getloss())
+                print owl.print_profiler_result()
 
             # decide whether to test
             if (iteridx + 1) % (s.owl_net.solver.test_interval) == 0:
