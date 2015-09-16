@@ -36,20 +36,21 @@ class NetTrainer:
         if owl.has_mpi():
             self.gpu = []
             if gpu == 1: 
-                nodes = [owl.get_mpi_device_count(i) for i in range(owl.get_mpi_node_count())]
-                for n in range(1,len(nodes)):
+                self.gpu += [owl.create_gpu_device(i) for i in range(owl.get_gpu_device_count())]
+                nodes = [owl.get_mpi_device_count(i) for i in range(1,owl.get_mpi_node_count())]
+                for n in range(len(nodes)):
                     self.gpu +=  [owl.create_mpi_device(n,i+1) for i in range(nodes[n])]
 	    	    print "using {} gpu's on node {}\n".format(nodes[n],n)
                 self.num_gpu = len(self.gpu)
             else:
-		self.gpu += [owl.create_cpu_device()]
-                self.gpu += [owl.create_mpi_device(n,0) for n in range(owl.get_mpi_node_count())]
-		self.num_gpu = len(self.gpu)
-		print "using {} cpu's over all nodes".format(self.num_gpu)
+        		self.gpu += [owl.create_cpu_device()]
+                        self.gpu += [owl.create_mpi_device(n,0) for n in range(1,owl.get_mpi_node_count())]
+        		self.num_gpu = len(self.gpu)
+		        print "using {} cpu's over all nodes".format(self.num_gpu)
         else:
-            self.gpu = [owl.create_cpu_device()] + [owl.create_gpu_device(i) for i in range(num_gpu)]
-	    self.num_gpu = len(self.gpu)
-	    print "using {} gpus's".format(len(self.gpu))
+            self.gpu = [owl.create_cpu_device()] + [owl.create_gpu_device(i) for i in range(self.num_gpu)]
+            self.num_gpu = len(self.gpu)
+	    print "using {} devices".format(len(self.gpu))
 
     def build_net(self):
         ''' Build network structure using Caffe's proto definition. It will also initialize
@@ -138,9 +139,7 @@ class NetTrainer:
                 owl.set_device(s.gpu[gpuid])
 		print "running gpu {}".format(s.gpu[gpuid])
                 s.owl_net.forward('TRAIN')
-		print "\tForward complete on gpu {}".format(s.gpu[gpuid])
                 s.owl_net.backward('TRAIN')
-		print "\tBackward complete on gpu {}".format(s.gpu[gpuid])
                 for wid in wunits:
                     wgrad[gpuid].append(s.owl_net.units[wid].weightgrad)
                     bgrad[gpuid].append(s.owl_net.units[wid].biasgrad)
@@ -163,7 +162,7 @@ class NetTrainer:
                 owl.wait_for_all()
                 thistime = time.time() - last
                 speed = s.owl_net.batch_size * s.sync_freq / thistime
-                print "Finished training %d minibatch (time: %s; speed: %s img/s)" % (iteridx, thistime, speed)
+                print "Finished training %d minibatch of %d (time: %s; speed: %s img/s)" % (iteridx, end_idx, thistime, speed)
                 last = time.time()
 
             wgrad = [[] for i in range(s.num_gpu)] # reset gradients

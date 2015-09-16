@@ -43,6 +43,7 @@ void PoolingForward(const DataList& inputs, const DataList& outputs, PoolingForw
 void PoolingBackward(const DataList& inputs, const DataList& outputs, PoolingBackwardClosure& closure);
 
 void LRNForward(const DataList& inputs, const DataList& outputs, LRNForwardClosure& closure);
+void LRNBackward(const DataList& inputs, const DataList& outputs, LRNBackwardClosure& closure);
 
 void SoftmaxForward(const DataList&, const DataList&, SoftmaxForwardClosure&);
 void Index(const DataList&, const DataList&, IndexClosure&);
