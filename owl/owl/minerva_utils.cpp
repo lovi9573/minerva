@@ -101,7 +101,7 @@ void ToNumpy(float* dst, minerva::NArray const& n) {
   auto ptr = n.Get();
   //printf("Minerva Utils ToNumpy recieved %d floats \n", size);
   for (int i = 0; i < size; i++){
-	  dst[i] = ptr.get()[i];
+	  dst[i] = (float)(ptr.get()[i]);
 	  //printf("%f , ",*(ptr.get()+i));
   }
   //memcpy(dst, ptr.get(), size * sizeof(float));

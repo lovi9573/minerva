@@ -43,7 +43,7 @@ public:
 		value = (TYPE)trunc(round(v*multiplier) >> FRACW);
 		//printf("%f (x%d)=> %d\n",v,multiplier,value);
 	}
-	FixedPoint(TYPE v):value(v){}
+	explicit FixedPoint(TYPE v):value(v){}
 	//FixedPoint(MULTYPE v):value((TYPE)v){}
 
 
@@ -56,7 +56,7 @@ public:
 		return FixedPoint(div(this->value, rhs.value));
 	}
 
-	inline FixedPoint operator+(const FixedPoint& rhs){
+	inline FixedPoint operator+(const FixedPoint rhs){
 		return FixedPoint(add(this->value, rhs.value));
 	}
 
@@ -81,8 +81,8 @@ public:
 		return *this;
 	}
 
-	inline FixedPoint& operator-(){
-		return &FixedPoint(-(this->value));
+	inline FixedPoint operator-(){
+		return FixedPoint((TYPE)(-(this->value)));
 	}
 
 	inline FixedPoint& operator=(const FixedPoint& other){
@@ -185,20 +185,22 @@ private:
 
 
 	/* Bridge Operations */
-	 /*
 	friend inline FixedPoint operator+(double lhs, const FixedPoint rhs){
-		return rhs + FixedPoint(lhs);
+		return FixedPoint(lhs) + rhs;
 	}
+	/*
+
 	friend inline FixedPoint operator-(const FixedPoint& lhs, double rhs){
 		return lhs - FixedPoint(rhs);
 	}
 	friend inline FixedPoint operator*(const FixedPoint& lhs, double rhs){
 		return lhs * FixedPoint(rhs);
 	}
-	friend inline FixedPoint operator/(const FixedPoint& lhs, double rhs){
-		return lhs / FixedPoint(rhs);
-	}
 	*/
+	friend inline FixedPoint operator/(double lhs, const FixedPoint& rhs){
+		return FixedPoint(lhs)/ rhs;
+	}
+
 
 	friend std::ostream& operator<<(std::ostream& os, const FixedPoint& obj){
 		os << obj.value;
