@@ -44,12 +44,12 @@ inline float addfloat(float a, float b, float c){
 	return a * b + c;
 }
 
-inline float addfixed(FP8 a, FP8 b, FP8 c){
+inline FP8 addfixed(FP8 a, FP8 b, FP8 c){
 	return a * b + c;
 }
 
-TEST(FixedPoint, Speed){
-	int number_random_tests = 10000000;
+TEST(FixedPoint, MulAddSpeed){
+	int number_random_tests = 10;
 	double a = get_wall_time();	
 	for(int i = 0; i < number_random_tests; i++){
 		addfloat(static_cast<float>(rand())/static_cast<float>(RAND_MAX),
@@ -70,4 +70,6 @@ TEST(FixedPoint, Speed){
 	EXPECT_LT((b/a), 3.0);
 	std::cout << "factor: " << (b/a) << "\n";
 }
+
+
 

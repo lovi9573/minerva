@@ -15,6 +15,7 @@
 #include <iostream>
 #include <iomanip>
 #include <stdint.h>
+#include <cmath>
 
 
 template<typename MULTYPE, typename TYPE, int WORDLEN, int FRACW>
@@ -49,7 +50,7 @@ public:
 
 	/* Same type Operations */
 	inline FixedPoint operator*(const FixedPoint& rhs){
-		return FixedPoint(mul(this->value, rhs.value));
+		return FixedPoint((TYPE)mul(this->value, rhs.value));
 	}
 
 	inline FixedPoint operator/(const FixedPoint& rhs){
@@ -57,7 +58,7 @@ public:
 	}
 
 	inline FixedPoint operator+(const FixedPoint rhs){
-		return FixedPoint(add(this->value, rhs.value));
+		return FixedPoint((TYPE)add(this->value, rhs.value));
 	}
 
 	inline FixedPoint operator-(const FixedPoint& rhs){

@@ -39,8 +39,8 @@ class NetTrainer:
                 self.gpu += [owl.create_gpu_device(i) for i in range(owl.get_gpu_device_count())]
                 nodes = [owl.get_mpi_device_count(i) for i in range(1,owl.get_mpi_node_count())]
                 for n in range(len(nodes)):
-                    self.gpu +=  [owl.create_mpi_device(n,i+1) for i in range(nodes[n])]
-	    	    print "using {} gpu's on node {}\n".format(nodes[n],n)
+                    print "using {} gpu's on node {}\n".format(nodes[n],n+1)
+                    self.gpu +=  [owl.create_mpi_device(n+1,i+1) for i in range(nodes[n])]
                 self.num_gpu = len(self.gpu)
             else:
         		self.gpu += [owl.create_cpu_device()]
@@ -137,7 +137,7 @@ class NetTrainer:
             # train on multi-gpu
             for gpuid in range(s.num_gpu):
                 owl.set_device(s.gpu[gpuid])
-		print "running gpu {}".format(s.gpu[gpuid])
+                print "running gpu {}".format(s.gpu[gpuid])
                 s.owl_net.forward('TRAIN')
                 s.owl_net.backward('TRAIN')
                 for wid in wunits:

@@ -51,6 +51,7 @@ class ComputeUnit(object):
         self.rec_on_ori = None
         self.stride_on_ori = None
         self.start_on_ori = None
+        self.histogram = [None,None]
     def __str__(self):
         return 'N/A unit'
     def compute_size(self, from_btm, to_top):
@@ -108,6 +109,7 @@ class ComputeUnit(object):
         :param int batch_size: the size of the current minibatch
         '''
         pass
+    
 
 class ComputeUnitSimple(ComputeUnit):
     ''' An auxiliary class for :py:class:`ComputeUnit` that will only have one input unit and one output unit.
