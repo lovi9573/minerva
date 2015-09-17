@@ -28,6 +28,7 @@ public:
 	static const MULTYPE MINVAL = -((MULTYPE)1 << (WORDLEN ));
 	//static const MULTYPE MINPREC =     (MULTYPE)1 << FRACW;
 	static const TYPE FRACTION_MASK = ((TYPE)1 << FRACW) - 1;
+	static const TYPE SIGN_MASK = MINVAL;
 
 	static uint64_t n_MaxTruncs;
 	static uint64_t n_MinTruncs;
@@ -80,9 +81,25 @@ public:
 		return *this;
 	}
 
+	inline FixedPoint& operator-(){
+		return &FixedPoint(-(this->value));
+	}
+
 	inline FixedPoint& operator=(const FixedPoint& other){
 		this->value = other.value;
 		return *this;
+	}
+
+	inline bool operator==(const FixedPoint& other){
+		return (this->value == other.value);
+	}
+
+	inline bool operator>(const FixedPoint& other){
+		return (this->value > other.value);
+	}
+
+	inline bool operator<(const FixedPoint& other){
+		return (this->value < other.value);
 	}
 
 	bool operator!(){
@@ -93,13 +110,13 @@ public:
 		return ((float)this->value)/(1<<FRACW);
 	}
 
-	operator float(){
+	explicit operator float(){
 		return this->to_float();
 	}
 
-/*	operator double(){
+	explicit operator double(){
 		return (double)this->to_float();
-	}*/
+	}
 
 	static float getEpsilon(){
 		return 1.0f/((float)(1 << FRACW));
@@ -169,8 +186,8 @@ private:
 
 	/* Bridge Operations */
 	 /*
-	friend inline FixedPoint operator+(const FixedPoint& lhs, double rhs){
-		return lhs + FixedPoint(rhs);
+	friend inline FixedPoint operator+(double lhs, const FixedPoint rhs){
+		return rhs + FixedPoint(lhs);
 	}
 	friend inline FixedPoint operator-(const FixedPoint& lhs, double rhs){
 		return lhs - FixedPoint(rhs);
@@ -196,6 +213,36 @@ template<typename MULTYPE, typename TYPE, int WORDLEN, int FRACW>
 uint64_t FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW>::n_MinTruncs = 0;
 template<typename MULTYPE, typename TYPE, int WORDLEN, int FRACW>
 uint64_t FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW>::n_UnderFlows = 0;
+
+template<typename MULTYPE, typename TYPE, int WORDLEN, int FRACW>
+FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW> pow(FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW> a, FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW> b){
+	return pow((double)a, (double)b);
+}
+
+template<typename MULTYPE, typename TYPE, int WORDLEN, int FRACW>
+FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW> expf(FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW> a){
+	return FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW>(exp((double)a));
+}
+
+template<typename MULTYPE, typename TYPE, int WORDLEN, int FRACW>
+FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW> exp(FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW> a){
+	return exp((double)a);
+}
+
+template<typename MULTYPE, typename TYPE, int WORDLEN, int FRACW>
+FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW> log(FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW> a){
+	return log((double)a);
+}
+
+template<typename MULTYPE, typename TYPE, int WORDLEN, int FRACW>
+FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW> tanhf(FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW> a){
+	return tanh((double)a);
+}
+
+template<typename MULTYPE, typename TYPE, int WORDLEN, int FRACW>
+FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW> abs(FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW>& a){
+	return std::abs((double)a);
+}
 
 #endif /* fixed point */
 

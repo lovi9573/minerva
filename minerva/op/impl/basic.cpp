@@ -115,8 +115,8 @@ void ThresholdNorm(const DataList& inputs, const DataList& outputs, ThresholdNor
   int length = outputs[0].size_.Prod();
   for (int i = 0; i < length; ++i) {
 	//Suppose threshold can't be zero
-	if(std::abs(in_data[i]) > closure.threshold)
-		res_data[i] = std::abs(in_data[i]) / in_data[i] * closure.threshold;
+	if(abs(in_data[i]) > closure.threshold)
+		res_data[i] = abs(in_data[i]) / in_data[i] * closure.threshold;
 	else
 		res_data[i] = in_data[i];
   }
