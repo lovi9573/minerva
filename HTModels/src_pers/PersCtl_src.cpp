@@ -18,6 +18,7 @@ CPersCtl::PersCtl()
 	if (PR_htValid) {
 		switch (PR_htInst) {
 		case CTL_ENTRY: {
+			printf("Task: %d\n",PR_task);
 			if(PR_task == CONV_FORWARD ){
 				BUSY_RETRY(SendCallBusy_conv_fwd());
 				SendCall_conv_fwd(CTL_RTN, PR_rank, PR_rankStride);
@@ -26,9 +27,9 @@ CPersCtl::PersCtl()
 				BUSY_RETRY(SendCallBusy_convfwd());
 				SendCall_convfwd(PR_rank, PR_rankStride);
 			}*/
-			else if(PR_task == CONV_BACKWARD_BIAS ){
-				BUSY_RETRY(SendCallBusy_conv_bkwd_bias());
-				SendCall_conv_bkwd_bias(CTL_RTN);
+			else if(PR_task == CONV_BACKWARD_BIAS && PR_rank == 0 ){
+				BUSY_RETRY(SendCallBusy_conv_back_bias());
+				SendCall_conv_back_bias(CTL_RTN);
 			}
 /*			else if(PR_task == CONV_BACKWARD_FILTER ){
 				BUSY_RETRY(SendCallBusy_convfwd());

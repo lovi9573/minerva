@@ -1,5 +1,5 @@
 	
-#define FIXED_POINT_FRACTION_WIDTH_N 10
+#define FIXED_POINT_FRACTION_WIDTH_N 16
 
 #define CONV_FORWARD 1
 #define CONV_BACKWARD_DATA 2
@@ -7,13 +7,8 @@
 #define CONV_BACKWARD_FILTER 4
 
 typedef ht_uint48 MemAddr_t;
-typedef sc_int<FIXED_POINT_FRACTION_WIDTH_N> element_t;
-struct FourInt16 {
-	element_t i0;
-	element_t i1;
-	element_t i2;
-	element_t i3;
-};
+typedef uint16_t element_t;
+
 
 
 
@@ -27,7 +22,7 @@ ctl.AddInst(name=CTL_ENTRY);
 ctl.AddInst(name=CTL_RTN);
 
 ctl.AddPrivate()
-	.AddVar(type=int, name=task)
+	.AddVar(type=uint32_t, name=task)
 	.AddVar(type=uint32_t, name=rank)
 	.AddVar(type=uint32_t, name=rankStride)
 	;
@@ -39,7 +34,7 @@ ctl.AddGlobal()
 ctl.AddEntry(func=htmain, inst=CTL_ENTRY, host=true)
 	.AddParam(type=uint32_t, name=rank)
 	.AddParam(type=uint32_t, name=rankStride)
-	.AddParam(type=int, name=task)
+	.AddParam(type=uint32_t, name=task)
 	;
 
 ctl.AddReturn(func=htmain)
@@ -47,7 +42,7 @@ ctl.AddReturn(func=htmain)
 
 ctl.AddCall(func=conv_fwd);
 //ctl.AddCall(func=conv_bkwd_data, fork=true);
-ctl.AddCall(func=conv_bkwd_bias);
+ctl.AddCall(func=conv_back_bias);
 //ctl.AddCall(func=conv_bkwd_filter, fork=true);
 
 
@@ -58,8 +53,20 @@ ctl.AddCall(func=conv_bkwd_bias);
 dsnInfo.AddModule(name=convbackbias, htIdW=0);
 
 convbackbias.AddInst(name=CONVBACKBIAS_ENTRY);
+convbackbias.AddInst(name=CONVBACKBIAS_INIT_BIAS_READ);
+convbackbias.AddInst(name=CONVBACKBIAS_INIT_BIAS_READ_STORE);
 convbackbias.AddInst(name=CONVBACKBIAS_TOP_TEST);
+convbackbias.AddInst(name=CONVBACKBIAS_TOP_READ);
+convbackbias.AddInst(name=CONVBACKBIAS_TOP_READ_STORE);\
 convbackbias.AddInst(name=CONVBACKBIAS_BIAS_TEST);
+convbackbias.AddInst(name=CONVBACKBIAS_BIAS_WRITE_PREP);
+convbackbias.AddInst(name=CONVBACKBIAS_BIAS_WRITE);
+convbackbias.AddInst(name=CONVBACKBIAS_BIAS_READ);
+convbackbias.AddInst(name=CONVBACKBIAS_BIAS_READ_STORE);
+convbackbias.AddInst(name=CONVBACKBIAS_TOP_ELEMENT_TEST);
+convbackbias.AddInst(name=CONVBACKBIAS_BIAS_ELEMENT_TEST);
+convbackbias.AddInst(name=CONVBACKBIAS_APPLY);
+convbackbias.AddInst(name=CONVBACKBIAS_INCREMENT);
 convbackbias.AddInst(name=CONVBACKBIAS_RTN);
 
 convbackbias.AddHostMsg(dir=in, name=TOP_ADDR)
@@ -80,8 +87,8 @@ convbackbias.AddHostMsg(dir=in, name=SIZE)
 
 convbackbias.AddPrivate()
 	.AddVar(type=MemAddr_t, name=bias_cache_addr)
-	.AddVar(type=FourInt16, name=top_data_raw)
-	.AddVar(type=FourInt16, name=bias_diff_raw)
+	.AddVar(type=uint64_t, name=top_data_raw)
+	.AddVar(type=uint64_t, name=bias_diff_raw)
 	.AddVar(type=uint32_t, name=top_idx)
 	.AddVar(type=uint32_t, name=top_element_idx)
 	.AddVar(type=uint32_t, name=top_channel_idx)
@@ -101,16 +108,17 @@ convbackbias.AddShared()
 	;
 
 convbackbias.AddReadMem()
-	.AddDst(var=top_data_raw, name=top_data_raw )
+	.AddDst(var=top_data_raw, name=top_data_raw)
+	.AddDst(var=bias_diff_raw, name=bias_diff_raw)
 	;
 
 convbackbias.AddWriteMem()
 		;
 
-convbackbias.AddEntry(func=conv_bkwd_bias, inst=CONVBACKBIAS_ENTRY)
+convbackbias.AddEntry(func=conv_back_bias, inst=CONVBACKBIAS_ENTRY)
 	;
 
-convbackbias.AddReturn(func=conv_bkwd_bias)
+convbackbias.AddReturn(func=conv_back_bias)
 	;
 
 

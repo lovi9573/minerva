@@ -6,18 +6,18 @@
  */
 
 #include "Ht.h"
-#include "PersCtl.h"
+#include "PersConvfwd.h"
 
 
 #define BUSY_RETRY(b) { if (b) { HtRetry(); break; } }
 
 
 void
-CPersCtl::PersCtl()
+CPersConvfwd::PersConvfwd()
 {
 	if (PR_htValid) {
 		switch (PR_htInst) {
-		case CTL_ENTRY: {
+		case CONVFWD_ENTRY: {
 			printf("Control Entry\n");
 			P_count = 0;
 			P_outAddrOffset = 0;
@@ -31,51 +31,51 @@ CPersCtl::PersCtl()
 			P_applicationIdx_X=((P_rank*4/SR_filter_num)*SR_stride)%SR_img_dim;
 			P_applicationIdx_Y=(((P_rank*4/SR_filter_num)*SR_stride)/SR_img_dim)*SR_stride%SR_img_dim;
 			P_applicationIdx_I=(uint32_t)((((P_rank*4/SR_filter_num)*SR_stride)/SR_img_dim)*SR_stride/SR_img_dim);
-			HtContinue(CTL_CHECK_I);
+			HtContinue(CONVFWD_CHECK_I);
 		}
 		break;
-		case CTL_CHECK_I: {
+		case CONVFWD_CHECK_I: {
 			if(PR_applicationIdx_I  < SR_img_num){
-				HtContinue(CTL_CHECK_Y);
+				HtContinue(CONVFWD_CHECK_Y);
 			}else{
-				RecvReturnPause_cluster(CTL_RTN);
-				//HtContinue(CTL_RTN);
+				RecvReturnPause_cluster(CONVFWD_RTN);
+				//HtContinue(CONVFWD_RTN);
 			}
 		}
 		break;
-		case CTL_CHECK_Y: {
+		case CONVFWD_CHECK_Y: {
 			if(P_applicationIdx_Y  < SR_dCoordinates){
 				//printf("Y: %d\n",PR_applicationIdx_Y);
-				HtContinue(CTL_CHECK_X);
+				HtContinue(CONVFWD_CHECK_X);
 			}else{//overflow Y index
 				P_applicationIdx_I = PR_applicationIdx_I + 1;
 				P_applicationIdx_Y = PR_applicationIdx_Y - (SR_dCoordinates);
-				HtContinue(CTL_CHECK_I);
+				HtContinue(CONVFWD_CHECK_I);
 			}
 		}
 		break;
-		case CTL_CHECK_X: {
+		case CONVFWD_CHECK_X: {
 			if (PR_applicationIdx_X <  SR_dCoordinates) {
 				//printf("\tX: %d\n",PR_applicationIdx_X);
-				HtContinue(CTL_CHECK_F);
+				HtContinue(CONVFWD_CHECK_F);
 			} else {//overflow X index
 				P_applicationIdx_Y = PR_applicationIdx_Y + SR_stride;
 				P_applicationIdx_X = PR_applicationIdx_X -(SR_dCoordinates);
-				HtContinue(CTL_CHECK_Y);
+				HtContinue(CONVFWD_CHECK_Y);
 			}
 		}
 		break;
-		case CTL_CHECK_F: {
+		case CONVFWD_CHECK_F: {
 			if(PR_applicationIdx_F  < SR_filter_num){
-				HtContinue(CTL_COLLECT);
+				HtContinue(CONVFWD_COLLECT);
 			}else{ //overflow filter index
 				P_applicationIdx_X = PR_applicationIdx_X + SR_stride;
 				P_applicationIdx_F = P_applicationIdx_F - SR_filter_num;
-				HtContinue(CTL_CHECK_X);
+				HtContinue(CONVFWD_CHECK_X);
 			}
 		}
 		break;
-		case CTL_COLLECT: {
+		case CONVFWD_COLLECT: {
 			//printf("adress collect count:%d F:%d X:%d Y:%d I:%d\n",PR_count.to_int(),PR_applicationIdx_F,PR_applicationIdx_X,PR_applicationIdx_Y,PR_applicationIdx_I );
 			//Valid application of a filter
 			P_Addresses[PR_count*2] = SR_imgAddr + (MemAddr_t)(2*(
@@ -84,15 +84,15 @@ CPersCtl::PersCtl()
 													P_applicationIdx_X*SR_img_channels)
 													); //Image patch base address
 			P_Addresses[PR_count*2+1] = SR_filterAddr + (MemAddr_t)(2*(PR_applicationIdx_F *SR_dimF )); //Filter base address
-			HtContinue(CTL_COMPUTE);
+			HtContinue(CONVFWD_COMPUTE);
 		}
 		break;
-		case CTL_COMPUTE: {
+		case CONVFWD_COMPUTE: {
 			if(PR_count == 3){
 				//printf("Compute        count:%d F:%d X:%d Y:%d I:%d %lu to %lu\n",PR_count.to_int(),PR_applicationIdx_F,PR_applicationIdx_X,PR_applicationIdx_Y,PR_applicationIdx_I,P_Addresses[1],P_Addresses[0] );
 				//printf("fork %lu; %lu\n",P_Addresses[1],P_Addresses[0]);
 				BUSY_RETRY(SendCallBusy_cluster());
-				SendCallFork_cluster(CTL_JOIN, P_Addresses[0],P_Addresses[1],
+				SendCallFork_cluster(CONVFWD_JOIN, P_Addresses[0],P_Addresses[1],
 																P_Addresses[2],P_Addresses[3],
 																P_Addresses[4],P_Addresses[5],
 																P_Addresses[6],P_Addresses[7],
@@ -107,17 +107,17 @@ CPersCtl::PersCtl()
 				P_applicationIdx_F = PR_applicationIdx_F + 1;
 				//printf("increment F:%d X:%d Y:%d I:%d\n",PR_applicationIdx_F,PR_applicationIdx_X,PR_applicationIdx_Y,PR_applicationIdx_I);
 			}
-			HtContinue(CTL_CHECK_F);
+			HtContinue(CONVFWD_CHECK_F);
 		}
 		break;
-		case CTL_JOIN: {
+		case CONVFWD_JOIN: {
 			RecvReturnJoin_cluster();
 		}
 		break;
 
-		case CTL_RTN: {
-			BUSY_RETRY(SendReturnBusy_htmain());
-			SendReturn_htmain();
+		case CONVFWD_RTN: {
+			BUSY_RETRY(SendReturnBusy_conv_fwd());
+			SendReturn_conv_fwd();
 		}
 		break;
 		default:

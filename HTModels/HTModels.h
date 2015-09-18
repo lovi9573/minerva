@@ -27,7 +27,9 @@ void conv_backward_data_ht(void* top_diff, size_t top_alloc,
 							void* bottom_diff, int bottom_width, int bottom_height, int bottom_channels, int bottom_samples, size_t bottom_alloc,
 							int frac_w );
 
-
+void ConvBackwardBias_ht(void* top_diff, size_t top_alloc, size_t top_column_stride, size_t top_channel_stride, size_t top_image_stride,
+		void* bottom_diff, size_t bottom_alloc, int channels,
+		int frac_w);
 
 
 #endif /* HTMODELS_HTMODELS_H_ */
