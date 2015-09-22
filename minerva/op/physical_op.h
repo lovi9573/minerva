@@ -424,5 +424,13 @@ class SelectOp : public ComputeFnWithClosure<SelectClosure> {
   SERIALIZABLE_OVERRIDE
 };
 
+class HistogramOp : public ComputeFnWithClosure<HistogramClosure> {
+public:
+  std::string Name() const {
+	return "Histogram";
+  }
+  SERIALIZABLE_OVERRIDE
+};
+
 }  // namespace minerva
 

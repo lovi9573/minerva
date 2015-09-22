@@ -99,6 +99,7 @@ class NArray {
   std::shared_ptr<element_t> Get() const;
   void ToStream(std::ostream& out, const FileFormat& format) const;
   void ToFile(const std::string& filename, const FileFormat& format) const;
+  NArray Histogram(int bins) const;
 
  private:
   NArray(BackendChunk*);

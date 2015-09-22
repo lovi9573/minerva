@@ -49,6 +49,7 @@ namespace minerva {
 #define SLICECLOSURE 38
 #define INDEXCLOSURE 39
 #define SELECTCLOSURE 40
+#define HISTOGRAMCLOSURE 41
 
 
 enum class ArithmeticType : int {
@@ -224,6 +225,10 @@ struct IndexClosure {
 
 struct SelectClosure {
   std::vector<int> indices;
+};
+
+struct HistogramClosure {
+	int bins;
 };
 
 

@@ -47,5 +47,6 @@ void LRNBackward(const DataList& inputs, const DataList& outputs, LRNBackwardClo
 
 void SoftmaxForward(const DataList&, const DataList&, SoftmaxForwardClosure&);
 void Index(const DataList&, const DataList&, IndexClosure&);
+void Histogram(const DataList&, const DataList&, HistogramClosure&);
 }  // end of namespace basic
 }  // end of namespace minerva

@@ -720,5 +720,24 @@ std::shared_ptr<ComputeFn> SelectOp::DeSerialize(char* buffer,int* bytes) {
 	return std::shared_ptr<ComputeFn>(op);
 }
 
+int HistogramOp::GetSerializedSize() const {
+	return 2*sizeof(int);
+}
+int HistogramOp::Serialize(char* buffer) const {
+	int offset = 0;
+	SERIALIZE(buffer, offset, HISTOGRAMCLOSURE, int)
+	SERIALIZE(buffer, offset, closure.bins, int)
+	return offset;
+}
+std::shared_ptr<ComputeFn> HistogramOp::DeSerialize(char* buffer,int* bytes) {
+	HistogramOp *op = new HistogramOp();
+	int offset = 0;
+	int bins;
+	DESERIALIZE(buffer, offset, bins, int)
+	op->closure.bins = bins;
+	*bytes = offset;
+	return std::shared_ptr<ComputeFn>(op);
+}
+
 
 } //end namespace minerva

@@ -195,6 +195,14 @@ NArray NArray::Select(std::vector<int> const& indices) const {
   return NArray::ComputeOne({*this}, new_size, op);
 }
 
+NArray NArray::Histogram(int bins) const{
+	CHECK_GT(bins,1);
+	HistogramOp* hist_op = new HistogramOp();
+	Scale new_size = {Size(bins),Size(2)};
+	return NArray::ComputeOne({*this},new_size,hist_op);
+}
+
+
 // Replicate matrix
 NArray NArray::NormArithmetic(const NArray& rhs, ArithmeticType type) const {
   auto& lhs = *this;

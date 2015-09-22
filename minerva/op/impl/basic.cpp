@@ -990,5 +990,40 @@ void Index(const DataList& inputs, const DataList& outputs, IndexClosure& closur
 		output_data[i] = input_data[i + idx * output_length];
 }
 
+void Histogram(const DataList& in , const DataList& out, HistogramClosure& closure){
+	element_t* in_data = in[0].data_;
+	element_t* out_data = out[0].data_;
+	size_t in_size = in[0].size_.Prod();
+	element_t min = in_data[0];
+	element_t max = in_data[0];
+
+	//Find range and bin cutoffs
+	for(int i = 0; i < (int)in_size; i++){
+		if(in_data[i] < min){
+			min = in_data[i];
+		}
+		if(in_data[i] > max){
+			max = in_data[i];
+		}
+	}
+	element_t bin_size = (max - min)/closure.bins;
+
+	//Initialize histogram array
+	for(int i = 0; i < closure.bins; i++){
+		out_data[i] = (i+1)*bin_size+min;
+		out_data[i+closure.bins] = 0;
+	}
+
+	//Create Histogram data.
+	int bin;
+	for(int i = 0; i < (int)in_size; i++){
+		bin = 0;
+		while(bin < closure.bins && in_data[i] > out_data[bin]){
+			bin++;
+		}
+		out_data[bin + closure.bins]++;
+	}
+}
+
 }  // end of namespace basic
 }  // end of namespace minerva
