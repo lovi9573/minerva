@@ -74,6 +74,7 @@ void GpuDevice::Impl::ActivateDevice() const {
 }
 
 GpuDevice::GpuDevice(uint64_t device_id, DeviceListener* l, int gpu_id) : ThreadedDevice{device_id, l, Impl::kParallelism}, impl_{common::MakeUnique<Impl>(gpu_id)} {
+  std::cout << "Instantiating gpu ordinal "<< gpu_id <<"\n";
   impl_->ActivateDevice();
   cudaFree(0);  // Initialize
   auto allocator = [this](size_t len) -> void* {
