@@ -198,7 +198,8 @@ NArray NArray::Select(std::vector<int> const& indices) const {
 NArray NArray::Histogram(int bins) const{
 	CHECK_GT(bins,1);
 	HistogramOp* hist_op = new HistogramOp();
-	Scale new_size = {Size(bins),Size(2)};
+	hist_op->closure.bins = bins;
+	Scale new_size{bins,2};
 	return NArray::ComputeOne({*this},new_size,hist_op);
 }
 
