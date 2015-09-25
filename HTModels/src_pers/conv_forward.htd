@@ -41,9 +41,9 @@ ctl.AddReturn(func=htmain)
 	;
 
 ctl.AddCall(func=conv_fwd);
-//ctl.AddCall(func=conv_bkwd_data, fork=true);
+ctl.AddCall(func=conv_load_bottom_diff_layer);
 ctl.AddCall(func=conv_back_bias);
-//ctl.AddCall(func=conv_bkwd_filter, fork=true);
+ctl.AddCall(func=conv_load_filter);
 
 
 
@@ -120,6 +120,234 @@ convbackbias.AddEntry(func=conv_back_bias, inst=CONVBACKBIAS_ENTRY)
 
 convbackbias.AddReturn(func=conv_back_bias)
 	;
+
+
+/*********************************
+ * Convolution Iterate through and Load Filters
+ *********************************/
+dsnInfo.AddModule(name=convloadfilter, htIdW=0);
+
+convloadfilter.AddInst(name=CONVLOADFILTER_ENTRY);
+convloadfilter.AddInst(name=CONVLOADFILTER_READ);
+convloadfilter.AddInst(name=CONVLOADFILTER_STORE);
+convloadfilter.AddInst(name=CONVLOADFILTER_READ_IDX_TEST);
+convloadfilter.AddInst(name=CONVLOADFILTER_FILTER_RAW_IDX_TEST);
+convloadfilter.AddInst(name=CONVLOADFILTER_DISPATCH);
+convloadfilter.AddInst(name=CONVLOADFILTER_JOIN);\
+convloadfilter.AddInst(name=CONVLOADFILTER_ITER_TEST);
+convloadfilter.AddInst(name=CONVLOADFILTER_RTN);
+
+
+convloadfilter.AddHostMsg(dir=in, name=FILTER_ADDR)
+	.AddDst(var=filter_addr)
+	;
+convloadfilter.AddHostMsg(dir=in, name=FILTER_DIM)
+	.AddDst(var=filter_dim)
+	;
+convloadfilter.AddHostMsg(dir=in, name=BOTTOM_CHANNELS)
+	.AddDst(var=bottom_channels)
+	;
+
+convloadfilter.AddPrivate()
+	.AddVar(type=uint64_t, name=filter_data_raw)
+	.AddVar(type=uint32_t, name=num_filters_to_iterate)
+	.AddVar(type=uint32_t, name=iter)
+	.AddVar(type=uint32_t, name=filter_raw_idx)
+	.AddVar(type=uint32_t, name=read_idx)
+	.AddVar(type=uint32_t, name=task)
+	.AddVar(type=uint32_t, name=filter_stride)
+	;
+
+
+convloadfilter.AddShared()
+	.AddVar(type=MemAddr_t, name=filter_addr)
+	.AddVar(type=MemAddr_t, name=filter_dim)
+	.AddVar(type=uint32_t, name=bottom_channels)
+	;
+
+convloadfilter.AddGlobal()
+	.AddVar(type=uint16_t, name=filter_data, dimen1=512, dimen2=121)
+	;
+
+convloadfilter.AddReadMem()
+	.AddDst(var=filter_data_raw, name=filter_data_raw)
+	;
+
+convloadfilter.AddWriteMem()
+		;
+
+//ctl.AddCall(func=conv_load_top_diff_layer, fork=true);
+
+convloadfilter.AddEntry(func=conv_load_filter, inst=CONVLOADFILTER_ENTRY)
+		.AddParam(type=uint32_t, name=task)
+	;
+
+convloadfilter.AddReturn(func=conv_load_filter)
+	;
+
+
+
+/*********************************
+ * Convolution Load Bottom Diff layer
+ *********************************/
+dsnInfo.AddModule(name=convcachebottomapplication, htIdW=0);
+
+convcachebottomapplication.AddInst(name=CONVLOADFILTER_ENTRY);
+convcachebottomapplication.AddInst(name=CONVLOADFILTER_READ);
+convcachebottomapplication.AddInst(name=CONVLOADFILTER_STORE);
+convcachebottomapplication.AddInst(name=CONVLOADFILTER_RAW_IDX_TEST);
+convcachebottomapplication.AddInst(name=CONV_CHANNEL_IDX_TEST);
+convcachebottomapplication.AddInst(name=CONV_SAMPLE_IDX_TEST);
+convcachebottomapplication.AddInst(name=CONVLOADFILTER_DISPATCH);
+convcachebottomapplication.AddInst(name=CONVLOADFILTER_JOIN);
+convcachebottomapplication.AddInst(name=CONVLOADFILTER_RTN);
+
+
+convcachebottomapplication.AddHostMsg(dir=in, name=BOTTOM_ADDR)
+	.AddDst(var=bottom_addr)
+	;
+convcachebottomapplication.AddHostMsg(dir=in, name=BOTTOM_DIM)
+	.AddDst(var=bottom_dim)
+	;
+convcachebottomapplication.AddHostMsg(dir=in, name=BOTTOM_CHANNELS)
+	.AddDst(var=bottom_channels)
+	;
+convcachebottomapplication.AddHostMsg(dir=in, name=BOTTOM_SAMPLES)
+	.AddDst(var=bottom_samples)
+	;
+
+convcachebottomapplication.AddPrivate()
+	.AddVar(type=uint64_t, name=top_diff_data_raw)
+	.AddVar(type=uint32_t, name=top_raw_idx)
+	.AddVar(type=uint64_t, name=bottom_diff_data_raw)
+	.AddVar(type=uint32_t, name=bottom_raw_idx)
+	.AddVar(type=uint32_t, name=rank)
+	.AddVar(type=uint32_t, name=rankStride)
+	.AddVar(type=uint32_t, name=iter)
+	.AddVar(type=uint32_t, name=i)
+	.AddVar(type=uint32_t, name=j)
+	.AddVar(type=uint32_t, name=i_bottom)
+	.AddVar(type=uint32_t, name=j_bottom)
+	.AddVar(type=uint32_t, name=sample_idx)
+	.AddVar(type=uint32_t, name=channel_idx)
+	.AddVar(type=uint32_t, name=bottom_channel_stride)
+	.AddVar(type=uint32_t, name=bottom_sample_stride)
+	.AddVar(type=uint32_t, name=filter_raw_idx)
+	;
+
+
+convcachebottomapplication.AddShared()
+	.AddVar(type=MemAddr_t, name=bottom_addr)
+	.AddVar(type=uint32_t, name=bottom_samples)
+	.AddVar(type=uint32_t, name=bottom_channels)
+	.AddVar(type=uint32_t, name=bottom_dim)
+	.AddVar(type=uint32_t, name=filter_dim)
+	;
+
+convcachebottomapplication.AddGlobal()
+	.AddVar(type=uint16_t, name=bottom_diff_data, dimen1=256, dimen2=256)
+	;
+
+convcachebottomapplication.AddReadMem()
+	.AddDst(var=top_diff_data_raw, name=top_diff_data_raw)
+	.AddDst(var=bottom_diff_data_raw, name=bottom_diff_data_raw)
+	;
+
+convcachebottomapplication.AddWriteMem()
+		;
+
+convcachebottomapplication.AddCall(func=conv_back_data, fork=true);
+
+convcachebottomapplication.AddEntry(func=conv_load_bottom_diff_layer, inst=CONVLOADFILTER_ENTRY)
+		.AddParam(type=uint32_t, name=rank)
+		.AddParam(type=uint32_t, name=rankStride)
+	;
+
+convcachebottomapplication.AddReturn(func=conv_load_bottom_diff_layer)
+	;
+
+
+
+
+/*********************************
+ * Convolution Backward Data
+ *********************************/
+dsnInfo.AddModule(name=convbackdata, htIdW=0);
+
+convbackdata.AddInst(name=CONVBACKDATA_ENTRY);
+convbackdata.AddInst(name=CONVBACKDATA_INIT_BIAS_READ);
+convbackdata.AddInst(name=CONVBACKDATA_INIT_BIAS_READ_STORE);
+convbackdata.AddInst(name=CONVBACKDATA_TOP_TEST);
+convbackdata.AddInst(name=CONVBACKDATA_TOP_READ);
+convbackdata.AddInst(name=CONVBACKDATA_TOP_READ_STORE);\
+convbackdata.AddInst(name=CONVBACKDATA_BIAS_TEST);
+convbackdata.AddInst(name=CONVBACKDATA_BIAS_WRITE_PREP);
+convbackdata.AddInst(name=CONVBACKDATA_BIAS_WRITE);
+convbackdata.AddInst(name=CONVBACKDATA_BIAS_READ);
+convbackdata.AddInst(name=CONVBACKDATA_BIAS_READ_STORE);
+convbackdata.AddInst(name=CONVBACKDATA_TOP_ELEMENT_TEST);
+convbackdata.AddInst(name=CONVBACKDATA_BIAS_ELEMENT_TEST);
+convbackdata.AddInst(name=CONVBACKDATA_APPLY);
+convbackdata.AddInst(name=CONVBACKDATA_INCREMENT);
+convbackdata.AddInst(name=CONVBACKDATA_RTN);
+
+convbackdata.AddHostMsg(dir=in, name=TOP_ADDR)
+	.AddDst(var=top_addr)
+	;
+convbackdata.AddHostMsg(dir=in, name=BOTTOM_ADDR)
+	.AddDst(var=bottom_addr)
+	;
+convbackdata.AddHostMsg(dir=in, name=CHANNELS)
+	.AddDst(var=channels)
+	;
+convbackdata.AddHostMsg(dir=in, name=CHANNEL_STRIDE)
+	.AddDst(var=channel_stride)
+	;
+convbackdata.AddHostMsg(dir=in, name=SIZE)
+	.AddDst(var=size)
+	;
+
+
+convbackdata.AddPrivate()
+	.AddVar(type=MemAddr_t, name=bias_cache_addr)
+	.AddVar(type=uint64_t, name=top_data_raw)
+	.AddVar(type=uint64_t, name=bias_diff_raw)
+	.AddVar(type=uint32_t, name=top_idx)
+	.AddVar(type=uint32_t, name=top_element_idx)
+	.AddVar(type=uint32_t, name=top_channel_idx)
+	.AddVar(type=uint32_t, name=bias_idx)
+	.AddVar(type=uint32_t, name=bias_element_idx)
+	.AddVar(type=uint32_t, name=i)
+	.AddVar(type=uint32_t, name=j)
+	.AddVar(type=element_t, name=bias_diff, dimen1=4)
+	.AddVar(type=element_t, name=top_data, dimen1=4)
+	;
+
+
+convbackdata.AddShared()
+	.AddVar(type=MemAddr_t, name=top_addr)
+	.AddVar(type=MemAddr_t, name=bottom_addr)
+	.AddVar(type=uint32_t, name=channels)
+	.AddVar(type=uint32_t, name=channel_stride)
+	.AddVar(type=uint32_t, name=size)
+	;
+
+convbackdata.AddReadMem()
+	.AddDst(var=top_data_raw, name=top_data_raw)
+	.AddDst(var=bias_diff_raw, name=bias_diff_raw)
+	;
+
+convbackdata.AddWriteMem()
+		;
+
+convbackdata.AddEntry(func=conv_back_data, inst=CONVBACKDATA_ENTRY)
+	.AddParam(type=uint32_t, name=i)
+	.AddParam(type=uint32_t, name=j)
+	;
+
+convbackdata.AddReturn(func=conv_back_data)
+	;
+
 
 
 

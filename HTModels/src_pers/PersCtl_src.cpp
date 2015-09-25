@@ -23,10 +23,10 @@ CPersCtl::PersCtl()
 				BUSY_RETRY(SendCallBusy_conv_fwd());
 				SendCall_conv_fwd(CTL_RTN, PR_rank, PR_rankStride);
 			}
-/*			else if(PR_task == CONV_BACKWARD_DATA ){
-				BUSY_RETRY(SendCallBusy_convfwd());
-				SendCall_convfwd(PR_rank, PR_rankStride);
-			}*/
+			else if(PR_task == CONV_BACKWARD_DATA ){
+				BUSY_RETRY(SendCallBusy_conv_load_bottom_diff_layer());
+				SendCall_conv_load_bottom_diff_layer(CTL_RTN, PR_rank, PR_rankStride);
+			}
 			else if(PR_task == CONV_BACKWARD_BIAS && PR_rank == 0 ){
 				BUSY_RETRY(SendCallBusy_conv_back_bias());
 				SendCall_conv_back_bias(CTL_RTN);

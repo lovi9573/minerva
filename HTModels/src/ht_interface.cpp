@@ -118,15 +118,15 @@ void conv_backward_data_ht(void* top_diff, size_t top_alloc,
 
 
 	// Initialize modules with messages
-	pHtHif->SendAllHostMsg(IMG_ADDR, (uint64_t)ht_top_diff_data);
-	pHtHif->SendAllHostMsg(IMG_NUM, (uint64_t)bottom_samples);
-	pHtHif->SendAllHostMsg(IMG_DIM, (uint64_t)bottom_width);
-	pHtHif->SendAllHostMsg(IMG_CHANNELS, (uint64_t)bottom_channels);
+	pHtHif->SendAllHostMsg(TOP_ADDR, (uint64_t)ht_top_diff_data);
 	pHtHif->SendAllHostMsg(FILTER_ADDR, (uint64_t)ht_filter_data);
+	pHtHif->SendAllHostMsg(BOTTOM_ADDR, (uint64_t)ht_bottom_diff_data);
+	//pHtHif->SendAllHostMsg(BOTTOM_NUM, (uint64_t)bottom_samples);
+	//pHtHif->SendAllHostMsg(BOTTOM_DIM, (uint64_t)bottom_width);
+	pHtHif->SendAllHostMsg(BOTTOM_CHANNELS, (uint64_t)bottom_channels);
 	pHtHif->SendAllHostMsg(FILTER_NUM, (uint64_t)num_filters);
 	pHtHif->SendAllHostMsg(FILTER_DIM, (uint64_t)filter_dim);
 	pHtHif->SendAllHostMsg(STRIDE, (uint64_t)stride);
-	pHtHif->SendAllHostMsg(OUT_ADDR, (uint64_t)ht_bottom_diff_data);
 	pHtHif->SendAllHostMsg(FRACTION_WIDTH, (uint64_t)frac_w);
 
 
