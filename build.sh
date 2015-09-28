@@ -82,7 +82,7 @@ cd $BUILD_DIR
 if [ $BUILD_WITH_FPGA -eq 1 ]; then
 	cp -r ../HTModels . && make -C HTModels lib$HT_MODEL_TYPE
 fi
-CC=$CC CXX=$CXX cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CXXFLAGS .. && make 
+CC=$CC CXX=$CXX cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CXXFLAGS .. && make
 cd ..
 
 if [ $BUILD_OWL -eq 1 ]; then
