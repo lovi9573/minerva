@@ -194,10 +194,10 @@ private:
 	friend inline FixedPoint operator-(const FixedPoint& lhs, double rhs){
 		return lhs - FixedPoint(rhs);
 	}
-	friend inline FixedPoint operator*(const FixedPoint& lhs, double rhs){
-		return lhs * FixedPoint(rhs);
-	}
 	*/
+	friend inline FixedPoint operator*(int lhs, const FixedPoint& rhs){
+		return FixedPoint((double)lhs) * rhs;
+	}
 	friend inline FixedPoint operator/(double lhs, const FixedPoint& rhs){
 		return FixedPoint(lhs)/ rhs;
 	}
@@ -206,6 +206,10 @@ private:
 	friend std::ostream& operator<<(std::ostream& os, const FixedPoint& obj){
 		os << obj.value;
 		return os;
+	}
+
+	friend bool atMax(FixedPoint v){
+		return (v.value == (TYPE)MAXVAL);
 	}
 
 };
@@ -246,6 +250,8 @@ template<typename MULTYPE, typename TYPE, int WORDLEN, int FRACW>
 FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW> abs(FixedPoint<MULTYPE,TYPE,WORDLEN,FRACW>& a){
 	return std::abs((double)a);
 }
+
+
 
 #endif /* fixed point */
 

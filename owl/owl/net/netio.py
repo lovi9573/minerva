@@ -297,6 +297,7 @@ class LMDBDataProvider:
                 d.ParseFromString(value)
                 ori_size = np.sqrt(len(d.data) / 3)
                 im = np.fromstring(d.data, dtype=np.uint8).reshape([3, ori_size, ori_size]) - self.mean_data
+                print "im done", count
                 if phase == 'TRAIN':
                     [crop_h, crop_w] = np.random.randint(ori_size - self.crop_size, size=2)
                 else:

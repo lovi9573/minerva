@@ -90,6 +90,7 @@ cdef extern from '../minerva/minerva.h' namespace 'minerva':
     int CountZero() except +
     NArray Trans() except +
     NArray Reshape(const Scale&) except +
+    NArray Histogram(int) except +
     void Wait() except +
     Scale Size() except +
     @staticmethod

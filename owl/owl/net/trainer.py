@@ -48,9 +48,14 @@ class NetTrainer:
         		self.num_gpu = len(self.gpu)
 		        print "using {} cpu's over all nodes".format(self.num_gpu)
         else:
-            self.gpu = [owl.create_cpu_device()] + [owl.create_gpu_device(i) for i in range(self.num_gpu)]
-            self.num_gpu = len(self.gpu)
-	    print "using {} devices".format(len(self.gpu))
+            if gpu == 1:
+                self.gpu = [owl.create_gpu_device(i) for i in range(self.num_gpu)]
+                self.num_gpu = len(self.gpu)
+                print "using {} gpu devices".format(len(self.gpu))
+            else:
+                self.gpu = [owl.create_cpu_device()]
+                self.num_gpu = len(self.gpu)
+                print "using {} cpus".format(len(self.gpu))
 
     def build_net(self):
         ''' Build network structure using Caffe's proto definition. It will also initialize
@@ -199,6 +204,7 @@ class NetTrainer:
             #print stats
             if s.report:
                 owl.print_profiler_result()
+                
 
     def gradient_checker(s, checklayer_name):
         ''' Check backpropagation on multiple GPUs

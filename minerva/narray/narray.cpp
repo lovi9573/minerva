@@ -199,7 +199,7 @@ NArray NArray::Histogram(int bins) const{
 	CHECK_GT(bins,1);
 	HistogramOp* hist_op = new HistogramOp();
 	hist_op->closure.bins = bins;
-	Scale new_size{bins,2};
+	Scale new_size{bins,3};
 	return NArray::ComputeOne({*this},new_size,hist_op);
 }
 

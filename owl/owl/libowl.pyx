@@ -401,6 +401,9 @@ cdef class NArray(object):
     def reshape(self, s):
         cdef vector[int] v = _list_to_vector(s)
         return _wrap_cpp_narray(self._d.Reshape(m.ToScale(&v)))
+    
+    def histogram(self, int n):
+        return _wrap_cpp_narray(self._d.Histogram(n))
 
     def wait_for_eval(self):
         self._d.Wait()

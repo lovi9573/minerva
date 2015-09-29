@@ -1012,6 +1012,7 @@ void Histogram(const DataList& in , const DataList& out, HistogramClosure& closu
 	for(int i = 0; i < closure.bins; i++){
 		out_data[i] = (i+1)*bin_size+min;
 		out_data[i+closure.bins] = 0;
+		out_data[i+2*closure.bins] = 0;
 	}
 
 	//Create Histogram data.
@@ -1021,7 +1022,19 @@ void Histogram(const DataList& in , const DataList& out, HistogramClosure& closu
 		while(bin < closure.bins && in_data[i] > out_data[bin]){
 			bin++;
 		}
-		out_data[bin + closure.bins]++;
+		//TODO: fix this mess.
+#ifdef FIXED_POINT
+		element_t delta = 1/pow((element_t)(double)10,out_data[bin+2*closure.bins]);
+		if( atMax(out_data[bin+closure.bins] + delta) ){
+			out_data[bin+closure.bins] = out_data[bin+closure.bins]/10;
+			out_data[bin+2*closure.bins] = out_data[bin+2*closure.bins]+1;
+			out_data[bin+closure.bins] = out_data[bin+closure.bins] + delta/10;
+		}else{
+			out_data[bin+closure.bins] = out_data[bin+closure.bins] + delta;
+		}
+#else
+		out_data[bin + closure.bins] = out_data[bin + closure.bins] + 1;
+#endif
 	}
 }
 

@@ -828,7 +828,7 @@ class LMDBDataUnit(DataUnit):
                     self.generator = self.dp.get_multiview_mb()
                 continue
             break
-        to_top[self.top_names[0]] = owl.from_numpy(samples).reshape(
+        to_top[self.top_names[0]] = owl.from_numpy(np.divide(samples,256)).reshape(
                 [self.crop_size, self.crop_size, 3, samples.shape[0]])
         for i in range (1, len(self.top_names)):
             to_top[self.top_names[i]] = labels[:,i - 1]
@@ -1090,6 +1090,9 @@ class Net:
             for btm in self.reverse_adjacent[u]:
                 from_btm.update(unit_to_tops[btm])
             self.units[u].forward(from_btm, unit_to_tops[u], phase)
+            print self.units[u].name
+            print self.units[u].out.histogram(8).to_numpy()
+            print "\n"
 
     def forward_check(self):
         ''' Check forward function, use the same batch of data, remove random
