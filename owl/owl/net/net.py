@@ -828,6 +828,7 @@ class LMDBDataUnit(DataUnit):
                     self.generator = self.dp.get_multiview_mb()
                 continue
             break
+        #TODO(Jesse Lovitt): Change this 256 to a division by 256/max-fixed-point-value
         to_top[self.top_names[0]] = owl.from_numpy(np.divide(samples,256)).reshape(
                 [self.crop_size, self.crop_size, 3, samples.shape[0]])
         for i in range (1, len(self.top_names)):

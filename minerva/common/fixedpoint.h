@@ -111,6 +111,10 @@ public:
 		return ((float)this->value)/(1<<FRACW);
 	}
 
+	explicit operator int(){
+		return (int)(this->value >> FRACW);
+	}
+
 	explicit operator float(){
 		return this->to_float();
 	}

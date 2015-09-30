@@ -994,48 +994,50 @@ void Histogram(const DataList& in , const DataList& out, HistogramClosure& closu
 	element_t* in_data = in[0].data_;
 	element_t* out_data = out[0].data_;
 	size_t in_size = in[0].size_.Prod();
-	element_t min = in_data[0];
-	element_t max = in_data[0];
+	size_t out_size = out[0].size_.Prod();
+	float out_data_local[out_size];
+	float min = (float)in_data[0];
+	float max = (float)in_data[0];
 
 	//Find range and bin cutoffs
 	for(int i = 0; i < (int)in_size; i++){
-		if(in_data[i] < min){
-			min = in_data[i];
+		if((float)in_data[i] < min){
+			min = (float)in_data[i];
 		}
-		if(in_data[i] > max){
-			max = in_data[i];
+		if((float)in_data[i] > max){
+			max = (float)in_data[i];
 		}
 	}
-	element_t bin_size = (max - min)/closure.bins;
+	float bin_size = (max - min)/closure.bins;
 
 	//Initialize histogram array
 	for(int i = 0; i < closure.bins; i++){
-		out_data[i] = (i+1)*bin_size+min;
-		out_data[i+closure.bins] = 0;
-		out_data[i+2*closure.bins] = 0;
+		out_data_local[i] = (i+1)*bin_size+min;
+		out_data_local[i+closure.bins] = 0;
 	}
 
 	//Create Histogram data.
 	int bin;
 	for(int i = 0; i < (int)in_size; i++){
 		bin = 0;
-		while(bin < closure.bins && in_data[i] > out_data[bin]){
+		while(bin < closure.bins-1 && in_data[i] > out_data_local[bin]){
 			bin++;
 		}
+		out_data_local[bin + closure.bins] = out_data_local[bin + closure.bins] + 1;
 		//TODO: fix this mess.
-#ifdef FIXED_POINT
-		element_t delta = 1/pow((element_t)(double)10,out_data[bin+2*closure.bins]);
-		if( atMax(out_data[bin+closure.bins] + delta) ){
-			out_data[bin+closure.bins] = out_data[bin+closure.bins]/10;
-			out_data[bin+2*closure.bins] = out_data[bin+2*closure.bins]+1;
-			out_data[bin+closure.bins] = out_data[bin+closure.bins] + delta/10;
-		}else{
-			out_data[bin+closure.bins] = out_data[bin+closure.bins] + delta;
-		}
-#else
-		out_data[bin + closure.bins] = out_data[bin + closure.bins] + 1;
-#endif
 	}
+#ifdef FIXED_POINT
+	//Copy out PMF histogram array
+	for(int i = 0; i < closure.bins; i++){
+		out_data[i] = out_data_local[i];
+		out_data[i+closure.bins] = out_data_local[i+closure.bins]/in_size;
+	}
+#else
+	//Copy out histogram array
+	for(int i = 0; i < (int)out_size; i++){
+		out_data[i] = out_data_local[i];
+	}
+#endif
 }
 
 }  // end of namespace basic
