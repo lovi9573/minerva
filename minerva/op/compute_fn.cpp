@@ -62,6 +62,7 @@ std::shared_ptr<ComputeFn> ComputeFn::DeSerialize(char* buffer, int* bytes){
 		CASE_CLOSURECODE_OP( INDEXCLOSURE,IndexOp )
 		CASE_CLOSURECODE_OP( CONVBACKWARDBIASCLOSURE,ConvBackwardBiasOp )
 		CASE_CLOSURECODE_OP( TANHFORWARDCLOSURE,TanhForwardOp )
+		CASE_CLOSURECODE_OP( HISTOGRAMCLOSURE,HistogramOp )
 	default:
 		LOG(FATAL) << "Bad closure code" << opcode ;
 		throw 100;
