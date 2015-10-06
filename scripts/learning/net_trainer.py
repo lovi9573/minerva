@@ -16,6 +16,7 @@ if __name__ == "__main__":
     parser.add_argument('num_gpu', help='number of gpus to use', type=int, default=1)
     parser.add_argument('freq', help='frequency (number of minibatches) to call wait_for_all', type=int, default=1)
     parser.add_argument('report', help='report computation times', type=int, default=0)
+    parser.add_argument('histogram', help='Give a histogram of net values per layer', type=int, default=0)
 
     (args, remain) = parser.parse_known_args()
     solver_file = args.solver_file
@@ -25,10 +26,13 @@ if __name__ == "__main__":
     report = False
     if args.report == 1:
         report = True
+    hist=False
+    if args.histogram == 1:
+        hist=True
 
     print ' === Training using %d gpus, start from snapshot %d === ' % (num_gpu, snapshot)
 
     sys_args = [sys.argv[0]] + remain
-    trainer = NetTrainer(solver_file, snapshot, num_gpu, freq, report)
+    trainer = NetTrainer(solver_file, snapshot, num_gpu, freq, report, hist)
     trainer.build_net()
     trainer.run()

@@ -120,6 +120,13 @@ uint64_t MinervaSystem::CreateMpiDevice(int rank, int id ) {
 }
 
 
+void MinervaSystem::PrintProfilerResults(){
+	profiler_->PrintResult();
+#ifdef HAS_MPI
+	mpiserver_->Print_Profiler_Results();
+#endif
+}
+
 void MinervaSystem::SetDevice(uint64_t id) {
   current_device_id_ = id;
 }

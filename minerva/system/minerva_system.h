@@ -67,6 +67,7 @@ class MinervaSystem :
   void WaitForAll();
   int rank();
   void WorkerRun() override;
+  void PrintProfilerResults() override;
 
 #ifdef HAS_MPI
   MpiServer& mpi_server(){
@@ -78,6 +79,7 @@ class MinervaSystem :
   // device master
   void FreeMpiDataIfExist(int rank, uint64_t data_id);
   void FreeDataIfExist(uint64_t data_id);
+
 #endif
 
 #if defined(FIXED_POINT) || defined(HAS_FPGA)

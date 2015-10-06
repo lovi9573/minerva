@@ -59,6 +59,9 @@ void MpiHandler::Default_Handler(uint64_t id, char* buffer, size_t size, int ran
 		case MPI_FREE_DATA:
 			Handle_Free_Data(id, buffer, size, rank);
 			break;
+		case MPI_PRINT_PROFILE:
+			Print_Profiler_Results();
+			break;
 	}
 }
 
@@ -105,6 +108,11 @@ void MpiHandler::Handle_Free_Data(uint64_t id, char* buffer, size_t size, int ra
 	DESERIALIZE(buffer, offset, data_id, uint64_t)
 	MPILOG  << "[" << rank_  << "]<= {mainloop} Freeing data #" << data_id << "\n";
 	MinervaSystem::Instance().FreeDataIfExist(data_id);
+}
+
+void MpiHandler::Print_Profiler_Results(){
+	printf("RANK %d:\n",rank_);
+	MinervaSystem::Instance().profiler().PrintResult();
 }
 
 

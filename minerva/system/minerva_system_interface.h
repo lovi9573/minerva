@@ -46,6 +46,7 @@ class IMinervaSystem {
   virtual void WaitForAll() = 0;
   virtual int rank() = 0;
   virtual void WorkerRun() = 0;
+  virtual void PrintProfilerResults() = 0;
 
 };
 

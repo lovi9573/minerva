@@ -118,6 +118,12 @@ void MpiServer::Free_Data(int rank, uint64_t data_id){
 	delete[] buffer;
 }
 
+void MpiServer::Print_Profiler_Results(){
+	for(int r=0; r< GetMpiNodeCount(); r++){
+		Send(nullptr,0,r,MPI_PRINT_PROFILE);
+	}
+}
+
 /*
  *  ========= Default_Handler =========
  */

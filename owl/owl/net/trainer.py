@@ -27,16 +27,17 @@ class NetTrainer:
                          speed. Normally, the higher value is given, the faster the training speed but the more memory is used
                          during execution.
     '''
-    def __init__(self, solver_file, snapshot = 0, gpu = 1, sync_freq=1, report=False):
+    def __init__(self, solver_file, snapshot = 0, gpu = 1, sync_freq=1, report=False, do_histogram=False):
         self.solver_file = solver_file
         self.snapshot = snapshot
         self.num_gpu = gpu
         self.sync_freq = sync_freq
         self.report = report
+        self.do_histogram=do_histogram
         if owl.has_mpi():
             self.gpu = []
             if gpu == 1: 
-                self.gpu += [owl.create_gpu_device(i) for i in range(owl.get_gpu_device_count())]
+                #self.gpu += [owl.create_gpu_device(i) for i in range(owl.get_gpu_device_count())]
                 nodes = [owl.get_mpi_device_count(i) for i in range(1,owl.get_mpi_node_count())]
                 for n in range(len(nodes)):
                     print "using {} gpu's on node {}\n".format(nodes[n],n+1)
@@ -66,11 +67,9 @@ class NetTrainer:
         self.owl_net = Net()
         self.builder = CaffeNetBuilder(self.solver_file)
         self.snapshot_dir = self.builder.snapshot_dir
-        print "num_gpu",self.num_gpu
         self.builder.build_net(self.owl_net, self.num_gpu)
         self.owl_net.compute_size()
         self.builder.init_net_from_file(self.owl_net, self.snapshot_dir, self.snapshot)
-	print "net built"
 
     def run(s):
         ''' Run the training algorithm on multiple GPUs
@@ -142,7 +141,7 @@ class NetTrainer:
             # train on multi-gpu
             for gpuid in range(s.num_gpu):
                 owl.set_device(s.gpu[gpuid])
-                print "running gpu {}".format(s.gpu[gpuid])
+                print "running device {}".format(s.gpu[gpuid])
                 s.owl_net.forward('TRAIN')
                 s.owl_net.backward('TRAIN')
                 for wid in wunits:
@@ -169,6 +168,8 @@ class NetTrainer:
                 speed = s.owl_net.batch_size * s.sync_freq / thistime
                 print "Finished training %d minibatch of %d (time: %s; speed: %s img/s)" % (iteridx, end_idx, thistime, speed)
                 last = time.time()
+                if s.do_histogram:
+                    s.owl_net.histogram(8)
 
             wgrad = [[] for i in range(s.num_gpu)] # reset gradients
             bgrad = [[] for i in range(s.num_gpu)]

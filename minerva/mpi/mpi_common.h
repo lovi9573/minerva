@@ -25,7 +25,8 @@ namespace minerva {
 	#define MPI_TASK_DATA_RESPONSE 5
 	#define MPI_FINALIZE_TASK 6
 	#define MPI_FREE_DATA 7
-	#define MPI_TERMINATE 8
+	#define MPI_PRINT_PROFILE 8
+	#define MPI_TERMINATE 100
 
 	#ifdef MPI_LOGGING
 		#define MPILOG std::cout

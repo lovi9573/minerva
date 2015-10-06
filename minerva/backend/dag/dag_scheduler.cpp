@@ -29,8 +29,8 @@ vector<BackendChunk*> DagScheduler::Create(const vector<BackendChunk*>& params,
   auto current_device_id = MinervaSystem::Instance().current_device_id();
   auto rst_data_nodes = Map<PhysicalDataNode*>(result_sizes, [&](const Scale& size) {
 #ifdef HAS_MPI
-	  int currentrank = MinervaSystem::Instance().device_manager().GetDevice(current_device_id)->rank();
-	  return dag_->NewDataNode(PhysicalData(size, currentrank, current_device_id, MinervaSystem::Instance().GenerateDataId()));
+	  int targetrank = MinervaSystem::Instance().device_manager().GetDevice(current_device_id)->rank();
+	  return dag_->NewDataNode(PhysicalData(size, targetrank, current_device_id, MinervaSystem::Instance().GenerateDataId()));
 #else
 	  return dag_->NewDataNode(PhysicalData(size, current_device_id, MinervaSystem::Instance().GenerateDataId()));
 #endif

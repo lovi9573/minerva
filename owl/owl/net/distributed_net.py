@@ -21,7 +21,7 @@ from netio import LMDBDataProvider
 from netio import ImageListDataProvider
 from netio import ImageWindowDataProvider
 
-class ComputeUnit(object):
+class ComputeUnitD(object):
     ''' Interface for each compute unit.
 
     In ``owl.net``, the network is graph (in fact a DAG) that is composed of ``ComputeUnit`` s.
@@ -51,6 +51,7 @@ class ComputeUnit(object):
         self.rec_on_ori = None
         self.stride_on_ori = None
         self.start_on_ori = None
+        self.devs = None
 
     def __str__(self):
         return 'N/A unit'

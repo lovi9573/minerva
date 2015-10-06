@@ -30,6 +30,7 @@ public:
 	void MPI_Send_task(const Task& task,const Context& ctx );
 	void MPI_Terminate();
 	void Free_Data(int, uint64_t );
+	void Print_Profiler_Results();
 private:
 	void Default_Handler(uint64_t id, char* buffer, size_t size, int rank, int tag) override;
 	void Handle_Finalize_Task(uint64_t id, char* buffer, size_t size, int rank );

@@ -93,6 +93,7 @@ void MpiDevice::Execute(Task* task, int thrid){
 	#ifdef USE_PROFILER
 		Barrier(thrid);
 		WallTimer calculate_timer;
+		MinervaSystem::Instance().profiler().RecordTime(TimerType::kMemory, op.compute_fn->Name()+"[mpi]", calculate_timer);
 		calculate_timer.Start();
 	#endif
 	DLOG(INFO) << Name() << " dispatching mpi task #" << task->id << ": " << op.compute_fn->Name();

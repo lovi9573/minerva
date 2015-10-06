@@ -63,7 +63,7 @@ void SetDevice(uint64_t id) {
 
 void Print_Profiler_Results(){
   auto&& ms = minerva::IMinervaSystem::Interface();
-  ms.profiler().PrintResult();
+  ms.PrintProfilerResults();
 }
 
 minerva::Scale ToScale(std::vector<int>* v) {

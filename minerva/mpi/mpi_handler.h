@@ -29,6 +29,7 @@ private:
 	void Handle_Create_Device(uint64_t id, char* buffer, size_t size, int rank);
 	void Handle_Task(uint64_t id, char* buffer, size_t size, int rank);
 	void Handle_Free_Data(uint64_t id, char* buffer, size_t size, int rank);
+	void Print_Profiler_Results();
 
 };
 

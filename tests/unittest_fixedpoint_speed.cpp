@@ -49,7 +49,7 @@ inline FP8 addfixed(FP8 a, FP8 b, FP8 c){
 }
 
 TEST(FixedPoint, MulAddSpeed){
-	int number_random_tests = 10;
+	int number_random_tests = 1000000;
 	double a = get_wall_time();	
 	for(int i = 0; i < number_random_tests; i++){
 		addfloat(static_cast<float>(rand())/static_cast<float>(RAND_MAX),
