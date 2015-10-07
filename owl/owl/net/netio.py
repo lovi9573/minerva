@@ -397,7 +397,7 @@ class DummyDataProvider():
         self.crop_size = transform_param.crop_size
         
         #TODO(Jesselovitt): put a num_label into the prototxt for dummy data.
-        self.labels = np.zeros([self.batch_size, 1000], dtype=np.float32)
+        self.labels = np.zeros([self.batch_size, data_param.num_labels], dtype=np.float32)
         self.labels[:,1] = 1
         self.dummysamples = np.random.randn(self.batch_size,3*self.crop_size*self.crop_size)
 

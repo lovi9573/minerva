@@ -85,10 +85,10 @@ minerva::NArray FromNumpy(float const* data, minerva::Scale const& scale) {
     delete[] p;
   });
   //TODO(jesselovitt):This might be a choke point when element_t is float.
-  for(int i = 0; i < size; i++){
+/*  for(int i = 0; i < size; i++){
 	  ptr.get()[i] = data[i];
-  }
-  //memcpy(ptr.get(), data, size * sizeof(float));
+  }*/
+  memcpy(ptr.get(), data, size * sizeof(float));
   auto a = minerva::NArray::MakeNArray(scale, ptr);
   minerva::FileFormat fmt;
   fmt.binary = false;

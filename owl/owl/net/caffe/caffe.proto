@@ -433,6 +433,8 @@ message DataParameter {
   optional bool mirror = 6 [default = false];
   // Force the encoded image to have 3 color channels
   optional bool force_encoded_color = 9 [default = false];
+  // Number of classes represented in the labels
+  optional uint32 num_labels = 10 [default = 2];
 }
 
 // Message that stores parameters used by DropoutLayer
