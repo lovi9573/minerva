@@ -17,6 +17,7 @@ import owl.elewise as ele
 import owl.conv as co
 from caffe import *
 
+from netio import DummyDataProvider
 from netio import LMDBDataProvider
 from netio import ImageListDataProvider
 from netio import ImageWindowDataProvider
@@ -931,6 +932,68 @@ class ImageWindowDataUnit(DataUnit):
     
     def __str__(self):
         return 'window_data'
+    
+class DummyDataUnit(DataUnit):
+    def __init__(self, params, num_gpu):
+        super(DummyDataUnit, self).__init__(params, num_gpu)
+        if params.include[0].phase == Phase.Value('TRAIN'):
+            self.dp = DummyDataProvider(params.data_param, params.transform_param, num_gpu)
+        else:
+            self.dp = DummyDataProvider(params.data_param, params.transform_param, 1)
+        self.params = params
+        self.crop_size = params.transform_param.crop_size
+        self.generator = None
+        self.out = None
+        self.multiview = False
+
+    def compute_size(self, from_btm, to_top):
+        self.out_shape = [self.params.transform_param.crop_size,
+                          self.params.transform_param.crop_size,
+                          3, 1]
+        to_top[self.top_names[0]] = dict()
+        to_top[self.top_names[0]]['out_shape'] = self.out_shape[:]
+        to_top[self.top_names[0]]['rec_on_ori'] = 1
+        to_top[self.top_names[0]]['stride_on_ori'] = 1 
+        to_top[self.top_names[0]]['start_on_ori'] = 0
+        self.rec_on_ori = 1
+        self.stride_on_ori = 1
+        self.start_on_ori = 0
+
+   
+    def forward(self, from_btm, to_top, phase):
+        ''' Feed-forward operation may vary according to phase. 
+
+        .. note::
+
+        '''
+        if self.generator == None:
+            self.generator = self.dp.get_mb(phase)
+        while True:
+            try:
+                (samples, labels) = next(self.generator)
+                if len(labels) == 0:
+                    (samples, labels) = next(self.generator)
+            except StopIteration:
+                print 'Have scanned the whole dataset; start from the begginning agin'
+                if self.multiview == False:
+                    self.generator = self.dp.get_mb(phase)
+                #multiview test
+                else:
+                    self.generator = self.dp.get_multiview_mb()
+                continue
+            break
+        #TODO(Jesse Lovitt): Change this 256 to a division by 256/max-fixed-point-value
+        to_top[self.top_names[0]] = owl.from_numpy(samples).reshape(
+                [self.crop_size, self.crop_size, 3, samples.shape[0]])
+        for i in range (1, len(self.top_names)):
+            to_top[self.top_names[i]] = labels[:,i - 1]
+        #to_top[self.top_names[0]] = owl.zeros([self.crop_size, self.crop_size, 3, 256])
+        #for i in range (1, len(self.top_names)):
+            #to_top[self.top_names[i]] = np.ones(256)
+        self.out = to_top[self.top_names[0]]
+
+    def __str__(self):
+        return 'dummy_data'
 
 class Net:
     ''' The class for neural network structure

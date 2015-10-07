@@ -84,6 +84,7 @@ minerva::NArray FromNumpy(float const* data, minerva::Scale const& scale) {
   std::shared_ptr<element_t> ptr(new element_t[size], [](element_t* p) {
     delete[] p;
   });
+  //TODO(jesselovitt):This might be a choke point when element_t is float.
   for(int i = 0; i < size; i++){
 	  ptr.get()[i] = data[i];
   }

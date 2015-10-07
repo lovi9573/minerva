@@ -68,6 +68,10 @@ class CaffeNetBuilder:
                     owl_net.data_layers.append(l.name)
                     if len(l.include) != 0 and l.include[0].phase == Phase.Value('TRAIN'):
                         owl_net.batch_size = l.data_param.batch_size
+                elif ty == 'DummyData':
+                    owl_net.data_layers.append(l.name)
+                    if len(l.include) != 0 and l.include[0].phase == Phase.Value('TRAIN'):
+                        owl_net.batch_size = l.data_param.batch_size
                 elif ty == 'ImageData':
                     owl_net.data_layers.append(l.name)
                     if len(l.include) != 0 and l.include[0].phase == Phase.Value('TRAIN'):
@@ -123,6 +127,8 @@ class CaffeNetBuilder:
         ty = caffe_layer.type
         if ty == 'Data':
             return net.LMDBDataUnit(caffe_layer, num_gpu)
+        elif ty == 'DummyData':
+            return net.DummyDataUnit(caffe_layer, num_gpu)
         elif ty == 'ImageData':
             return net.ImageDataUnit(caffe_layer, num_gpu)
         elif ty == 'WindowData':

@@ -390,7 +390,22 @@ class LMDBDataProvider:
             for i in range(view_num):
                 yield (left_samples[i,:,:], left_labels)
 
+class DummyDataProvider():
+    
+    def __init__(self, data_param, transform_param, mm_batch_num):
+        self.batch_size = data_param.batch_size / mm_batch_num
+        self.crop_size = transform_param.crop_size
+        
+        #TODO(Jesselovitt): put a num_label into the prototxt for dummy data.
+        self.labels = np.zeros([self.batch_size, 1000], dtype=np.float32)
+        self.labels[:,1] = 1
+        self.dummysamples = np.random.randn(self.batch_size,3*self.crop_size*self.crop_size)
 
+
+    def get_mb(self, phase = 'TRAIN'):
+        yield (self.dummysamples, self.labels)
+                   
+                   
 if __name__ == '__main__':
     ''' 
     if sys.argv[1] == 'lmdb':
