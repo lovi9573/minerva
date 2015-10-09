@@ -1,10 +1,20 @@
 	
 #define FIXED_POINT_FRACTION_WIDTH_N 16
 
+
+/*****************
+ * 	TASKS
+ *****************/
 #define CONV_FORWARD 1
 #define CONV_BACKWARD_DATA 2
 #define CONV_BACKWARD_BIAS 3
 #define CONV_BACKWARD_FILTER 4
+
+/******************
+ * Memory Indicators
+ ******************/
+#define GLOBAL_FILTER_MEM 1
+#define GLOBAL_SAMPLE_MEM 2
 
 typedef ht_uint48 MemAddr_t;
 typedef uint16_t element_t;
@@ -14,12 +24,13 @@ typedef uint16_t element_t;
 
 
 
-////////////////////////////////////////////////////
+/*////////////////////////////////////////////////////
 // Top-level control module
+*******************************************/
 dsnInfo.AddModule(name=ctl, htIdW=0);
 
-ctl.AddInst(name=CTL_ENTRY);
-ctl.AddInst(name=CTL_RTN);
+ctl.AddInstr(name=CTL_ENTRY);
+ctl.AddInstr(name=CTL_RTN);
 
 ctl.AddPrivate()
 	.AddVar(type=uint32_t, name=task)
@@ -31,7 +42,7 @@ ctl.AddGlobal()
 	.AddVar(type=uint16_t, name=fractionW)
 	;
 
-ctl.AddEntry(func=htmain, inst=CTL_ENTRY, host=true)
+ctl.AddEntry(func=htmain, instr=CTL_ENTRY, host=true)
 	.AddParam(type=uint32_t, name=rank)
 	.AddParam(type=uint32_t, name=rankStride)
 	.AddParam(type=uint32_t, name=task)
@@ -40,10 +51,10 @@ ctl.AddEntry(func=htmain, inst=CTL_ENTRY, host=true)
 ctl.AddReturn(func=htmain)
 	;
 
-ctl.AddCall(func=conv_fwd);
-ctl.AddCall(func=conv_load_bottom_diff_layer);
+//ctl.AddCall(func=conv_fwd);
+ctl.AddCall(func=conv_load_filter_applications);
 ctl.AddCall(func=conv_back_bias);
-ctl.AddCall(func=conv_load_filter);
+//ctl.AddCall(func=load_filters);
 
 
 
@@ -52,22 +63,22 @@ ctl.AddCall(func=conv_load_filter);
  *********************************/
 dsnInfo.AddModule(name=convbackbias, htIdW=0);
 
-convbackbias.AddInst(name=CONVBACKBIAS_ENTRY);
-convbackbias.AddInst(name=CONVBACKBIAS_INIT_BIAS_READ);
-convbackbias.AddInst(name=CONVBACKBIAS_INIT_BIAS_READ_STORE);
-convbackbias.AddInst(name=CONVBACKBIAS_TOP_TEST);
-convbackbias.AddInst(name=CONVBACKBIAS_TOP_READ);
-convbackbias.AddInst(name=CONVBACKBIAS_TOP_READ_STORE);\
-convbackbias.AddInst(name=CONVBACKBIAS_BIAS_TEST);
-convbackbias.AddInst(name=CONVBACKBIAS_BIAS_WRITE_PREP);
-convbackbias.AddInst(name=CONVBACKBIAS_BIAS_WRITE);
-convbackbias.AddInst(name=CONVBACKBIAS_BIAS_READ);
-convbackbias.AddInst(name=CONVBACKBIAS_BIAS_READ_STORE);
-convbackbias.AddInst(name=CONVBACKBIAS_TOP_ELEMENT_TEST);
-convbackbias.AddInst(name=CONVBACKBIAS_BIAS_ELEMENT_TEST);
-convbackbias.AddInst(name=CONVBACKBIAS_APPLY);
-convbackbias.AddInst(name=CONVBACKBIAS_INCREMENT);
-convbackbias.AddInst(name=CONVBACKBIAS_RTN);
+convbackbias.AddInstr(name=CONVBACKBIAS_ENTRY);
+convbackbias.AddInstr(name=CONVBACKBIAS_INIT_BIAS_READ);
+convbackbias.AddInstr(name=CONVBACKBIAS_INIT_BIAS_READ_STORE);
+convbackbias.AddInstr(name=CONVBACKBIAS_TOP_TEST);
+convbackbias.AddInstr(name=CONVBACKBIAS_TOP_READ);
+convbackbias.AddInstr(name=CONVBACKBIAS_TOP_READ_STORE);\
+convbackbias.AddInstr(name=CONVBACKBIAS_BIAS_TEST);
+convbackbias.AddInstr(name=CONVBACKBIAS_BIAS_WRITE_PREP);
+convbackbias.AddInstr(name=CONVBACKBIAS_BIAS_WRITE);
+convbackbias.AddInstr(name=CONVBACKBIAS_BIAS_READ);
+convbackbias.AddInstr(name=CONVBACKBIAS_BIAS_READ_STORE);
+convbackbias.AddInstr(name=CONVBACKBIAS_TOP_ELEMENT_TEST);
+convbackbias.AddInstr(name=CONVBACKBIAS_BIAS_ELEMENT_TEST);
+convbackbias.AddInstr(name=CONVBACKBIAS_APPLY);
+convbackbias.AddInstr(name=CONVBACKBIAS_INCREMENT);
+convbackbias.AddInstr(name=CONVBACKBIAS_RTN);
 
 convbackbias.AddHostMsg(dir=in, name=TOP_ADDR)
 	.AddDst(var=top_addr)
@@ -115,7 +126,7 @@ convbackbias.AddReadMem()
 convbackbias.AddWriteMem()
 		;
 
-convbackbias.AddEntry(func=conv_back_bias, inst=CONVBACKBIAS_ENTRY)
+convbackbias.AddEntry(func=conv_back_bias, instr=CONVBACKBIAS_ENTRY)
 	;
 
 convbackbias.AddReturn(func=conv_back_bias)
@@ -123,147 +134,296 @@ convbackbias.AddReturn(func=conv_back_bias)
 
 
 /*********************************
- * Convolution Iterate through and Load Filters
+ * Iterate through and Load Filters into global cache
  *********************************/
-dsnInfo.AddModule(name=convloadfilter, htIdW=0);
+dsnInfo.AddModule(name=loadfilters, htIdW=0);
 
-convloadfilter.AddInst(name=CONVLOADFILTER_ENTRY);
-convloadfilter.AddInst(name=CONVLOADFILTER_READ);
-convloadfilter.AddInst(name=CONVLOADFILTER_STORE);
-convloadfilter.AddInst(name=CONVLOADFILTER_READ_IDX_TEST);
-convloadfilter.AddInst(name=CONVLOADFILTER_FILTER_RAW_IDX_TEST);
-convloadfilter.AddInst(name=CONVLOADFILTER_DISPATCH);
-convloadfilter.AddInst(name=CONVLOADFILTER_JOIN);\
-convloadfilter.AddInst(name=CONVLOADFILTER_ITER_TEST);
-convloadfilter.AddInst(name=CONVLOADFILTER_RTN);
+loadfilters.AddInstr(name=LOADFILTERS_ENTRY);
+loadfilters.AddInstr(name=LOADFILTERS_READ);
+loadfilters.AddInstr(name=LOADFILTERS_STORE);
+loadfilters.AddInstr(name=LOADFILTERS_RAW_IDX_TEST);
+loadfilters.AddInstr(name=LOADFILTERS_FILTER_ADDR_TEST);
+loadfilters.AddInstr(name=LOADFILTERS_DISPATCH);
+loadfilters.AddInstr(name=LOADFILTERS_JOIN);\
+loadfilters.AddInstr(name=LOADFILTERS_ITER_TEST);
+loadfilters.AddInstr(name=LOADFILTERS_RTN);
 
 
-convloadfilter.AddHostMsg(dir=in, name=FILTER_ADDR)
+loadfilters.AddHostMsg(dir=in, name=FILTER_ADDR)
 	.AddDst(var=filter_addr)
 	;
-convloadfilter.AddHostMsg(dir=in, name=FILTER_DIM)
+loadfilters.AddHostMsg(dir=in, name=FILTER_DIM)
 	.AddDst(var=filter_dim)
 	;
-convloadfilter.AddHostMsg(dir=in, name=BOTTOM_CHANNELS)
+loadfilters.AddHostMsg(dir=in, name=NUM_FILTERS)
+	.AddDst(var=num_filters)
+	;
+loadfilters.AddHostMsg(dir=in, name=BOTTOM_CHANNELS)
 	.AddDst(var=bottom_channels)
 	;
 
-convloadfilter.AddPrivate()
-	.AddVar(type=uint64_t, name=filter_data_raw)
-	.AddVar(type=uint32_t, name=num_filters_to_iterate)
-	.AddVar(type=uint32_t, name=iter)
-	.AddVar(type=uint32_t, name=filter_raw_idx)
-	.AddVar(type=uint32_t, name=read_idx)
-	.AddVar(type=uint32_t, name=task)
-	.AddVar(type=uint32_t, name=filter_stride)
+loadfilters.AddPrivate()
+	.AddVar(type=uint32_t, name=filter_addr_offset)
+	.AddVar(type=uint64_t, name=filter_raw)
+	.AddVar(type=uint8_t, name=filter_raw_idx)
+	.AddVar(type=uint16_t, name=i_f)
+	.AddVar(type=uint8_t, name=task)
+	.AddVar(type=uint32_t, name=DS_f)
+	.AddVar(type=uint32_t, name=global_idx)
 	;
 
 
-convloadfilter.AddShared()
+loadfilters.AddShared()
 	.AddVar(type=MemAddr_t, name=filter_addr)
 	.AddVar(type=MemAddr_t, name=filter_dim)
+	.AddVar(type=uint16_t, name=num_filters)
 	.AddVar(type=uint32_t, name=bottom_channels)
 	;
 
-convloadfilter.AddGlobal()
-	.AddVar(type=uint16_t, name=filter_data, dimen1=512, dimen2=121)
+
+loadfilters.AddReadMem()
+	.AddDst(var=filter_raw, name=filter_raw)
 	;
 
-convloadfilter.AddReadMem()
-	.AddDst(var=filter_data_raw, name=filter_data_raw)
-	;
-
-convloadfilter.AddWriteMem()
+loadfilters.AddWriteMem()
 		;
 
-//ctl.AddCall(func=conv_load_top_diff_layer, fork=true);
+loadfilters.AddCall(func=read_to_global_filter);
 
-convloadfilter.AddEntry(func=conv_load_filter, inst=CONVLOADFILTER_ENTRY)
-		.AddParam(type=uint32_t, name=task)
+loadfilters.AddEntry(func=load_filters, instr=LOADFILTERS_ENTRY)
+		.AddParam(type=uint8_t, name=task)
 	;
 
-convloadfilter.AddReturn(func=conv_load_filter)
+loadfilters.AddReturn(func=load_filters)
 	;
+
 
 
 
 /*********************************
- * Convolution Load Bottom Diff layer
+ * Iterates through regions of bottom data where a filter would be applied
+ * For each such region the data is cached and a task module called.
  *********************************/
-dsnInfo.AddModule(name=convcachebottomapplication, htIdW=0);
-
-convcachebottomapplication.AddInst(name=CONVLOADFILTER_ENTRY);
-convcachebottomapplication.AddInst(name=CONVLOADFILTER_READ);
-convcachebottomapplication.AddInst(name=CONVLOADFILTER_STORE);
-convcachebottomapplication.AddInst(name=CONVLOADFILTER_RAW_IDX_TEST);
-convcachebottomapplication.AddInst(name=CONV_CHANNEL_IDX_TEST);
-convcachebottomapplication.AddInst(name=CONV_SAMPLE_IDX_TEST);
-convcachebottomapplication.AddInst(name=CONVLOADFILTER_DISPATCH);
-convcachebottomapplication.AddInst(name=CONVLOADFILTER_JOIN);
-convcachebottomapplication.AddInst(name=CONVLOADFILTER_RTN);
+dsnInfo.AddModule(name=loadregions, htIdW=0);
 
 
-convcachebottomapplication.AddHostMsg(dir=in, name=BOTTOM_ADDR)
-	.AddDst(var=bottom_addr)
+loadregions.AddInstr(name=LOADREGIONS_ENTRY);
+loadregions.AddInstr(name=LOADREGIONS_INIT);
+loadregions.AddInstr(name=LOADREGIONS_LOAD_ROW);
+loadregions.AddInstr(name=LOADREGIONS_TEST_Y_F);
+loadregions.AddInstr(name=LOADREGIONS_TEST_I_C);
+loadregions.AddInstr(name=LOADREGIONS_JOIN);
+loadregions.AddInstr(name=LOADREGIONS_WAIT);
+loadregions.AddInstr(name=LOADREGIONS_CALL_KERNEL);
+loadregions.AddInstr(name=LOADREGIONS_TEST_X_S);
+loadregions.AddInstr(name=LOADREGIONS_TEST_Y_S);
+loadregions.AddInstr(name=LOADREGIONS_NEXT_SAMPLE);
+loadregions.AddInstr(name=LOADREGIONS_RTN);
+
+
+loadregions.AddHostMsg(dir=in, name=BOTTOM_DIM)
+	.AddDst(var=d_s)
 	;
-convcachebottomapplication.AddHostMsg(dir=in, name=BOTTOM_DIM)
-	.AddDst(var=bottom_dim)
+loadregions.AddHostMsg(dir=in, name=BOTTOM_CHANNELS)
+	.AddDst(var=d_c)
 	;
-convcachebottomapplication.AddHostMsg(dir=in, name=BOTTOM_CHANNELS)
-	.AddDst(var=bottom_channels)
+loadregions.AddHostMsg(dir=in, name=FILTER_DIM)
+	.AddDst(var=d_f)
 	;
-convcachebottomapplication.AddHostMsg(dir=in, name=BOTTOM_SAMPLES)
+loadregions.AddHostMsg(dir=in, name=STRIDE_X)
+	.AddDst(var=s_x)
+	;
+loadregions.AddHostMsg(dir=in, name=STRIDE_Y)
+	.AddDst(var=s_y)
+	;
+loadregions.AddHostMsg(dir=in, name=PAD_X)
+	.AddDst(var=p_x)
+	;
+loadregions.AddHostMsg(dir=in, name=PAD_Y)
+	.AddDst(var=p_y)
+	;
+loadregions.AddHostMsg(dir=in, name=BOTTOM_SAMPLES)
 	.AddDst(var=bottom_samples)
 	;
 
-convcachebottomapplication.AddPrivate()
-	.AddVar(type=uint64_t, name=top_diff_data_raw)
-	.AddVar(type=uint32_t, name=top_raw_idx)
-	.AddVar(type=uint64_t, name=bottom_diff_data_raw)
-	.AddVar(type=uint32_t, name=bottom_raw_idx)
-	.AddVar(type=uint32_t, name=rank)
-	.AddVar(type=uint32_t, name=rankStride)
-	.AddVar(type=uint32_t, name=iter)
-	.AddVar(type=uint32_t, name=i)
-	.AddVar(type=uint32_t, name=j)
-	.AddVar(type=uint32_t, name=i_bottom)
-	.AddVar(type=uint32_t, name=j_bottom)
+loadregions.AddPrivate()
 	.AddVar(type=uint32_t, name=sample_idx)
-	.AddVar(type=uint32_t, name=channel_idx)
-	.AddVar(type=uint32_t, name=bottom_channel_stride)
-	.AddVar(type=uint32_t, name=bottom_sample_stride)
-	.AddVar(type=uint32_t, name=filter_raw_idx)
+	.AddVar(type=uint16_t, name=rank)
+	.AddVar(type=uint16_t, name=rankStride)
+	.AddVar(type=uint8_t, name=task)
+	.AddVar(type=int16_t, name=x_s)
+	.AddVar(type=int16_t, name=y_s)
+	.AddVar(type=uint8_t, name=y_f)
+	.AddVar(type=uint16_t, name=i_c)
+	.AddVar(type=bool, name=in_sample)
 	;
 
 
-convcachebottomapplication.AddShared()
+loadregions.AddShared()
+	.AddVar(type=uint16_t, name=d_s)
+	.AddVar(type=uint16_t, name=d_c)
+	.AddVar(type=uint8_t, name=d_f)
+	.AddVar(type=uint8_t, name=s_x)
+	.AddVar(type=uint8_t, name=s_y)
+	.AddVar(type=uint8_t, name=p_x)
+	.AddVar(type=uint8_t, name=p_y)
+	.AddVar(type=uint16_t, name=bottom_samples)
+	;
+
+
+
+loadregions.AddCall(func=load_filter_application_row, fork=true);
+loadregions.AddCall(func=load_filters);
+
+loadregions.AddEntry(func=conv_load_filter_applications, instr=LOADREGIONS_ENTRY)
+		.AddParam(type=uint16_t, name=rank)
+		.AddParam(type=uint16_t, name=rankStride)
+		.AddParam(type=bool, name=in_sample)
+		.AddParam(type=uint8_t, name=task)
+	;
+
+loadregions.AddReturn(func=conv_load_filter_applications)
+	;
+
+
+
+
+/*********************************
+ * Load one row of a filter application area from the bottom
+ * Includes 0 padding if needed.
+ *********************************/
+dsnInfo.AddModule(name=loadfilterapplicationrow, htIdW=0);
+
+
+loadfilterapplicationrow.AddInstr(name=CONVLOADFILTERAPPLICATIONROW_ENTRY);
+loadfilterapplicationrow.AddInstr(name=CONVLOADFILTERAPPLICATIONROW_TEST_X_S);
+loadfilterapplicationrow.AddInstr(name=CONVLOADFILTERAPPLICATIONROW_PAD);
+loadfilterapplicationrow.AddInstr(name=CONVLOADFILTERAPPLICATIONROW_COMPUTE_ADDR);
+loadfilterapplicationrow.AddInstr(name=CONVLOADFILTERAPPLICATIONROW_READ);
+loadfilterapplicationrow.AddInstr(name=CONVLOADFILTERAPPLICATIONROW_RTN);
+
+loadfilterapplicationrow.AddHostMsg(dir=in, name=BOTTOM_ADDR)
+	.AddDst(var=bottom_addr)
+	;
+loadfilterapplicationrow.AddHostMsg(dir=in, name=BOTTOM_DIM)
+	.AddDst(var=d_s)
+	;
+loadfilterapplicationrow.AddHostMsg(dir=in, name=FILTER_DIM)
+	.AddDst(var=d_f)
+	;
+loadfilterapplicationrow.AddHostMsg(dir=in, name=DATA_STRIDE_S)
+	.AddDst(var=DS_s)
+	;
+loadfilterapplicationrow.AddHostMsg(dir=in, name=DATA_STRIDE_C)
+	.AddDst(var=DS_c)
+	;
+loadfilterapplicationrow.AddHostMsg(dir=in, name=DATA_STRIDE_Y)
+	.AddDst(var=DS_y)
+	;
+
+loadfilterapplicationrow.AddPrivate()
+	.AddVar(type=MemAddr_t, name=bottom_addr_offset)
+	.AddVar(type=uint16_t, name=i_s)
+	.AddVar(type=uint16_t, name=c_s)
+	.AddVar(type=int16_t, name=y_s)
+	.AddVar(type=int16_t, name=x_s)
+	.AddVar(type=uint8_t, name=y_f)
+	.AddVar(type=uint8_t, name=x_f)
+	.AddVar(type=uint32_t, name=read_size)
+	.AddVar(type=ht_uint11, name=g_addr1)
+	.AddVar(type=ht_uint9, name=g_addr2)
+	;
+
+loadfilterapplicationrow.AddShared()
 	.AddVar(type=MemAddr_t, name=bottom_addr)
-	.AddVar(type=uint32_t, name=bottom_samples)
-	.AddVar(type=uint32_t, name=bottom_channels)
-	.AddVar(type=uint32_t, name=bottom_dim)
-	.AddVar(type=uint32_t, name=filter_dim)
+	.AddVar(type=uint8_t, name=d_f)
+	.AddVar(type=uint16_t, name=d_s)
+	.AddVar(type=uint32_t, name=DS_s)
+	.AddVar(type=uint32_t, name=DS_c)
+	.AddVar(type=uint32_t, name=DS_y)
 	;
 
-convcachebottomapplication.AddGlobal()
-	.AddVar(type=uint16_t, name=bottom_diff_data, dimen1=256, dimen2=256)
+// dimensions: (x*y, c)
+loadfilterapplicationrow.AddGlobal()
+	.AddVar(type=uint16_t, name=bottom_data, addr1W=11, addr2W=9, addr1=g_addr1, addr2=g_addr2)
 	;
 
-convcachebottomapplication.AddReadMem()
-	.AddDst(var=top_diff_data_raw, name=top_diff_data_raw)
-	.AddDst(var=bottom_diff_data_raw, name=bottom_diff_data_raw)
+loadfilterapplicationrow.AddCall(func=read_to_global);
+
+loadfilterapplicationrow.AddEntry(func=load_filter_application_row, instr=CONVLOADFILTERAPPLICATIONROW_ENTRY)
+	.AddParam(type=uint16_t, name=i_s)
+	.AddParam(type=uint16_t, name=c_s)
+	.AddParam(type=int16_t, name=y_s)
+	.AddParam(type=int16_t, name=x_s)
+	.AddParam(type=uint8_t, name=y_f)
 	;
 
-convcachebottomapplication.AddWriteMem()
+loadfilterapplicationrow.AddReturn(func=load_filter_application_row);
+
+
+
+/*********************************
+ * read n bytes into global cache
+ *********************************/
+dsnInfo.AddModule(name=readtoglobal, htIdW=0);
+
+
+readtoglobal.AddInstr(name=READTOGLOBAL_ENTRY);
+readtoglobal.AddInstr(name=READTOGLOBAL_READ);
+readtoglobal.AddInstr(name=READTOGLOBAL_STORE);
+readtoglobal.AddInstr(name=READTOGLOBAL_READ_IDX_TEST);
+readtoglobal.AddInstr(name=READTOGLOBAL_FILTER_RAW_IDX_TEST);
+readtoglobal.AddInstr(name=READTOGLOBAL_RTN);
+
+
+readtoglobal.AddPrivate()
+	.AddVar(type=MemAddr_t, name=data_addr)
+	.AddVar(type=MemAddr_t, name=data_addr_offset)
+	.AddVar(type=uint64_t, name=data_raw)
+	.AddVar(type=uint8_t, name=data_raw_idx)
+	.AddVar(type=uint16_t, name=global_idx)
+	.AddVar(type=uint16_t, name=elements)
+	.AddVar(type=uint16_t, name=i_c)
+	.AddVar(type=uint8_t, name=which_mem)
+	.AddVar(type=ht_uint11, name=gb_addr1)
+	.AddVar(type=ht_uint9, name=gb_addr2)
+	.AddVar(type=ht_uint7, name=gf_addr1)
+	.AddVar(type=ht_uint9, name=gf_addr2)
+	;
+
+
+readtoglobal.AddGlobal()
+	.AddVar(type=uint16_t, name=bottom_data, addr1W=11, addr2W=9, addr1=gb_addr1, addr2=gb_addr2)
+	.AddVar(type=uint16_t, name=filter_data, addr1W=7, addr2W=9, addr1=gf_addr1, addr2=gf_addr2)
+	;
+
+readtoglobal.AddReadMem()
+	.AddDst(var=data_raw, name=data_raw)
+	;
+
+readtoglobal.AddWriteMem()
 		;
 
-convcachebottomapplication.AddCall(func=conv_back_data, fork=true);
-
-convcachebottomapplication.AddEntry(func=conv_load_bottom_diff_layer, inst=CONVLOADFILTER_ENTRY)
-		.AddParam(type=uint32_t, name=rank)
-		.AddParam(type=uint32_t, name=rankStride)
+readtoglobal.AddEntry(func=read_to_global, instr=READTOGLOBAL_ENTRY)
+		.AddParam(type=uint8_t, name=which_mem)
+		.AddParam(type=MemAddr_t, name=data_addr)
+		.AddParam(type=uint16_t, name=elements)
+		.AddParam(type=uint16_t, name=global_idx)
+		.AddParam(type=uint16_t, name=i_c)
 	;
 
-convcachebottomapplication.AddReturn(func=conv_load_bottom_diff_layer)
+readtoglobal.AddReturn(func=read_to_global)
+	;
+
+readtoglobal.AddEntry(func=read_to_global_filter, instr=READTOGLOBAL_ENTRY)
+		.AddParam(type=uint8_t, name=which_mem)
+		.AddParam(type=MemAddr_t, name=data_addr)
+		.AddParam(type=uint16_t, name=elements)
+		.AddParam(type=uint16_t, name=global_idx)
+		.AddParam(type=uint16_t, name=i_c)
+	;
+
+readtoglobal.AddReturn(func=read_to_global_filter)
 	;
 
 
@@ -272,24 +432,25 @@ convcachebottomapplication.AddReturn(func=conv_load_bottom_diff_layer)
 /*********************************
  * Convolution Backward Data
  *********************************/
+/*
 dsnInfo.AddModule(name=convbackdata, htIdW=0);
 
-convbackdata.AddInst(name=CONVBACKDATA_ENTRY);
-convbackdata.AddInst(name=CONVBACKDATA_INIT_BIAS_READ);
-convbackdata.AddInst(name=CONVBACKDATA_INIT_BIAS_READ_STORE);
-convbackdata.AddInst(name=CONVBACKDATA_TOP_TEST);
-convbackdata.AddInst(name=CONVBACKDATA_TOP_READ);
-convbackdata.AddInst(name=CONVBACKDATA_TOP_READ_STORE);\
-convbackdata.AddInst(name=CONVBACKDATA_BIAS_TEST);
-convbackdata.AddInst(name=CONVBACKDATA_BIAS_WRITE_PREP);
-convbackdata.AddInst(name=CONVBACKDATA_BIAS_WRITE);
-convbackdata.AddInst(name=CONVBACKDATA_BIAS_READ);
-convbackdata.AddInst(name=CONVBACKDATA_BIAS_READ_STORE);
-convbackdata.AddInst(name=CONVBACKDATA_TOP_ELEMENT_TEST);
-convbackdata.AddInst(name=CONVBACKDATA_BIAS_ELEMENT_TEST);
-convbackdata.AddInst(name=CONVBACKDATA_APPLY);
-convbackdata.AddInst(name=CONVBACKDATA_INCREMENT);
-convbackdata.AddInst(name=CONVBACKDATA_RTN);
+convbackdata.AddInstr(name=CONVBACKDATA_ENTRY);
+convbackdata.AddInstr(name=CONVBACKDATA_INIT_BIAS_READ);
+convbackdata.AddInstr(name=CONVBACKDATA_INIT_BIAS_READ_STORE);
+convbackdata.AddInstr(name=CONVBACKDATA_TOP_TEST);
+convbackdata.AddInstr(name=CONVBACKDATA_TOP_READ);
+convbackdata.AddInstr(name=CONVBACKDATA_TOP_READ_STORE);\
+convbackdata.AddInstr(name=CONVBACKDATA_BIAS_TEST);
+convbackdata.AddInstr(name=CONVBACKDATA_BIAS_WRITE_PREP);
+convbackdata.AddInstr(name=CONVBACKDATA_BIAS_WRITE);
+convbackdata.AddInstr(name=CONVBACKDATA_BIAS_READ);
+convbackdata.AddInstr(name=CONVBACKDATA_BIAS_READ_STORE);
+convbackdata.AddInstr(name=CONVBACKDATA_TOP_ELEMENT_TEST);
+convbackdata.AddInstr(name=CONVBACKDATA_BIAS_ELEMENT_TEST);
+convbackdata.AddInstr(name=CONVBACKDATA_APPLY);
+convbackdata.AddInstr(name=CONVBACKDATA_INCREMENT);
+convbackdata.AddInstr(name=CONVBACKDATA_RTN);
 
 convbackdata.AddHostMsg(dir=in, name=TOP_ADDR)
 	.AddDst(var=top_addr)
@@ -340,7 +501,7 @@ convbackdata.AddReadMem()
 convbackdata.AddWriteMem()
 		;
 
-convbackdata.AddEntry(func=conv_back_data, inst=CONVBACKDATA_ENTRY)
+convbackdata.AddEntry(func=conv_back_data, instr=CONVBACKDATA_ENTRY)
 	.AddParam(type=uint32_t, name=i)
 	.AddParam(type=uint32_t, name=j)
 	;
@@ -351,21 +512,21 @@ convbackdata.AddReturn(func=conv_back_data)
 
 
 
-/*
+/***********************************
  * Convolution Forward control
- */
-
+ ************************************/
+/*
 dsnInfo.AddModule(name=convfwd, htIdW=0);
 
-convfwd.AddInst(name=CONVFWD_ENTRY);
-convfwd.AddInst(name=CONVFWD_CHECK_I);
-convfwd.AddInst(name=CONVFWD_CHECK_Y);
-convfwd.AddInst(name=CONVFWD_CHECK_X);
-convfwd.AddInst(name=CONVFWD_CHECK_F);
-convfwd.AddInst(name=CONVFWD_COLLECT);
-convfwd.AddInst(name=CONVFWD_COMPUTE);
-convfwd.AddInst(name=CONVFWD_JOIN);
-convfwd.AddInst(name=CONVFWD_RTN);
+convfwd.AddInstr(name=CONVFWD_ENTRY);
+convfwd.AddInstr(name=CONVFWD_CHECK_I);
+convfwd.AddInstr(name=CONVFWD_CHECK_Y);
+convfwd.AddInstr(name=CONVFWD_CHECK_X);
+convfwd.AddInstr(name=CONVFWD_CHECK_F);
+convfwd.AddInstr(name=CONVFWD_COLLECT);
+convfwd.AddInstr(name=CONVFWD_COMPUTE);
+convfwd.AddInstr(name=CONVFWD_JOIN);
+convfwd.AddInstr(name=CONVFWD_RTN);
 
 convfwd.AddHostMsg(dir=in, name=IMG_ADDR)
 	.AddDst(var=imgAddr)
@@ -435,7 +596,7 @@ convfwd.AddGlobal()
 		.AddVar(type=uint16_t, name=fractionW)
 		;
 
-convfwd.AddEntry(func=conv_fwd, inst=CONVFWD_ENTRY)
+convfwd.AddEntry(func=conv_fwd, instr=CONVFWD_ENTRY)
 	.AddParam(type=uint32_t, name=rank)
 	.AddParam(type=uint32_t, name=rankStride)
 	;
@@ -448,15 +609,16 @@ convfwd.AddCall(func=cluster, fork=true);
 ////////////////////////////////////////////////////
 // Scatters a group of 4 filter applications to seperate threads
 // Gathers the resulting activations and merges them into a single quad-word write.
-#define CLUSTER_HTID_W 9
+//#define CLUSTER_HTID_W 9
+#define CLUSTER_HTID_W 1
 
 dsnInfo.AddModule(name=cluster, htIdW=CLUSTER_HTID_W);
 
-cluster.AddInst(name=SG_FILTER_GROUP_INIT);
-cluster.AddInst(name=SG_FILTER_GROUP_DISPATCH);
-cluster.AddInst(name=SG_FILTER_GROUP_MERGE);
-cluster.AddInst(name=SG_FILTER_GROUP_WRITE);
-cluster.AddInst(name=SG_FILTER_GROUP_RTN);
+cluster.AddInstr(name=SG_FILTER_GROUP_INIT);
+cluster.AddInstr(name=SG_FILTER_GROUP_DISPATCH);
+cluster.AddInstr(name=SG_FILTER_GROUP_MERGE);
+cluster.AddInstr(name=SG_FILTER_GROUP_WRITE);
+cluster.AddInstr(name=SG_FILTER_GROUP_RTN);
 
 
 cluster.AddPrivate()
@@ -476,7 +638,7 @@ cluster.AddPrivate()
 		;
 
 
-cluster.AddEntry(func=cluster, inst=SG_FILTER_GROUP_INIT)
+cluster.AddEntry(func=cluster, instr=SG_FILTER_GROUP_INIT)
 		.AddParam(type=MemAddr_t, name=img_Addr1)
 		.AddParam(type=MemAddr_t, name=filter_Addr1)
 		.AddParam(type=MemAddr_t, name=img_Addr2)
@@ -499,20 +661,21 @@ cluster.AddWriteMem()
 
 ////////////////////////////////////////////////////
 // Loads vector elements from op array, rectifies , stores results
-#define APPLYFILTER_HTID_W 9
+//#define APPLYFILTER_HTID_W 9
+#define APPLYFILTER_HTID_W 1
 
 dsnInfo.AddModule(name=applyfilter, htIdW=APPLYFILTER_HTID_W);
 
-applyfilter.AddInst(name=CONV_INIT);
-applyfilter.AddInst(name=CONV_LOOP_TOP);
-applyfilter.AddInst(name=CONV_LD_IMG_SAMPLE);
-applyfilter.AddInst(name=CONV_LD_FILTER_SAMPLE);
-applyfilter.AddInst(name=CONV_APPLY);
-applyfilter.AddInst(name=CONV_LOOP_BRANCH);
-applyfilter.AddInst(name=CONV_LD_OUT);
-applyfilter.AddInst(name=CONV_PACK);
-applyfilter.AddInst(name=CONV_WRITE);
-applyfilter.AddInst(name=CONV_RTN);
+applyfilter.AddInstr(name=CONV_INIT);
+applyfilter.AddInstr(name=CONV_LOOP_TOP);
+applyfilter.AddInstr(name=CONV_LD_IMG_SAMPLE);
+applyfilter.AddInstr(name=CONV_LD_FILTER_SAMPLE);
+applyfilter.AddInstr(name=CONV_APPLY);
+applyfilter.AddInstr(name=CONV_LOOP_BRANCH);
+applyfilter.AddInstr(name=CONV_LD_OUT);
+applyfilter.AddInstr(name=CONV_PACK);
+applyfilter.AddInstr(name=CONV_WRITE);
+applyfilter.AddInstr(name=CONV_RTN);
 
 
 applyfilter.AddHostMsg(dir=in, name=IMG_DIM)
@@ -548,7 +711,7 @@ applyfilter.AddShared()
 	;
 
 
-applyfilter.AddEntry(func=applyfilter, inst=CONV_INIT)
+applyfilter.AddEntry(func=applyfilter, instr=CONV_INIT)
 	.AddParam(type=ht_uint3, name=out_index)
 	.AddParam(type=MemAddr_t, name=imgAddr)
 	.AddParam(type=MemAddr_t, name=filterAddr)
@@ -566,4 +729,4 @@ applyfilter.AddReadMem()
 
 
 	//, rdType=int32_t)
-
+*/

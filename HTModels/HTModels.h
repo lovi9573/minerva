@@ -23,7 +23,7 @@ void conv_forward(void *input_q88_data, size_t num_img, size_t img_dim, size_t i
 		 uint16_t fraction_width);
 
 void conv_backward_data_ht(void* top_diff, size_t top_alloc,
-							void* filter_data, size_t num_filters, size_t filter_dim, size_t stride, size_t filter_alloc,
+							void* filter_data, int num_filters, int filter_dim, int stride, int pad_x, int pad_y, size_t filter_alloc,
 							void* bottom_diff, int bottom_width, int bottom_height, int bottom_channels, int bottom_samples, size_t bottom_alloc,
 							int frac_w );
 

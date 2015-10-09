@@ -43,7 +43,7 @@ void conv_forward(void *input_q88_data, size_t num_img, size_t img_dim, size_t i
 	if (unitCnt > 16 && !(unitCnt & 1)) unitCnt -= 1;
 	printf("stride = %d\n", unitCnt);
 	fflush(stdout);
-
+/*
 	// Initialize modules with messages
 	pHtHif->SendAllHostMsg(IMG_ADDR, (uint64_t)ht_input_img_data);
 	pHtHif->SendAllHostMsg(IMG_NUM, (uint64_t)num_img);
@@ -55,7 +55,7 @@ void conv_forward(void *input_q88_data, size_t num_img, size_t img_dim, size_t i
 	pHtHif->SendAllHostMsg(STRIDE, (uint64_t)stride);
 	pHtHif->SendAllHostMsg(OUT_ADDR, (uint64_t)ht_output_data);
 	pHtHif->SendAllHostMsg(FRACTION_WIDTH, (uint64_t)fraction_width);
-
+*/
 
 	// Send calls to units
 	for (int unit = 0; unit < unitCnt; unit++)
@@ -81,7 +81,7 @@ void conv_forward(void *input_q88_data, size_t num_img, size_t img_dim, size_t i
 }
 
 void conv_backward_data_ht(void* top_diff, size_t top_alloc,
-							void* filter_data, size_t num_filters, size_t filter_dim, size_t stride, size_t filter_alloc,
+							void* filter_data, int num_filters, int filter_dim, int stride, int pad_x, int pad_y, size_t filter_alloc,
 							void* bottom_diff, int bottom_width, int bottom_height, int bottom_channels, int bottom_samples, size_t bottom_alloc,
 							int frac_w ){
 
@@ -121,13 +121,19 @@ void conv_backward_data_ht(void* top_diff, size_t top_alloc,
 	pHtHif->SendAllHostMsg(TOP_ADDR, (uint64_t)ht_top_diff_data);
 	pHtHif->SendAllHostMsg(FILTER_ADDR, (uint64_t)ht_filter_data);
 	pHtHif->SendAllHostMsg(BOTTOM_ADDR, (uint64_t)ht_bottom_diff_data);
-	//pHtHif->SendAllHostMsg(BOTTOM_NUM, (uint64_t)bottom_samples);
-	//pHtHif->SendAllHostMsg(BOTTOM_DIM, (uint64_t)bottom_width);
+	pHtHif->SendAllHostMsg(BOTTOM_SAMPLES, (uint64_t)bottom_samples);
+	pHtHif->SendAllHostMsg(BOTTOM_DIM, (uint64_t)bottom_width);
 	pHtHif->SendAllHostMsg(BOTTOM_CHANNELS, (uint64_t)bottom_channels);
-	pHtHif->SendAllHostMsg(FILTER_NUM, (uint64_t)num_filters);
+	pHtHif->SendAllHostMsg(NUM_FILTERS, (uint64_t)num_filters);
 	pHtHif->SendAllHostMsg(FILTER_DIM, (uint64_t)filter_dim);
-	pHtHif->SendAllHostMsg(STRIDE, (uint64_t)stride);
-	pHtHif->SendAllHostMsg(FRACTION_WIDTH, (uint64_t)frac_w);
+	pHtHif->SendAllHostMsg(STRIDE_X, (uint64_t)stride);
+	pHtHif->SendAllHostMsg(STRIDE_Y, (uint64_t)stride);
+	//pHtHif->SendAllHostMsg(FRACTION_WIDTH, (uint64_t)frac_w);
+	pHtHif->SendAllHostMsg(PAD_X, (uint64_t)pad_x);
+	pHtHif->SendAllHostMsg(PAD_Y, (uint64_t)pad_y);
+	pHtHif->SendAllHostMsg(DATA_STRIDE_Y, (uint64_t)(2*bottom_width));
+	pHtHif->SendAllHostMsg(DATA_STRIDE_C, (uint64_t)(2*bottom_width*bottom_width));
+	pHtHif->SendAllHostMsg(DATA_STRIDE_S, (uint64_t)(2*bottom_width*bottom_width*bottom_channels));
 
 
 	// Send calls to units

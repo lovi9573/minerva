@@ -72,6 +72,11 @@ int main(int argc, char **argv)
 		top_alloc = ((top_alloc+3)/4 )*4;
 	}
 
+	/*
+	 * other
+	 */
+	int pad_x = 3;
+	int pad_y = 3;
 
 	int16_t filters_q88_data[filter_alloc];
 	int16_t bias_data[bias_alloc];
@@ -136,7 +141,7 @@ int main(int argc, char **argv)
 	/*
 	 * Backward bias
 	 */
-    printf("====== Convolution Backward Bias =====\n");
+/*    printf("====== Convolution Backward Bias =====\n");
     for(int i =0; i < (int)top_alloc; i++){
     	top_diff_data[i] = 1;
     }
@@ -154,7 +159,11 @@ int main(int argc, char **argv)
 			//printf("output[%llu] is %llu!!!!\n",(long long)i, (long long)output_q88_data[i]);
 		}
 	}
-
+*/
+    conv_backward_data_ht(top_diff_data, top_alloc,
+    					  filters_q88_data, num_filters, filter_dim, stride, pad_x, pad_y, filter_alloc,
+						  input_q88_data, img_dim, img_dim, img_channels, num_img, img_alloc,
+						  FRACW );
 
 
     if (err_cnt)
