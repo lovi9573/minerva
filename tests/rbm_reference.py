@@ -7,7 +7,7 @@ import gzip
 
 # load data
 
-gzfile = gzip.GzipFile('/home/jlovitt/Downloads/mnist.dat','rb')
+gzfile = gzip.GzipFile('/home/jlovitt/storage/mnist/mnist.dat','rb')
 #discard stored variable name
 pickle.load(gzfile)
 dat = pickle.load(gzfile)
@@ -62,6 +62,8 @@ for epoch in range(num_epochs):
         # negative phase
         v = 1. / (1 + np.exp(-(np.dot(w_vh, h) + w_v)))
         h = 1. / (1 + np.exp(-(np.dot(w_vh.T, v) + w_h)))
+        
+        #print v[0,0]
 
         wu_vh -= np.dot(v, h.T)
         wu_v -= v.sum(1)[:, np.newaxis]
@@ -71,6 +73,8 @@ for epoch in range(num_epochs):
         w_vh += epsilon/batch_size * wu_vh
         w_v += epsilon/batch_size * wu_v
         w_h += epsilon/batch_size * wu_h
+        
+        #print (v - v_true)
 
         err.append(np.mean((v - v_true)**2))
 
