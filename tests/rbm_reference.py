@@ -17,15 +17,16 @@ dat = dat/255.
 epsilon = 0.01
 momentum = 0.9
 
-num_epochs = 10
+num_epochs = 20
 batch_size = 64
 num_batches = dat.shape[1]//batch_size
 
 # model parameters
 num_vis = dat.shape[0]
-num_hid = 1024
+num_hid = 128
 
 # initialize weights
+np.random.seed(1234)
 w_vh = 0.1 * np.random.randn(num_vis, num_hid)
 w_v = np.zeros((num_vis, 1))
 w_h = np.zeros((num_hid, 1))

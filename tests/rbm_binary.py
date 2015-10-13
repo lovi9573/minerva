@@ -4,7 +4,7 @@ import owl.elewise as el
 import time
 import pickle
 import gzip
-from operator import add
+from operator import mul
 
 #The file containing the data in the format of one vector per line space separated floats
 DATAFILE = "????"
@@ -28,22 +28,24 @@ if __name__ == "__main__":
     #data = np.loadtxt(DATAFILE,dtype=np.float32, delimiter=" ")
     #data = data - np.mean(data, 0)
     #data = data / np.var(data, 0)
-    data = data/255
+    data = data/255.0
     
     # training parameters
     epsilon = 0.01
     momentum = 0.9
     
-    num_epochs = 40
+    num_epochs = 20
     batch_size = 64
     num_batches = data.shape[1]//batch_size
     
     # model parameters
     num_vis = data.shape[0]
-    num_hid = 1024
+    num_hid = 128
     
     # initialize weights
-    weights = 0.1 * owl.randn([num_vis, num_hid],0,1)
+    np.random.seed(1234)
+    weights = owl.from_numpy(0.1 * np.random.randn(num_vis, num_hid)).trans()
+    #weights = 0.1 * owl.randn([num_vis, num_hid],0,1)
     bias_v = owl.zeros([1,num_vis])
     bias_h = owl.zeros([1,num_hid])
     
@@ -96,7 +98,6 @@ if __name__ == "__main__":
             z_h = 0-(reconstruction * weights + bias_h)
             hiddens = 1.0 / (1 + owl.NArray.exp(z_h))
     
-            #print reconstruction.to_numpy()[0,0]
     
             #Get negative Phase
             #print "- phase"
@@ -112,15 +113,12 @@ if __name__ == "__main__":
     
             #Compute errors
             #print "compute errors"
-            errs = (reconstruction - training_set)
-            #print errs.to_numpy()
-            errs = el.mult(errs,errs)
-            
-            #owl.set_device(cpu)
-            tmp = errs.sum(0)
-            tmp2 = tmp.sum(0)
-            err.append(tmp2.to_numpy()/reduce(add,errs.shape))
             owl.wait_for_all()
+            diff = reconstruction - training_set
+            sqrdiff = el.mult(diff,diff)
+            sum = sqrdiff.sum([0,1]).to_numpy()[0,0]
+            mean =  sum /reduce(mul,sqrdiff.shape)
+            err.append(mean)
             #owl.set_device(dev)
     
         print("Mean squared error: %f" % np.mean(err))
