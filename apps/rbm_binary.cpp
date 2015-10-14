@@ -7,6 +7,9 @@
 
 #include <cstdio>
 #include <minerva.h>
+#include <iomanip>
+#include <fstream>
+#include "mnist_raw.h"
 
 using namespace minerva;
 
@@ -17,6 +20,11 @@ using namespace minerva;
 #define N_HIDDEN 128
 #define N_EPOCHS 10
 #define BATCH_SIZE 64
+#define MOMENTUM 0.9
+
+
+
+
 
 int main(int argc, char** argv){
 
@@ -31,27 +39,20 @@ int main(int argc, char** argv){
 	//Load the training data
 	printf("load data\n");
 	int n_samples,sample_size;
-	FILE* fdata = fopen(argv[0],"r");
-	fscanf(fdata,"%i", &n_samples);
-	fscanf(fdata,"%i", &sample_size);
-	NArray training_dat = NArray::Zeros({n_samples,sample_size});
-	float* training_dat_raw = training_dat.Get().get();
-	for(int i = 0; i < n_samples*sample_size; i++){
-		fscanf(fdata,"%f", &training_dat_raw[i]);
-	}
-
-	//Scale the data to  (0,1)
-	training_dat = (training_dat - DATA_MIN) / (DATA_MAX - DATA_MIN);
+	MnistData dp(argv[1]);
+	n_samples = dp.nSamples();
+	sample_size = dp.SampleSize();
+	printf("sample size %d",sample_size);
 
 	//Initialize arrays
 	printf("Initialize data structures\n");
-	NArray weights = NArray::Randn({sample_size, N_HIDDEN},0,1);
+	NArray weights = NArray::Randn({ sample_size, N_HIDDEN},0,1);
 	NArray bias_v = NArray::Zeros({1,sample_size});
-	NArray bias_h = NArray::Zeros({1,sample_size});
+	NArray bias_h = NArray::Zeros({1,N_HIDDEN});
 
 	NArray d_weights = NArray::Zeros({sample_size, N_HIDDEN});
 	NArray d_bias_v = NArray::Zeros({1,sample_size});
-	NArray d_bias_h = NArray::Zeros({1,sample_size});
+	NArray d_bias_h = NArray::Zeros({1,N_HIDDEN});
 
 	int n_batches = n_samples/BATCH_SIZE;
 
@@ -60,7 +61,34 @@ int main(int argc, char** argv){
 		printf("Epoch %d\n",i_epoch);
 		float mse = 0.0;
 		for(int i_batch = 0; i_batch < n_batches; i_batch++){
-			//NArray training_batch = training_dat.
+			printf("\t Batch %d/%d\n",i_batch,n_batches);
+			//Get minibatch
+			shared_ptr<float> batch = dp.GetNextBatch(BATCH_SIZE);
+			NArray visible = NArray::MakeNArray({BATCH_SIZE,sample_size}, batch);
+
+			//Apply momentum
+			//printf("momentum\n");
+			d_weights *= MOMENTUM;
+			d_bias_v *= MOMENTUM;
+			d_bias_h *= MOMENTUM;
+
+			//Positive Phase
+			//printf("positive phase\n");
+			NArray in_h = visible*weights + bias_h;
+			NArray hidden = 1.0/(1.0 + Elewise::Exp(-in_h));
+
+			d_weights += visible.Trans()*hidden;
+			d_bias_v += visible.Sum(0);
+			d_bias_h += hidden.Sum(0);
+
+			//Sample Hiddens
+
+			//Negative Phase
+
+			//Update Weights
+
+			//Compute Error
+
 		}//End batches
 
 	}//End epochs

@@ -109,8 +109,8 @@ inline MnistParam InitMnistApps(int argc, char** argv) {
   param.num_tests = FLAGS_num_tests;
   param.num_gpus = FLAGS_num_gpus;
   // initial minerva system
-  MinervaSystem::Initialize(&argc, &argv);
-  MinervaSystem& ms = MinervaSystem::Instance();
+  IMinervaSystem::Init(&argc, &argv);
+  IMinervaSystem& ms = IMinervaSystem::Interface();
   uint64_t cpuDevice = ms.CreateCpuDevice();
   ms.SetDevice(cpuDevice);
 #ifdef HAS_CUDA

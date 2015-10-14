@@ -8,7 +8,7 @@ int main(int argc, char** argv) {
   auto param = InitMnistApps(argc, argv);
   param.num_gpus = 2;
   int num_gpu = param.num_gpus;
-  MinervaSystem& ms = MinervaSystem::Instance();
+  IMinervaSystem& ms = IMinervaSystem::Interface();
   cout << param << endl;
   size_t train_data_len = 28 * 28 * param.mb_size / num_gpu; // img size = 28x28
   size_t train_label_len = 10 * param.mb_size / num_gpu; // 10 classes

@@ -6,8 +6,8 @@ using namespace std;
 using namespace minerva;
 
 int main(int argc, char** argv) {
-  MinervaSystem::Initialize(&argc, &argv);
-  auto& ms = MinervaSystem::Instance();
+  IMinervaSystem::Init(&argc, &argv);
+  auto& ms = IMinervaSystem::Interface();
   auto gpu_device = ms.device_manager().CreateGpuDevice(0);
   ms.SetDevice(gpu_device);
   vector<NArray> narrs;
