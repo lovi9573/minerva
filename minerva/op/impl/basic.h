@@ -20,6 +20,7 @@ void SyncWithPS(const DataList& inputs, const DataList& outputs, SyncWithPSClosu
 void ArrayLoader(const DataList&, ArrayLoaderClosure&);
 void Randn(const DataList&, RandnClosure&);
 void RandBernoulli(const DataList&, RandBernoulliClosure&);
+void RandUniform(const DataList&, RandUniformClosure&);
 void Fill(const DataList&, FillClosure&);
 
 void SigmoidForward(const DataList&, const DataList&, SigmoidForwardClosure&);

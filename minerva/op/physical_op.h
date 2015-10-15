@@ -42,6 +42,14 @@ class RandBernoulliOp : public PhyDataGenFnWithClosure<RandBernoulliClosure> {
   SERIALIZABLE_OVERRIDE
 };
 
+class RandUniformOp : public PhyDataGenFnWithClosure<RandUniformClosure> {
+ public:
+  std::string Name() const {
+    return ":uniform";
+  }
+  SERIALIZABLE_OVERRIDE
+};
+
 class FillOp : public PhyDataGenFnWithClosure<FillClosure> {
  public:
   std::string Name() const {
@@ -128,6 +136,8 @@ class ArithmeticOp : public ComputeFnWithClosure<ArithmeticClosure> {
       case ArithmeticType::kSub:   return "-";
       case ArithmeticType::kMult:  return ".*";
       case ArithmeticType::kDiv:   return "./";
+      case ArithmeticType::kGT:   return ".>";
+      case ArithmeticType::kLT:   return ".<";
     };
     return "NA";
   }
@@ -146,6 +156,8 @@ class ArithmeticConstOp : public ComputeFnWithClosure<ArithmeticConstClosure> {
       case ArithmeticType::kSub:   ss << "-."; break;
       case ArithmeticType::kMult:  ss << ".*"; break;
       case ArithmeticType::kDiv:   ss << "./"; break;
+      case ArithmeticType::kGT:   ss << ".>"; break;
+      case ArithmeticType::kLT:   ss << ".<"; break;
     };
     if(closure.side == 1) { // right
       ss << closure.val;
@@ -171,6 +183,12 @@ class NormArithmeticOp : public ComputeFnWithClosure<NormArithmeticClosure> {
         break;
       case ArithmeticType::kDiv:
         ss << "./";
+        break;
+      case ArithmeticType::kGT:
+        ss << ".>";
+        break;
+      case ArithmeticType::kLT:
+        ss << ".<";
         break;
     }
     ss << " norm";

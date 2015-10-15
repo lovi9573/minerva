@@ -92,6 +92,24 @@ std::shared_ptr<ComputeFn> RandBernoulliOp::DeSerialize(char* buffer,int* bytes)
 }
 
 
+int RandUniformOp::GetSerializedSize() const {
+	return sizeof(int) + sizeof(float);
+}
+int RandUniformOp::Serialize(char* buffer) const {
+	int offset = 0;
+	SERIALIZE(buffer, offset, RANDUNIFORMCLOSURE, int)
+	SERIALIZE(buffer, offset, closure.max, float)
+	return offset;
+}
+std::shared_ptr<ComputeFn> RandUniformOp::DeSerialize(char* buffer,int* bytes) {
+	RandUniformOp *op = new RandUniformOp();
+	int offset = 0;
+	DESERIALIZE(buffer, offset, op->closure.max, float)
+	*bytes = offset;
+	return std::shared_ptr<ComputeFn>(op);
+}
+
+
 int FillOp::GetSerializedSize() const  {
 	return sizeof(int) + sizeof(element_t);
 }

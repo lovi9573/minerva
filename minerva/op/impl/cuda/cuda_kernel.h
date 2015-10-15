@@ -220,6 +220,27 @@ __global__ static void CudaPerformFillKernel(float* dst, size_t size, float val)
   }
 }
 
+__global__ static void CudaPerformGTKernel(float* in, float* dst, size_t size, float val, bool gt){
+	int cur = threadIdx.x + blockIdx.x * blockDim.x;
+	if(gt){
+		while (cur < size){
+			dst[cur] = 0.0;
+			if(in[cur] > val){
+				dst[cur] = 1.0;
+			}
+			cur += gridDim.x * blockDim.x;
+		}
+	}else{
+		while (cur < size){
+			dst[cur] = 0.0;
+			if(in[cur] < val){
+				dst[cur] = 1.0;
+			}
+			cur += gridDim.x * blockDim.x;
+		}
+	}
+}
+
 __global__ static void LRNFillScale(const int nthreads, const float* in, const int num, const int channels, const int height, const int width, const int size, const float alpha_over_size, float* scale) {
   for (int index = blockIdx.x * blockDim.x + threadIdx.x; index < nthreads; index += blockDim.x * gridDim.x ) {
     // find out the local offset

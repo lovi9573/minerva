@@ -21,6 +21,7 @@ using namespace minerva;
 #define N_EPOCHS 10
 #define BATCH_SIZE 64
 #define MOMENTUM 0.9
+#define LR 0.01
 
 
 
@@ -82,12 +83,26 @@ int main(int argc, char** argv){
 			d_bias_h += hidden.Sum(0);
 
 			//Sample Hiddens
+			NArray uniform_randoms = NArray::RandUniform(hiddens.Size(), 1.0);
+			NArray sampled_hiddens = hidden > uniform_randoms;
 
 			//Negative Phase
+			NArray in_v = sampled_hiddens*weights.Trans() + bias_v;
+			NArray reconstruction = 1.0/(1.0 + Elewise::Exp(-in_v));
+			in_h = reconstruction*weights + bias_h;
+			hidden = 1.0/(1.0 + Elewise::Exp(-in_h));
+
+			d_weights += reconstruction.Trans()*hidden;
+			d_bias_v += reconstruction.Sum(0);
+			d_bias_h += hidden.Sum(0);
 
 			//Update Weights
+			weights += d_weights * LR/BATCH_SIZE ;
+			bias_v  += d_bias_v * LR/BATCH_SIZE ;
+			bias_h  += d_bias_h * LR/BATCH_SIZE ;
 
 			//Compute Error
+
 
 		}//End batches
 

@@ -125,6 +125,20 @@ NArray operator/(const NArray& lhs, element_t rhs) {
   return ArithmeticConstHelper(lhs, rhs, 1, ArithmeticType::kDiv);
 }
 
+NArray operator>( element_t lhs, const NArray& rhs){
+	return ArithmeticConstHelper(rhs, lhs, 0, ArithmeticType::kGT);
+}
+NArray operator<(element_t lhs, const NArray& rhs){
+	return ArithmeticConstHelper(rhs, lhs, 0, ArithmeticType::kLT);
+}
+
+NArray operator>(const NArray& lhs, element_t rhs){
+	return ArithmeticConstHelper(lhs, rhs, 1, ArithmeticType::kGT);
+}
+NArray operator<(const NArray& lhs, element_t rhs){
+	return ArithmeticConstHelper(lhs, rhs, 1, ArithmeticType::kLT);
+}
+
 NArray& NArray::operator+=(const NArray& narr) {
   return *this = (*this + narr);
 }

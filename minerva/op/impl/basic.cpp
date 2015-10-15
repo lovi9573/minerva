@@ -103,6 +103,44 @@ void ArithmeticConst(const DataList& inputs, const DataList& outputs, Arithmetic
         }
       }
       break;
+    case ArithmeticType::kGT:
+      if (closure.side == 0) {  // const on left
+        for (int i = 0; i < length; ++i) {
+        	if(val > in_data[i]){
+        		res_data[i] = 1.0;
+        	}else{
+        		res_data[i] = 0.0;
+        	}
+        }
+      } else {  // const on right
+        for (int i = 0; i < length; ++i) {
+        	if(in_data[i] > val){
+        		res_data[i] = 1.0;
+        	}else{
+        		res_data[i] = 0.0;
+        	}
+        }
+      }
+      break;
+    case ArithmeticType::kLT:
+      if (closure.side == 0) {  // const on left
+        for (int i = 0; i < length; ++i) {
+        	if(val < in_data[i]){
+        		res_data[i] = 1.0;
+        	}else{
+        		res_data[i] = 0.0;
+        	}
+        }
+      } else {  // const on right
+        for (int i = 0; i < length; ++i) {
+        	if(in_data[i] < val){
+        		res_data[i] = 1.0;
+        	}else{
+        		res_data[i] = 0.0;
+        	}
+        }
+      }
+      break;
   }
 }
 
@@ -286,6 +324,17 @@ void RandBernoulli(const DataList& outputs, RandBernoulliClosure& closure) {
   for (int i = 0; i < length; ++i) {
     data[i] = distribution(generator);
   }
+}
+
+void RandUniform(const DataList& outputs, RandUniformClosure& closure){
+	CHECK_EQ(outputs.size(), 1) << "(uniform) #outputs wrong";
+	int length = outputs[0].size_.Prod();
+	element_t* data = outputs[0].data_;
+	default_random_engine generator(chrono::system_clock::now().time_since_epoch().count());
+	uniform_real_distribution<float> distribution(0.0, closure.max);
+	for (int i = 0; i < length; ++i) {
+		data[i] = distribution(generator);
+	}
 }
 
 void Fill(const DataList& output, FillClosure& closure) {

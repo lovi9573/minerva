@@ -196,6 +196,20 @@ void ArithmeticConst(const DataList& inputs, const DataList& outputs,
         CudaPerformScale(in_data, res_data, size, 1 / val, context.cublas_handle);
       }
       break;
+    case ArithmeticType::kGT:
+    	if (closure.side == 0 ){ //const on left
+    		CudaPerformLT(in_data, res_data, size, val, context.cublas_handle);
+    	}else{
+    		CudaPerformGT(in_data, res_data, size, val, context.cublas_handle);
+    	}
+      break;
+    case ArithmeticType::kLT:
+    	if (closure.side == 0 ){ //const on left
+    		CudaPerformGT(in_data, res_data, size, val, context.cublas_handle);
+    	}else{
+    		CudaPerformLT(in_data, res_data, size, val, context.cublas_handle);
+    	}
+      break;
   }
 }
 

@@ -50,6 +50,7 @@ namespace minerva {
 #define INDEXCLOSURE 39
 #define SELECTCLOSURE 40
 #define HISTOGRAMCLOSURE 41
+#define RANDUNIFORMCLOSURE 42
 
 
 enum class ArithmeticType : int {
@@ -57,6 +58,8 @@ enum class ArithmeticType : int {
   kSub,
   kMult,
   kDiv,
+  kGT,
+  kLT
 };
 
 enum class ElewiseType : int {
@@ -84,6 +87,10 @@ struct RandnClosure {
 
 struct RandBernoulliClosure {
   float p;
+};
+
+struct RandUniformClosure {
+  float max;
 };
 
 struct FillClosure {

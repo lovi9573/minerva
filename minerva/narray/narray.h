@@ -23,6 +23,7 @@ class NArray {
   static NArray Constant(const Scale& size, element_t val);
   static NArray Randn(const Scale& size, float mu, float var);
   static NArray RandBernoulli(const Scale& size, float p);
+  static NArray RandUniform(const Scale& size, float max);
   static NArray Zeros(const Scale& size);
   static NArray Ones(const Scale& size);
   static NArray MakeNArray(const Scale& size, std::shared_ptr<element_t> array);
