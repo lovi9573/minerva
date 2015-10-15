@@ -19,7 +19,7 @@ using namespace minerva;
 
 #define N_HIDDEN 128
 #define N_EPOCHS 10
-#define BATCH_SIZE 64
+#define BATCH_SIZE 60
 #define MOMENTUM 0.9
 #define LR 0.01
 
@@ -62,7 +62,9 @@ int main(int argc, char** argv){
 		printf("Epoch %d\n",i_epoch);
 		float mse = 0.0;
 		for(int i_batch = 0; i_batch < n_batches; i_batch++){
-			printf("\t Batch %d/%d\n",i_batch,n_batches);
+			if(i_batch%100 == 0){
+				printf("\t Batch %d/%d\n",i_batch,n_batches);
+			}
 			//Get minibatch
 			shared_ptr<float> batch = dp.GetNextBatch(BATCH_SIZE);
 			NArray visible = NArray::MakeNArray({BATCH_SIZE,sample_size}, batch);
@@ -83,7 +85,7 @@ int main(int argc, char** argv){
 			d_bias_h += hidden.Sum(0);
 
 			//Sample Hiddens
-			NArray uniform_randoms = NArray::RandUniform(hiddens.Size(), 1.0);
+			NArray uniform_randoms = NArray::RandUniform(hidden.Size(), 1.0);
 			NArray sampled_hiddens = hidden > uniform_randoms;
 
 			//Negative Phase
@@ -102,9 +104,14 @@ int main(int argc, char** argv){
 			bias_h  += d_bias_h * LR/BATCH_SIZE ;
 
 			//Compute Error
-
-
+			NArray diff = reconstruction - visible;
+			NArray sqrdiff = Elewise::Mult(diff,diff);
+			float sum = sqrdiff.Sum();
+			float error = sum/sqrdiff.Size().Prod();
+			mse += error;
 		}//End batches
+		mse = mse/n_batches;
+		printf("MSE: %f\n",mse);
 
 	}//End epochs
 

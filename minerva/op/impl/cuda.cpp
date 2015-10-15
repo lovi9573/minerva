@@ -39,6 +39,12 @@ void Arithmetic(const DataList& inputs, const DataList& outputs, ArithmeticClosu
     case ArithmeticType::kDiv:
       CudaPerformDotDiv(left, right, res, size, context.stream);
       break;
+    case ArithmeticType::kGT:
+    	CudaPerformGT(left, right, res, size, context.stream);
+      break;
+    case ArithmeticType::kLT:
+    	CudaPerformLT(left, right, res, size, context.stream);
+      break;
   }
 }
 

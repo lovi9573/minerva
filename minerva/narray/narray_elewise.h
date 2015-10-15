@@ -30,6 +30,8 @@ NArray operator-(const NArray&, element_t);
 NArray operator*(const NArray&, element_t);
 NArray operator/(const NArray&, element_t);
 
+NArray operator>(const NArray&, const NArray&);
+NArray operator<(const NArray&, const NArray&);
 NArray operator>(const NArray&, element_t);
 NArray operator<(const NArray&, element_t);
 

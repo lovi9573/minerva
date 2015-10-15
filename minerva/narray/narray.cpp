@@ -32,7 +32,7 @@ NArray NArray::RandBernoulli(const Scale& size, float p) {
   return NArray::GenerateOne(size, op);
 }
 
-NArray RandUniform(const Scale& size, float max){
+NArray NArray::RandUniform(const Scale& size, float max){
 	CHECK_GT(max, 0);
 	RandUniformOp* op = new RandUniformOp();
 	op->closure = {max};

@@ -654,6 +654,20 @@ void CudaPerformLT(float* in , float* dst, size_t size, float val, cudaStream_t 
   CheckCudaError("CudaPerformCompare");
 }
 
+void CudaPerformGT(float* lhs, float* rhs , float* dst, size_t size, cudaStream_t stream) {
+  int block, thread;
+  FindConfiguration(size, block, thread);
+  CudaPerformGTKernel<<<block, thread, 0, stream>>>(lhs, rhs, dst, size, val, true);
+  CheckCudaError("CudaPerformCompare");
+}
+
+void CudaPerformLT(float* lhs, float* rhs , float* dst, size_t size, cudaStream_t stream) {
+  int block, thread;
+  FindConfiguration(size, block, thread);
+  CudaPerformGTKernel<<<block, thread, 0, stream>>>(lhs, rhs, dst, size, val, false);
+  CheckCudaError("CudaPerformCompare");
+}
+
 void CudaPerformLRNForward(float* bottom, float* scale, float* res, int local_size, float alpha, float beta, int num_img, int channel, int width, int height, cudaStream_t stream) {
   int block, thread, size;
   size = num_img * height * width;

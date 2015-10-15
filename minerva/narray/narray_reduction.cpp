@@ -53,8 +53,9 @@ NArray NArray::MaxIndex(int dim) const {
 // Non-lazy reductions
 element_t NArray::Sum() const {
   // TODO
-  LOG(FATAL) << "not implemented";
-  return 0;
+  Scale s = Scale::Origin(this->Size().NumDims());
+  NArray res = this->Sum(s);
+  return res.Get().get()[0];
 }
 
 element_t NArray::Max() const {

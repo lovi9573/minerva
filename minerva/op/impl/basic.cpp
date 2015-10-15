@@ -48,6 +48,22 @@ void Arithmetic(const DataList& inputs, const DataList& outputs, ArithmeticClosu
         res_data[i] = left_data[i] / right_data[i];
       }
       break;
+    case ArithmeticType::kGT:
+      for (int i = 0; i < length; ++i) {
+        res_data[i] = 0.0;
+        if(left_data[i] > right_data[i]){
+        	res_data[i] = 1.0;
+        }
+      }
+      break;
+    case ArithmeticType::kLT:
+        for (int i = 0; i < length; ++i) {
+          res_data[i] = 0.0;
+          if(left_data[i] < right_data[i]){
+          	res_data[i] = 1.0;
+          }
+        }
+      break;
   }
 }
 
@@ -407,6 +423,12 @@ void NormArithmetic(const DataList& inputs, const DataList& outputs, NormArithme
           break;
         case ArithmeticType::kDiv:
           res_data[flatten + i] /= cur;
+          break;
+        case ArithmeticType::kGT:
+          LOG(FATAL) << "normalize arithmetic Greater Than not implemented";
+          break;
+        case ArithmeticType::kLT:
+          LOG(FATAL) << "normalize arithmetic Less Than not implemented";
           break;
       }
       no_end = iterator.IncrOne(normalizee_size);
