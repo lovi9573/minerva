@@ -17,10 +17,10 @@ using namespace minerva;
 #define DATA_MIN 0
 #define DATA_MAX 255
 
-#define N_HIDDEN 128
+#define N_HIDDEN 2
 #define N_EPOCHS 10
 #define BATCH_SIZE 60
-#define MOMENTUM 0.9
+#define MOMENTUM 0.0
 #define LR 0.01
 
 
@@ -94,10 +94,14 @@ int main(int argc, char** argv){
 			in_h = reconstruction*weights + bias_h;
 			hidden = 1.0/(1.0 + Elewise::Exp(-in_h));
 
-			d_weights += reconstruction.Trans()*hidden;
-			d_bias_v += reconstruction.Sum(0);
-			d_bias_h += hidden.Sum(0);
+			d_weights -= reconstruction.Trans()*hidden;
+			d_bias_v -= reconstruction.Sum(0);
+			d_bias_h -= hidden.Sum(0);
 
+			FileFormat ff;
+			ff.binary = false;
+			d_weights.ToStream(std::cout,ff);
+			std::cout <<"\n";
 			//Update Weights
 			weights += d_weights * LR/BATCH_SIZE ;
 			bias_v  += d_bias_v * LR/BATCH_SIZE ;
