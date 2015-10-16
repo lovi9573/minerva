@@ -252,7 +252,7 @@ void NArray::ToStream(ostream& out, const FileFormat& format) const {
     for (int i = 0; i < Size().Prod(); ++i) {
       if (i != 0 && i % 10 == 0)
         out << "\n";
-      out << setprecision(4) << value[i] << "\t";
+      out << setw(8) << setprecision(4) << value[i] << "\t";
     }
   }
 }

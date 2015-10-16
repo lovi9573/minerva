@@ -70,7 +70,7 @@ shared_ptr<float> MnistData::GetNextBatch(int batchsize) {
 		rd = min(bufsize, batchbytes);
 		datastream.read(buf, rd );
 		if (datastream.eof()){
-			printf("Reached end of file.  Restarting at beginning");
+			printf("Reached end of file.  Restarting at beginning\n");
 			datastream.clear();
 			datastream.seekg(16,std::ifstream::beg);
 			datastream.read(buf, rd * sizeof(char));

@@ -9,15 +9,18 @@
 #include <minerva.h>
 #include <iomanip>
 #include <fstream>
+#include <string>
 #include "mnist_raw.h"
+
 
 using namespace minerva;
 
+//#define DIAGNOSTIC
 
 #define DATA_MIN 0
 #define DATA_MAX 255
 
-#define N_HIDDEN 256
+#define N_HIDDEN 10
 #define N_EPOCHS 10
 #define BATCH_SIZE 60
 #define MOMENTUM 0.9
@@ -104,9 +107,39 @@ int main(int argc, char** argv){
 			//d_weights.ToStream(std::cout,ff);
 			//std::cout <<"\n";
 			//Update Weights
-			weights += d_weights * LR/BATCH_SIZE ;
-			bias_v  += d_bias_v * LR/BATCH_SIZE ;
-			bias_h  += d_bias_h * LR/BATCH_SIZE ;
+			d_weights = d_weights * LR/BATCH_SIZE ;
+			bias_v  = d_bias_v * LR/BATCH_SIZE ;
+			bias_h  = d_bias_h * LR/BATCH_SIZE ;
+
+			//Look for update histogram problems
+			NArray weight_hist = d_weights.Histogram(10);
+			NArray bias_v_hist = bias_v.Histogram(10);
+			NArray bias_h_hist = bias_h.Histogram(10);
+#ifdef DIAGNOSTIC
+			if(weight_hist.Get().get()[0] < -100 || weight_hist.Get().get()[7] > 100){
+				std::cout << "Weight Deltas:\n";
+				weight_hist.ToStream(std::cout,ff);
+			}
+			if(bias_v.Get().get()[0] < -100 || bias_v.Get().get()[7] > 100){
+				std::cout << "Visible Bias Deltas:\n";
+				bias_v.ToStream(std::cout,ff);
+			}
+			if(bias_h.Get().get()[0] < -100 || bias_h.Get().get()[7] > 100){
+				std::cout << "Weight Deltas:\n";
+				bias_h.ToStream(std::cout,ff);
+			}
+
+			//Output weights as a set of images
+			if(i_batch%100 == 0){
+				std::cout << "Weight Deltas:\n";
+				weight_hist.ToStream(std::cout,ff);
+				string fname = "training_weights_"+std::to_string(i_epoch)+"_"+std::to_string(i_batch)+".jpg";
+			}
+#endif
+
+			weights += d_weights;
+			bias_v  += d_bias_v ;
+			bias_h  += d_bias_h ;
 
 			//Compute Error
 			NArray diff = reconstruction - visible;
@@ -119,8 +152,10 @@ int main(int argc, char** argv){
 		printf("MSE: %f\n",mse);
 
 	}//End epochs
-	ofstream of(argv[2],std::ifstream::in);
+	ofstream of;
+	of.open(argv[2],std::ifstream::out);
 	weights.ToStream(of,ff);
+	of.close();
 
 	return 0;
 
