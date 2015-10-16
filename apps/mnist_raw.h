@@ -57,20 +57,28 @@ int MnistData::BigtoLittle(int val) {
 }
 
 shared_ptr<float> MnistData::GetNextBatch(int batchsize) {
-	char buf[128];
-	shared_ptr<float> data(new float[batchsize * n_rows * n_columns],
+	int batchbytes = batchsize * n_rows * n_columns;
+	int bufsize = n_rows * n_columns;
+	char buf[bufsize];
+	shared_ptr<float> data(new float[batchbytes],
 			[](float* ptr) {
-				delete[] ptr;
+				//delete[] ptr;
 			});
 	int rd = 0;
 	int idata = 0;
-	while (batchsize > 0) {
-		rd = max(128, batchsize);
-		datastream.read(buf, rd * sizeof(char));
+	while (batchbytes > 0) {
+		rd = min(bufsize, batchbytes);
+		datastream.read(buf, rd );
+		if (datastream.eof()){
+			printf("Reached end of file.  Restarting at beginning");
+			datastream.clear();
+			datastream.seekg(16,std::ifstream::beg);
+			datastream.read(buf, rd * sizeof(char));
+		}
 		for (int i = 0; i < rd; i++) {
 			data.get()[idata++] = ((float) buf[i]) / 255.0f;
 		}
-		batchsize -= rd;
+		batchbytes -= rd;
 	}
 	return data;
 }
