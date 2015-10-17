@@ -14,10 +14,8 @@ if __name__ == "__main__":
     s_v = int(sys.argv[2])
     s_h = int(sys.argv[3])
     dat = re.sub("\s+",",",dat).strip(",")
-    print dat
     dat = dat.split(",")
     dat = map(float,dat)
-    print dat
     dat = np.asarray(dat,dtype = np.float32)
     print dat.shape
     

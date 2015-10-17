@@ -76,7 +76,7 @@ shared_ptr<float> MnistData::GetNextBatch(int batchsize) {
 			datastream.read(buf, rd * sizeof(char));
 		}
 		for (int i = 0; i < rd; i++) {
-			data.get()[idata++] = ((float) buf[i]) / 255.0f;
+			data.get()[idata++] = ((unsigned char) buf[i]) / 255.0f;
 		}
 		batchbytes -= rd;
 	}

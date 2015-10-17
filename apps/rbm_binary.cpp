@@ -20,7 +20,7 @@ using namespace minerva;
 #define DATA_MIN 0
 #define DATA_MAX 255
 
-#define N_HIDDEN 10
+#define N_HIDDEN 256
 #define N_EPOCHS 10
 #define BATCH_SIZE 60
 #define MOMENTUM 0.9
@@ -60,6 +60,8 @@ int main(int argc, char** argv){
 	NArray d_weights = NArray::Zeros({sample_size, N_HIDDEN});
 	NArray d_bias_v = NArray::Zeros({1,sample_size});
 	NArray d_bias_h = NArray::Zeros({1,N_HIDDEN});
+	NArray sqrdiff;
+
 
 	int n_batches = n_samples/BATCH_SIZE;
 
@@ -144,6 +146,9 @@ int main(int argc, char** argv){
 			//Compute Error
 			NArray diff = reconstruction - visible;
 			NArray sqrdiff = Elewise::Mult(diff,diff);
+			if(i_batch%100 == 0){
+				sqrdiff.Histogram(10).ToStream(std::cout, ff);
+			}
 			float sum = sqrdiff.Sum();
 			float error = sum/sqrdiff.Size().Prod();
 			mse += error;
@@ -151,11 +156,11 @@ int main(int argc, char** argv){
 		mse = mse/n_batches;
 		printf("MSE: %f\n",mse);
 
-	}//End epochs
 	ofstream of;
-	of.open(argv[2],std::ifstream::out);
+	of.open(argv[2]+std::to_string(i_epoch),std::ifstream::out);
 	weights.ToStream(of,ff);
 	of.close();
+	}//End epochs
 
 	return 0;
 
