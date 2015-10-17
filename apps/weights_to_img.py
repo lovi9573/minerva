@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import re
+import math
 
 
 if __name__ == "__main__":
@@ -11,7 +13,7 @@ if __name__ == "__main__":
         dat = fin.read()
     s_v = int(sys.argv[2])
     s_h = int(sys.argv[3])
-    dat = dat.replace("\s",",")
+    dat = re.sub("\s+",",",dat).strip(",")
     print dat
     dat = dat.split(",")
     dat = map(float,dat)
@@ -19,7 +21,10 @@ if __name__ == "__main__":
     dat = np.asarray(dat,dtype = np.float32)
     print dat.shape
     
-    dat = dat.reshape([s_v,s_h])
+    dat = dat.reshape([s_h,s_v])
+    dat = np.transpose(dat)
     for h in range(s_h):
-        plt.imshow(dat[:,i].reshape([int(math.sqrt(s_v)), -1]))
+        im = dat[:,h].reshape([int(math.sqrt(s_v)), -1])
+        plt.imshow(im)
+        plt.set_cmap('gray')
         plt.show()
