@@ -212,6 +212,17 @@ __global__ static void CudaPerformRandBernoulliKernel(float* dst, size_t size, u
   }
 }
 
+/*__global__ static void CudaPerformRandUniformKernel(float* dst, size_t size, unsigned int seed) {
+  int step = gridDim.x * blockDim.x;
+  int cur = threadIdx.x + blockIdx.x * blockDim.x;
+  curandState_t state;
+  curand_init(seed, cur, 0, &state);
+  while (cur < size) {
+    dst[cur] = max * curand_uniform(&state);
+    cur += step;
+  }
+}*/
+
 __global__ static void CudaPerformFillKernel(float* dst, size_t size, float val) {
   int cur = threadIdx.x + blockIdx.x * blockDim.x;
   while (cur < size) {
@@ -241,7 +252,7 @@ __global__ static void CudaPerformGTKernel(float* in, float* dst, size_t size, f
 	}
 }
 
-__global__ static void CudaPerformGTKernel(float* lhs, float* rhs, float* dst, size_t size, float val, bool gt){
+__global__ static void CudaPerformGTKernel(float* lhs, float* rhs, float* dst, size_t size,  bool gt){
 	int cur = threadIdx.x + blockIdx.x * blockDim.x;
 	if(gt){
 		while (cur < size){

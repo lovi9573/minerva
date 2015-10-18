@@ -633,6 +633,14 @@ void CudaPerformRandBernoulli(float* dst, size_t size, unsigned int seed, float 
 # endif
 }
 
+void CudaPerformRandUniform(float* dst, size_t size, unsigned int seed, cudaStream_t stream){
+ curandGenerator_t gen;
+  CURAND_CALL(curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT));
+  CURAND_CALL(curandSetPseudoRandomGeneratorSeed(gen, seed));
+  CURAND_CALL(curandGenerateUniform(gen, dst, size));
+  CURAND_CALL(curandDestroyGenerator(gen));
+}
+
 void CudaPerformFill(float* dst, size_t size, float val, cudaStream_t stream) {
   int block, thread;
   FindConfiguration(size, block, thread);
@@ -657,14 +665,14 @@ void CudaPerformLT(float* in , float* dst, size_t size, float val, cudaStream_t 
 void CudaPerformGT(float* lhs, float* rhs , float* dst, size_t size, cudaStream_t stream) {
   int block, thread;
   FindConfiguration(size, block, thread);
-  CudaPerformGTKernel<<<block, thread, 0, stream>>>(lhs, rhs, dst, size, val, true);
+  CudaPerformGTKernel<<<block, thread, 0, stream>>>(lhs, rhs, dst, size, true);
   CheckCudaError("CudaPerformCompare");
 }
 
 void CudaPerformLT(float* lhs, float* rhs , float* dst, size_t size, cudaStream_t stream) {
   int block, thread;
   FindConfiguration(size, block, thread);
-  CudaPerformGTKernel<<<block, thread, 0, stream>>>(lhs, rhs, dst, size, val, false);
+  CudaPerformGTKernel<<<block, thread, 0, stream>>>(lhs, rhs, dst, size, false);
   CheckCudaError("CudaPerformCompare");
 }
 

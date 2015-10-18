@@ -204,16 +204,16 @@ void ArithmeticConst(const DataList& inputs, const DataList& outputs,
       break;
     case ArithmeticType::kGT:
     	if (closure.side == 0 ){ //const on left
-    		CudaPerformLT(in_data, res_data, size, val, context.cublas_handle);
+    		CudaPerformLT(in_data, res_data, size, val, context.stream);
     	}else{
-    		CudaPerformGT(in_data, res_data, size, val, context.cublas_handle);
+    		CudaPerformGT(in_data, res_data, size, val, context.stream);
     	}
       break;
     case ArithmeticType::kLT:
     	if (closure.side == 0 ){ //const on left
-    		CudaPerformGT(in_data, res_data, size, val, context.cublas_handle);
+    		CudaPerformGT(in_data, res_data, size, val, context.stream);
     	}else{
-    		CudaPerformLT(in_data, res_data, size, val, context.cublas_handle);
+    		CudaPerformLT(in_data, res_data, size, val, context.stream);
     	}
       break;
   }
@@ -257,6 +257,12 @@ void NormArithmetic(const DataList& inputs, const DataList& outputs, NormArithme
       case ArithmeticType::kDiv:
         CudaPerformNormDivOnCol(normalizee_data, normalizer_data, res_data, m, n, context.stream);
         break;
+      case ArithmeticType::kGT:
+        LOG(FATAL) << "normalize arithmetic Greater Than not implemented";
+        break;
+      case ArithmeticType::kLT:
+        LOG(FATAL) << "normalize arithmetic Less Than not implemented";
+        break;
     }
   } else {
     switch(closure.type) {
@@ -271,6 +277,12 @@ void NormArithmetic(const DataList& inputs, const DataList& outputs, NormArithme
         break;
       case ArithmeticType::kDiv:
         CudaPerformNormDivOnRow(normalizee_data, normalizer_data, res_data, m, n, context.stream);
+        break;
+      case ArithmeticType::kGT:
+        LOG(FATAL) << "normalize arithmetic Greater Than not implemented";
+        break;
+      case ArithmeticType::kLT:
+        LOG(FATAL) << "normalize arithmetic Less Than not implemented";
         break;
     }
   }
@@ -624,6 +636,13 @@ void Randn(const DataList& outputs, RandnClosure& closure, const Context&) {
 void RandBernoulli(const DataList& outputs, RandBernoulliClosure& closure, const Context& context) {
   CHECK_EQ(outputs.size(), 1) << "(bernoulli) #outputs wrong";
   CudaPerformRandBernoulli(outputs[0].data_, outputs[0].size_.Prod(), chrono::system_clock::now().time_since_epoch().count(), closure.p, context.stream);
+}
+void RandUniform(const DataList& outputs, RandUniformClosure& closure, const Context& context){
+	CHECK_EQ(outputs.size(), 1) << "(randuniform) # outputs not equal to 1.";
+	CudaPerformRandUniform(outputs[0].data_, outputs[0].size_.Prod(), chrono::system_clock::now().time_since_epoch().count(), context.stream);
+	if(closure.max != 1.0){
+		CudaPerformScale(outputs[0].data_, outputs[0].data_, outputs[0].size_.Prod(), closure.max, context.cublas_handle);
+	}
 }
 
 void Fill(const DataList& outputs, FillClosure& closure, const Context& context) {

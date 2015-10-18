@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+package rbm;
+
+message RbmParameters{
+	int32 num_hidden = 1;
+	int32 epochs = 2;
+	int32 batch_size = 3;
+	float momentum = 4 ;
+	float learning_rate = 5;
+}

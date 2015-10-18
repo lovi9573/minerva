@@ -14,7 +14,7 @@
 #include "common/concurrent_unordered_set.h"
 #include "common/concurrent_unordered_map.h"
 
-#define DEFAULT_POOL_SIZE ((size_t) 2.0 * 1024 * 1024 * 1024)
+#define DEFAULT_POOL_SIZE ((size_t) 4.0 * 1024 * 1024 * 1024)
 
 
 

@@ -12,6 +12,11 @@ void NO_IMPL(Args&&...) {
   LOG(FATAL) << "no implementation";
 }
 
+template< typename D, typename C, typename... Args>
+void NO_IMPL( const D & o, C & c, Args&&...) {
+  LOG(FATAL) << "no implementation for " << typeid(C).name();
+}
+
 template<typename I, typename O, typename C, typename... Args>
 void NO_IMPL(const I & i, const O & o, C & c, Args&&...) {
   LOG(FATAL) << "no implementation for " << typeid(C).name();
@@ -57,7 +62,7 @@ INSTALL_COMPUTE_FN(SliceClosure, 				NO_IMPL, 					NO_IMPL, cuda::Slice, 		NO_IM
 INSTALL_COMPUTE_FN(IndexClosure, 				basic::Index, 				NO_IMPL, NO_IMPL, 			NO_IMPL);
 INSTALL_COMPUTE_FN(SelectClosure,	 			NO_IMPL, 					NO_IMPL, cuda::Select, 		NO_IMPL);
 INSTALL_COMPUTE_FN(HistogramClosure,	 		basic::Histogram, 			NO_IMPL, NO_IMPL, 			NO_IMPL);
-INSTALL_DATAGEN_FN(RandUniformClosure,	 		basic::RandUniform, 		NO_IMPL, NO_IMPL, 			NO_IMPL);
+INSTALL_DATAGEN_FN(RandUniformClosure,	 		basic::RandUniform, 		NO_IMPL, cuda::RandUniform, NO_IMPL);
 
 
 

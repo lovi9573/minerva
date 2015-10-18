@@ -38,6 +38,7 @@ void SyncWithPS(const DataList& inputs, const DataList& outputs, SyncWithPSClosu
 void ArrayLoader(const DataList&, ArrayLoaderClosure& closure, const Context&);
 void Randn(const DataList&, RandnClosure&, const Context&);
 void RandBernoulli(const DataList&, RandBernoulliClosure&, const Context&);
+void RandUniform(const DataList& outputs, RandUniformClosure& closure, const Context& context);
 void Fill(const DataList&, FillClosure&, const Context&);
 
 void LRNForward(const DataList&, const DataList&, LRNForwardClosure&, const Context&);

@@ -53,7 +53,7 @@ int MnistData::BigtoLittle(int val) {
 	out[1] = valbytes[2];
 	out[2] = valbytes[1];
 	out[3] = valbytes[0];
-	return *(reinterpret_cast<int*>(out));
+	return *((int*)out);
 }
 
 shared_ptr<float> MnistData::GetNextBatch(int batchsize) {

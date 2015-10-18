@@ -254,6 +254,7 @@ void NArray::ToStream(ostream& out, const FileFormat& format) const {
         out << "\n";
       out << setw(8) << setprecision(4) << value[i] << "\t";
     }
+    out << "\n";
   }
 }
 
