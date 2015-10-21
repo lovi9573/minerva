@@ -62,7 +62,7 @@ shared_ptr<float> MnistData::GetNextBatch(int batchsize) {
 	char buf[bufsize];
 	shared_ptr<float> data(new float[batchbytes],
 			[](float* ptr) {
-				//delete[] ptr;
+				delete[] ptr;
 			});
 	int rd = 0;
 	int idata = 0;

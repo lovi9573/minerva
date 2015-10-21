@@ -5,6 +5,7 @@ import time
 import pickle
 import gzip
 from operator import mul
+import matplotlib.pyplot as plt
 
 #The file containing the data in the format of one vector per line space separated floats
 DATAFILE = "????"
@@ -58,7 +59,7 @@ if __name__ == "__main__":
     for epoch in range(num_epochs):
         print("Epoch %i" % (epoch + 1))
         err = []
-    
+        weights_old = weights
         for batch in range(num_batches):
             np_set = data[:,batch*batch_size:(batch + 1)*batch_size]
             training_set = owl.from_numpy(np_set)
@@ -123,4 +124,15 @@ if __name__ == "__main__":
     
         print("Mean squared error: %f" % np.mean(err))
         print("Time: %f" % (time.time() - start_time))
+        plt.hist((weights - weights_old).to_numpy().flatten(),10)
+        plt.show()
+        
+        im = np.zeros([28,28*num_hid])
+        for h in range(num_hid):
+            im[:,h*28:(h+1)*28] = weights.to_numpy()[h,:].reshape([28,28])
+        plt.hist(weights.to_numpy().flatten(),10)
+        plt.show()
+        plt.imshow(im, interpolation="none" )
+        plt.set_cmap('gray')
+        plt.show()
     print "Termination"

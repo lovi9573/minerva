@@ -4,6 +4,7 @@ import numpy as np
 import scipy.io as scio
 import pickle
 import gzip
+import matplotlib.pyplot as plt
 
 # load data
 
@@ -23,7 +24,7 @@ num_batches = dat.shape[1]//batch_size
 
 # model parameters
 num_vis = dat.shape[0]
-num_hid = 128
+num_hid = 15
 
 # initialize weights
 np.random.seed(1234)
@@ -36,13 +37,15 @@ wu_vh = np.zeros((num_vis, num_hid))
 wu_v = np.zeros((num_vis, 1))
 wu_h = np.zeros((num_hid, 1))
 
+plt.hist(dat.flatten(),10)
+plt.show()
 start_time = time.time()
 for epoch in range(num_epochs):
     print("Epoch %i" % (epoch + 1))
     err = []
-
+    w_vh_last= w_vh
     for batch in range(num_batches):
-        v_true = dat[:, batch*batch_size:(batch + 1)*batch_size]
+        v_true = 0*dat[:, batch*batch_size:(batch + 1)*batch_size]
         v = v_true
 
         # apply momentum
@@ -71,6 +74,7 @@ for epoch in range(num_epochs):
         wu_h -= h.sum(1)[:, np.newaxis]
 
         # update weights
+
         w_vh += epsilon/batch_size * wu_vh
         w_v += epsilon/batch_size * wu_v
         w_h += epsilon/batch_size * wu_h
@@ -81,3 +85,14 @@ for epoch in range(num_epochs):
 
     print("Mean squared error: %f" % np.mean(err))
     print("Time: %f" % (time.time() - start_time))
+    plt.hist((w_vh - w_vh_last).flatten(),10)
+    plt.show()
+    
+    im = np.zeros([28,28*num_hid])
+    for h in range(num_hid):
+        im[:,h*28:(h+1)*28] = w_vh[:,h].reshape([28,28])
+    plt.hist(w_vh.flatten(),10)
+    plt.show()
+    plt.imshow(im, interpolation="none" )
+    plt.set_cmap('gray')
+    plt.show()
