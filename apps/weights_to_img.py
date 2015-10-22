@@ -50,8 +50,8 @@ if __name__ == "__main__":
     #plt.imshow(im0.reshape([d_x,d_y]),interpolation='none')
    # plt.set_cmap('gray')
     #plt.show()
-    plt.hist(dat.flatten(), 10)
-    plt.show()
+    #plt.hist(dat.flatten(), 10)
+    #plt.show()
     
     #dat = np.transpose(dat)
     imgs = np.ndarray([n_v*(d_y+1),n_h*(d_x+1)],dtype=np.float32)

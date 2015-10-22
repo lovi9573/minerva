@@ -14,17 +14,16 @@
 
 using namespace minerva;
 
-#define DIAGNOSTIC
+//#define DIAGNOSTIC
 
 
-#define N_HIDDEN 64
-#define N_EPOCHS 10
-#define BATCH_SIZE 10
-#define MOMENTUM 0.0
+#define N_HIDDEN 16
+#define N_EPOCHS 100
+#define BATCH_SIZE 16
+#define MOMENTUM 0.8
 #define LR 0.1
-#define GIBBS_SAMPLING_STEPS 1
-#define SYNCHRONIZATION_RATE 200
-
+#define GIBBS_SAMPLING_STEPS 15
+#define SYNCHRONIZATION_RATE 400
 
 
 void writeNArray(NArray& array, std::string filename){
@@ -45,14 +44,15 @@ void writeNArray(NArray& array, std::string filename){
 int main(int argc, char** argv) {
 	if (argc != 3) {
 		printf(
-				"Use: rbm_binary <path to input data> <weight output filename>\n\tWeights are saved such that hidden layer weights are consecutive and visible weights interleaved.\n");
+				"Use: rbm_binary <path to input data> <output filename base>\n");
 		exit(0);
 	}
 
 	FileFormat ff;
 	ff.binary = false;
 	std::string output_base(argv[2]);
-	bool persistent = false;
+	bool persistent = true;
+	bool binary_visibles = true;
 
 	//Initialize minerva
 	printf("minerva init\n");
@@ -80,17 +80,6 @@ int main(int argc, char** argv) {
 	NArray weights = NArray::Randn( { N_HIDDEN, sample_size }, 0, .2);  //H x V
 	NArray bias_v = NArray::Zeros( { sample_size, 1 });
 	NArray bias_h = NArray::Zeros( { N_HIDDEN, 1 });
-
-	//write the current weights
-	ofstream twof;
-	twof.open(output_base +"_weights_e_init", std::ifstream::out);
-	Scale tscale = weights.Size();
-	int tx = (int)sqrt(tscale[1]);
-	int ty = tscale[1]/tx;
-	twof  << tx << " " << ty << " " << tscale[0] << "\n";
-	weights.Trans().ToStream(twof, ff);
-	twof.close();
-
 
 	NArray d_weights = NArray::Zeros( { N_HIDDEN, sample_size, });
 	NArray d_bias_v = NArray::Zeros( { sample_size, 1 });
@@ -156,13 +145,23 @@ int main(int argc, char** argv) {
 
 				NArray in_v = weights.Trans() * sampled_hiddens + bias_v;
 				reconstruction = 1.0 / (1.0 + Elewise::Exp(-in_v)); //V x B
-				in_h = weights * reconstruction + bias_h;
+				if(binary_visibles){
+					mi.SetDevice(cpu);
+					uniform_randoms = NArray::RandUniform(reconstruction.Size(),1.0);
+					if (has_gpu) {
+						mi.SetDevice(gpu);
+					}
+					NArray sampled_visibles = reconstruction > uniform_randoms;
+					in_h = weights * sampled_visibles + bias_h;
+				}else{
+					in_h = weights * reconstruction + bias_h;
+				}
 				hidden = 1.0 / (1.0 + Elewise::Exp(-in_h));  //H x B
 			}
 			if(persistent){
 				chain_visible = reconstruction;
 			}
-
+/*
 			//write the current reconstruction
 			ofstream rof;
 			rof.open(output_base +"_recon_e"+std::to_string(i_epoch)+"_b"+std::to_string(i_batch), std::ifstream::out);
@@ -172,12 +171,12 @@ int main(int argc, char** argv) {
 			rof  << rx << " " << ry << " " << rscale[1] << "\n";
 			reconstruction.ToStream(rof,ff);
 			rof.close();
-
+*/
 			//Negative Phase
 			NArray d_weights_n = hidden * reconstruction.Trans();
 			NArray d_bias_v_n = reconstruction.Sum(1);
 			NArray d_bias_h_n = hidden.Sum(1);
-
+/*
 			//write the current positive and negative weight update
 			ofstream wof;
 			wof.open(output_base +"_weight_update_e"+std::to_string(i_epoch)+"_b"+std::to_string(i_batch), std::ifstream::out);
@@ -188,9 +187,7 @@ int main(int argc, char** argv) {
 			(d_weights_p* LR / BATCH_SIZE).Trans().ToStream(wof,ff);
 			(d_weights_n* LR / BATCH_SIZE).Trans().ToStream(wof, ff);
 			wof.close();
-
-			//d_weights.ToStream(std::cout,ff);
-			//std::cout <<"\n";
+*/
 			//Update Weights
 			d_weights += (d_weights_p - d_weights_n);
 			d_bias_v += (d_bias_v_p - d_bias_v_n);
@@ -262,16 +259,16 @@ int main(int argc, char** argv) {
 		hidden.ToStream(hof, ff);
 		hof.close();
 
+#endif
 		//write the current weights
 		ofstream wof;
 		wof.open(output_base +"_weights_e"+std::to_string(i_epoch), std::ifstream::out);
-		scale = weights.Size();
+		Scale scale = weights.Size();
 		int x = (int)sqrt(scale[1]);
 		int y = scale[1]/x;
 		wof  << x << " " << y << " " << scale[0] << "\n";
 		weights.Trans().ToStream(wof, ff);
 		wof.close();
-#endif
 	}			//End epochs
 	mi.PrintProfilerResults();
 	ofstream of;
