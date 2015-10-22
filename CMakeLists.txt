@@ -139,6 +139,10 @@ if(BUILD_WITH_FPGA)
   add_definitions(-DHAS_FPGA)
 endif()
 
+if(INCLUDE_PATHS)
+	include_directories(SYSTEM ${INCLUDE_PATHS})
+endif()
+
 if(BUILD_WITH_MPI)
    if(NOT "${MPI_ROOT}" STREQUAL "")
 	set(MPI_C_COMPILER ${MPI_ROOT}/bin/mpicc)
@@ -187,6 +191,7 @@ if(BUILD_WITH_BLAS)
   include_directories(SYSTEM ${CBLAS_INCLUDE_DIRS})
 endif()
 
+message(STATUS "additional include paths               ${INCLUDE_PATHS}")
 message(STATUS "build C++ applications              -- ${BUILD_CXX_APPS}")
 message(STATUS "build unit tests                    -- ${BUILD_TESTS}")
 message(STATUS "build cpu-only version              -- ${BUILD_CPU_ONLY}")

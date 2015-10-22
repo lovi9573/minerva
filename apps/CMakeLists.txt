@@ -15,7 +15,7 @@ else (BUILD_WITH_PS)
     #For CPU only.
     file(GLOB app_file_list "mnist_mlp.cpp")
     file(GLOB app_file_list "rbm_binary.cpp")
-    #file(GLOB app_file_list "mnist_raw_test.cpp")
+    file(GLOB app_file_list "rbmconfig.pb.cc")
   endif (CUDA_FOUND)
 endif (BUILD_WITH_PS)
 

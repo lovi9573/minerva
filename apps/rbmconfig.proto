@@ -1,0 +1,16 @@
+syntax = "proto2";
+
+package rbm;
+
+message RbmParameters{
+	required int32 num_hidden = 1;
+	required int32 epochs = 2;
+	required int32 batch_size = 3;
+	required float momentum = 4 ;
+	required float learning_rate = 5;
+	optional int32 gibbs_sampling_steps = 6 [default=1];
+	optional bool persistent_gibbs_chain = 7 [default=false];
+	required bool binary_visibles = 8;
+	optional int32 synchronization_period = 9 [default=512];
+	required string output_filename_base = 10;
+}

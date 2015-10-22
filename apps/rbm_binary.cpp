@@ -10,13 +10,18 @@
 #include <iomanip>
 #include <fstream>
 #include <string>
+#include <fcntl.h>
 #include "mnist_raw.h"
+#include "rbmconfig.pb.h"
+#include <google/protobuf/text_format.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
 
 using namespace minerva;
 
 //#define DIAGNOSTIC
 
 
+/*
 #define N_HIDDEN 16
 #define N_EPOCHS 100
 #define BATCH_SIZE 16
@@ -24,6 +29,7 @@ using namespace minerva;
 #define LR 0.1
 #define GIBBS_SAMPLING_STEPS 15
 #define SYNCHRONIZATION_RATE 400
+*/
 
 
 void writeNArray(NArray& array, std::string filename){
@@ -48,11 +54,23 @@ int main(int argc, char** argv) {
 		exit(0);
 	}
 
+	//Read in config and init variables
+	rbm::RbmParameters params;
+	int fin = open(argv[2],O_RDONLY);
+	google::protobuf::io::FileInputStream param_fin(fin);
+	google::protobuf::TextFormat::Parse(&param_fin, &params);
 	FileFormat ff;
 	ff.binary = false;
-	std::string output_base(argv[2]);
-	bool persistent = true;
-	bool binary_visibles = true;
+	int n_hidden = params.num_hidden();
+	int epochs = params.epochs();
+	int batch_size = params.batch_size();
+	float momentum = params.momentum();
+	float lr = params.learning_rate();
+	int gibbs_sampling_steps = params.gibbs_sampling_steps();
+	int sync_period = params.synchronization_period();
+	std::string output_base = params.output_filename_base();
+	bool persistent = params.persistent_gibbs_chain();
+	bool binary_visibles = params.binary_visibles();
 
 	//Initialize minerva
 	printf("minerva init\n");
@@ -77,50 +95,50 @@ int main(int argc, char** argv) {
 
 	//Initialize arrays
 	printf("Initialize data structures\n");
-	NArray weights = NArray::Randn( { N_HIDDEN, sample_size }, 0, .2);  //H x V
+	NArray weights = NArray::Randn( { n_hidden, sample_size }, 0, .2);  //H x V
 	NArray bias_v = NArray::Zeros( { sample_size, 1 });
-	NArray bias_h = NArray::Zeros( { N_HIDDEN, 1 });
+	NArray bias_h = NArray::Zeros( { n_hidden, 1 });
 
-	NArray d_weights = NArray::Zeros( { N_HIDDEN, sample_size, });
+	NArray d_weights = NArray::Zeros( { n_hidden, sample_size, });
 	NArray d_bias_v = NArray::Zeros( { sample_size, 1 });
-	NArray d_bias_h = NArray::Zeros( { N_HIDDEN, 1 });
+	NArray d_bias_h = NArray::Zeros( { n_hidden, 1 });
 
-	NArray d_weights_ave = NArray::Zeros( { N_HIDDEN, sample_size, });
+	NArray d_weights_ave = NArray::Zeros( { n_hidden, sample_size, });
 	NArray d_bias_v_ave = NArray::Zeros( { sample_size, 1 });
-	NArray d_bias_h_ave = NArray::Zeros( { N_HIDDEN, 1 });
+	NArray d_bias_h_ave = NArray::Zeros( { n_hidden, 1 });
 	NArray sqrdiff, visible, reconstruction, hidden, chain_visible;
 	bool is_chain_init = false;
 
-	int n_batches = n_samples / BATCH_SIZE;
+	int n_batches = n_samples / batch_size;
 
 	//Begin training
-	for (int i_epoch = 0; i_epoch < N_EPOCHS; i_epoch++) {
+	for (int i_epoch = 0; i_epoch < epochs; i_epoch++) {
 		printf("Epoch %d\n", i_epoch);
 #ifdef DIAGNOSTIC
 		float mse = 0.0;
-		d_weights_ave = NArray::Zeros( { N_HIDDEN, sample_size, });
+		d_weights_ave = NArray::Zeros( { n_hidden, sample_size, });
 		d_bias_v_ave = NArray::Zeros( { sample_size, 1 });
-		d_bias_h_ave = NArray::Zeros( { N_HIDDEN, 1 });
+		d_bias_h_ave = NArray::Zeros( { n_hidden, 1 });
 #endif
 		for (int i_batch = 0; i_batch < n_batches; i_batch++) {
 			if (has_gpu) {
 				mi.SetDevice(gpu);
 			}
-			if (i_batch % SYNCHRONIZATION_RATE == 0) {
+			if (i_batch % sync_period == 0) {
 				printf("\t Batch %d/%d\n", i_batch, n_batches);
 			}
 			//Get minibatch
-			shared_ptr<float> batch = dp.GetNextBatch(BATCH_SIZE);
-			visible = NArray::MakeNArray( { sample_size, BATCH_SIZE }, batch); //V x B
+			shared_ptr<float> batch = dp.GetNextBatch(batch_size);
+			visible = NArray::MakeNArray( { sample_size, batch_size }, batch); //V x B
 			if(persistent && !is_chain_init){
 				chain_visible = visible;
 				is_chain_init = true;
 			}
 
 			//Apply momentum
-			d_weights *= MOMENTUM;
-			d_bias_v *= MOMENTUM;
-			d_bias_h *= MOMENTUM;
+			d_weights *= momentum;
+			d_bias_v *= momentum;
+			d_bias_h *= momentum;
 
 			//Positive Phase
 			NArray in_h = weights * visible + bias_h;
@@ -134,7 +152,7 @@ int main(int argc, char** argv) {
 				hidden = 1.0 / (1.0 + Elewise::Exp(-in_h)); // H x B
 			}
 
-			for(int gibbs_step = 0; gibbs_step < GIBBS_SAMPLING_STEPS; gibbs_step++){
+			for(int gibbs_step = 0; gibbs_step < gibbs_sampling_steps; gibbs_step++){
 				//Sample Hiddens
 				mi.SetDevice(cpu);
 				NArray uniform_randoms = NArray::RandUniform(hidden.Size(), 1.0);
@@ -184,8 +202,8 @@ int main(int argc, char** argv) {
 			int x = (int)sqrt(scale[1]);
 			int y = scale[1]/x;
 			wof  << x << " " << y << " " << (scale[0]*2) << "\n";
-			(d_weights_p* LR / BATCH_SIZE).Trans().ToStream(wof,ff);
-			(d_weights_n* LR / BATCH_SIZE).Trans().ToStream(wof, ff);
+			(d_weights_p* lr / batch_size).Trans().ToStream(wof,ff);
+			(d_weights_n* lr / batch_size).Trans().ToStream(wof, ff);
 			wof.close();
 */
 			//Update Weights
@@ -193,13 +211,13 @@ int main(int argc, char** argv) {
 			d_bias_v += (d_bias_v_p - d_bias_v_n);
 			d_bias_h += (d_bias_h_p - d_bias_h_n);
 
-			weights += d_weights* LR / BATCH_SIZE;
-			bias_v += d_bias_v* LR / BATCH_SIZE;
-			bias_h += d_bias_h* LR / BATCH_SIZE;
+			weights += d_weights* lr / batch_size;
+			bias_v += d_bias_v* lr / batch_size;
+			bias_h += d_bias_h* lr / batch_size;
 
-			d_weights_ave += d_weights* LR / BATCH_SIZE;
-			d_bias_v_ave += d_bias_v* LR / BATCH_SIZE;
-			d_bias_h_ave += d_bias_h* LR / BATCH_SIZE;
+			d_weights_ave += d_weights* lr / batch_size;
+			d_bias_v_ave += d_bias_v* lr / batch_size;
+			d_bias_h_ave += d_bias_h* lr / batch_size;
 
 
 #ifdef DIAGNOSTIC
@@ -212,7 +230,7 @@ int main(int argc, char** argv) {
 			float error = sum0.Sum() / sqrdiff.Size().Prod();
 			mse += error;
 #endif
-			if (i_batch % SYNCHRONIZATION_RATE == 0) {
+			if (i_batch % sync_period == 0) {
 				mi.WaitForAll();
 			}
 
