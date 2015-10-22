@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
 
 	//Initialize arrays
 	printf("Initialize data structures\n");
-	NArray weights = NArray::Randn( { n_hidden, sample_size }, 0, .2);  //H x V
+	NArray weights = NArray::Randn( { n_hidden, sample_size }, 0, .01);  //H x V
 	NArray bias_v = NArray::Zeros( { sample_size, 1 });
 	NArray bias_h = NArray::Zeros( { n_hidden, 1 });
 
