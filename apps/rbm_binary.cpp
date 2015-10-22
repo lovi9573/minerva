@@ -18,18 +18,8 @@
 
 using namespace minerva;
 
-//#define DIAGNOSTIC
 
 
-/*
-#define N_HIDDEN 16
-#define N_EPOCHS 100
-#define BATCH_SIZE 16
-#define MOMENTUM 0.8
-#define LR 0.1
-#define GIBBS_SAMPLING_STEPS 15
-#define SYNCHRONIZATION_RATE 400
-*/
 
 
 void writeNArray(NArray& array, std::string filename){
@@ -54,7 +44,7 @@ int main(int argc, char** argv) {
 		exit(0);
 	}
 
-	//Read in config and init variables
+	//Read in config and init vars
 	rbm::RbmParameters params;
 	int fin = open(argv[2],O_RDONLY);
 	google::protobuf::io::FileInputStream param_fin(fin);
@@ -71,6 +61,7 @@ int main(int argc, char** argv) {
 	std::string output_base = params.output_filename_base();
 	bool persistent = params.persistent_gibbs_chain();
 	bool binary_visibles = params.binary_visibles();
+	bool is_chain_init = false;
 
 	//Initialize minerva
 	printf("minerva init\n");
@@ -85,12 +76,13 @@ int main(int argc, char** argv) {
 	uint64_t cpu = mi.CreateCpuDevice();
 	mi.SetDevice(cpu);
 
-	//Load the training data
-	printf("load data\n");
+	//Create training data provider
+	printf("opening training data\n");
 	int n_samples, sample_size;
 	MnistData dp(argv[1]);
 	n_samples = dp.nSamples();
 	sample_size = dp.SampleSize();
+	int n_batches = n_samples / batch_size;
 	printf("\t%d samples of size %d\n", n_samples, sample_size);
 
 	//Initialize arrays
@@ -107,9 +99,6 @@ int main(int argc, char** argv) {
 	NArray d_bias_v_ave = NArray::Zeros( { sample_size, 1 });
 	NArray d_bias_h_ave = NArray::Zeros( { n_hidden, 1 });
 	NArray sqrdiff, visible, reconstruction, hidden, chain_visible;
-	bool is_chain_init = false;
-
-	int n_batches = n_samples / batch_size;
 
 	//Begin training
 	for (int i_epoch = 0; i_epoch < epochs; i_epoch++) {
@@ -131,7 +120,7 @@ int main(int argc, char** argv) {
 			shared_ptr<float> batch = dp.GetNextBatch(batch_size);
 			visible = NArray::MakeNArray( { sample_size, batch_size }, batch); //V x B
 			if(persistent && !is_chain_init){
-				chain_visible = visible;
+				chain_visible = 1.0*visible;
 				is_chain_init = true;
 			}
 
@@ -177,35 +166,14 @@ int main(int argc, char** argv) {
 				hidden = 1.0 / (1.0 + Elewise::Exp(-in_h));  //H x B
 			}
 			if(persistent){
-				chain_visible = reconstruction;
+				chain_visible = 1.0*reconstruction;
 			}
-/*
-			//write the current reconstruction
-			ofstream rof;
-			rof.open(output_base +"_recon_e"+std::to_string(i_epoch)+"_b"+std::to_string(i_batch), std::ifstream::out);
-			Scale rscale = reconstruction.Size();
-			int rx = (int)sqrt(rscale[0]);
-			int ry = rscale[0]/rx;
-			rof  << rx << " " << ry << " " << rscale[1] << "\n";
-			reconstruction.ToStream(rof,ff);
-			rof.close();
-*/
+
 			//Negative Phase
 			NArray d_weights_n = hidden * reconstruction.Trans();
 			NArray d_bias_v_n = reconstruction.Sum(1);
 			NArray d_bias_h_n = hidden.Sum(1);
-/*
-			//write the current positive and negative weight update
-			ofstream wof;
-			wof.open(output_base +"_weight_update_e"+std::to_string(i_epoch)+"_b"+std::to_string(i_batch), std::ifstream::out);
-			Scale scale = weights.Size();
-			int x = (int)sqrt(scale[1]);
-			int y = scale[1]/x;
-			wof  << x << " " << y << " " << (scale[0]*2) << "\n";
-			(d_weights_p* lr / batch_size).Trans().ToStream(wof,ff);
-			(d_weights_n* lr / batch_size).Trans().ToStream(wof, ff);
-			wof.close();
-*/
+
 			//Update Weights
 			d_weights += (d_weights_p - d_weights_n);
 			d_bias_v += (d_bias_v_p - d_bias_v_n);

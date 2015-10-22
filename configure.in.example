@@ -23,6 +23,14 @@ BUILD_WITH_MPI=0
 MPI_HEADER_ROOT=
 MPI_BIN_ROOT=
 
+# whether build with blas support on cpu
+BUILD_WITH_BLAS=0
+BLAS_ROOT=
+
+#Additional include and link paths separated by ;  (protobuf, utility libs, etc...)
+INCLUDE_PATHS=
+LINK_PATHS=
+
 # build type: (Release | Debug | RelWithDebInfo)
 BUILD_TYPE=Release
 
@@ -44,11 +52,6 @@ BUILD_WITH_PS=0
 # whether build cpu-only version
 BUILD_CPU_ONLY=1
 
-# whether build with blas support on cpu
-BUILD_WITH_BLAS=0
-BLAS_ROOT=
-
-
 # whether build with fpga support.
 BUILD_WITH_FPGA=0
 
@@ -59,7 +62,7 @@ HT_MODEL_TYPE=sysc
 ### Fixed point calculations ##
 # enable fixed point calculations
 # Note: This will override compiling with Gpu support.
-FIXED_POINT=1
+FIXED_POINT=0
 # Word length excluding the sign bit.
 FIXED_POINT_WORD_LENGTH_N=20
 # bit width of the fractional part.

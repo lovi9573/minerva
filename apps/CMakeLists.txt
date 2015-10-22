@@ -10,14 +10,20 @@ if (BUILD_WITH_PS)
   file(GLOB_RECURSE app_file_list "ps/*.cpp")
 else (BUILD_WITH_PS)
   if (CUDA_FOUND)
-    file(GLOB app_file_list "*.cpp")
+    #file(GLOB app_file_list "*.cpp")
   else (CUDA_FOUND)
     #For CPU only.
     file(GLOB app_file_list "mnist_mlp.cpp")
-    file(GLOB app_file_list "rbm_binary.cpp")
-    file(GLOB app_file_list "rbmconfig.pb.cc")
+    #file(GLOB app_file_list "rbm_binary.cpp")
+    #file(GLOB app_file_list "rbmconfig.pb.cc")
   endif (CUDA_FOUND)
 endif (BUILD_WITH_PS)
+
+#rbm application
+link_directories(${LINK_PATHS})
+add_executable(rbm_binary "rbm_binary.cpp" "rbmconfig.pb.cc")
+#find_library(PROTOBUF_LIB protobuf "${HOME}/local/lib/libprotobuf")
+target_link_libraries(rbm_binary minerva protobuf ${CORE_DEPS})
 
 foreach(app_src ${app_file_list})
   get_filename_component(app_name ${app_src} NAME_WE)
