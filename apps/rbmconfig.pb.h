@@ -153,24 +153,31 @@ class RbmParameters : public ::google::protobuf::Message {
   bool persistent_gibbs_chain() const;
   void set_persistent_gibbs_chain(bool value);
 
-  // required bool binary_visibles = 8;
-  bool has_binary_visibles() const;
-  void clear_binary_visibles();
-  static const int kBinaryVisiblesFieldNumber = 8;
-  bool binary_visibles() const;
-  void set_binary_visibles(bool value);
+  // required bool sample_visibles = 8;
+  bool has_sample_visibles() const;
+  void clear_sample_visibles();
+  static const int kSampleVisiblesFieldNumber = 8;
+  bool sample_visibles() const;
+  void set_sample_visibles(bool value);
 
-  // optional int32 synchronization_period = 9 [default = 512];
+  // required bool sample_hiddens = 9;
+  bool has_sample_hiddens() const;
+  void clear_sample_hiddens();
+  static const int kSampleHiddensFieldNumber = 9;
+  bool sample_hiddens() const;
+  void set_sample_hiddens(bool value);
+
+  // optional int32 synchronization_period = 10 [default = 512];
   bool has_synchronization_period() const;
   void clear_synchronization_period();
-  static const int kSynchronizationPeriodFieldNumber = 9;
+  static const int kSynchronizationPeriodFieldNumber = 10;
   ::google::protobuf::int32 synchronization_period() const;
   void set_synchronization_period(::google::protobuf::int32 value);
 
-  // required string output_filename_base = 10;
+  // required string output_filename_base = 11;
   bool has_output_filename_base() const;
   void clear_output_filename_base();
-  static const int kOutputFilenameBaseFieldNumber = 10;
+  static const int kOutputFilenameBaseFieldNumber = 11;
   const ::std::string& output_filename_base() const;
   void set_output_filename_base(const ::std::string& value);
   void set_output_filename_base(const char* value);
@@ -178,6 +185,48 @@ class RbmParameters : public ::google::protobuf::Message {
   ::std::string* mutable_output_filename_base();
   ::std::string* release_output_filename_base();
   void set_allocated_output_filename_base(::std::string* output_filename_base);
+
+  // optional bool diag_error = 12 [default = false];
+  bool has_diag_error() const;
+  void clear_diag_error();
+  static const int kDiagErrorFieldNumber = 12;
+  bool diag_error() const;
+  void set_diag_error(bool value);
+
+  // optional bool diag_weight_update_hist = 13 [default = false];
+  bool has_diag_weight_update_hist() const;
+  void clear_diag_weight_update_hist();
+  static const int kDiagWeightUpdateHistFieldNumber = 13;
+  bool diag_weight_update_hist() const;
+  void set_diag_weight_update_hist(bool value);
+
+  // optional bool diag_hidden_activation_probability = 14 [default = false];
+  bool has_diag_hidden_activation_probability() const;
+  void clear_diag_hidden_activation_probability();
+  static const int kDiagHiddenActivationProbabilityFieldNumber = 14;
+  bool diag_hidden_activation_probability() const;
+  void set_diag_hidden_activation_probability(bool value);
+
+  // optional bool diag_visible_recon_err = 15 [default = false];
+  bool has_diag_visible_recon_err() const;
+  void clear_diag_visible_recon_err();
+  static const int kDiagVisibleReconErrFieldNumber = 15;
+  bool diag_visible_recon_err() const;
+  void set_diag_visible_recon_err(bool value);
+
+  // optional bool diag_epoch_weight_output = 16 [default = false];
+  bool has_diag_epoch_weight_output() const;
+  void clear_diag_epoch_weight_output();
+  static const int kDiagEpochWeightOutputFieldNumber = 16;
+  bool diag_epoch_weight_output() const;
+  void set_diag_epoch_weight_output(bool value);
+
+  // optional bool diag_train_val_energy_diff = 17 [default = true];
+  bool has_diag_train_val_energy_diff() const;
+  void clear_diag_train_val_energy_diff();
+  static const int kDiagTrainValEnergyDiffFieldNumber = 17;
+  bool diag_train_val_energy_diff() const;
+  void set_diag_train_val_energy_diff(bool value);
 
   // @@protoc_insertion_point(class_scope:rbm.RbmParameters)
  private:
@@ -195,12 +244,26 @@ class RbmParameters : public ::google::protobuf::Message {
   inline void clear_has_gibbs_sampling_steps();
   inline void set_has_persistent_gibbs_chain();
   inline void clear_has_persistent_gibbs_chain();
-  inline void set_has_binary_visibles();
-  inline void clear_has_binary_visibles();
+  inline void set_has_sample_visibles();
+  inline void clear_has_sample_visibles();
+  inline void set_has_sample_hiddens();
+  inline void clear_has_sample_hiddens();
   inline void set_has_synchronization_period();
   inline void clear_has_synchronization_period();
   inline void set_has_output_filename_base();
   inline void clear_has_output_filename_base();
+  inline void set_has_diag_error();
+  inline void clear_has_diag_error();
+  inline void set_has_diag_weight_update_hist();
+  inline void clear_has_diag_weight_update_hist();
+  inline void set_has_diag_hidden_activation_probability();
+  inline void clear_has_diag_hidden_activation_probability();
+  inline void set_has_diag_visible_recon_err();
+  inline void clear_has_diag_visible_recon_err();
+  inline void set_has_diag_epoch_weight_output();
+  inline void clear_has_diag_epoch_weight_output();
+  inline void set_has_diag_train_val_energy_diff();
+  inline void clear_has_diag_train_val_energy_diff();
 
   // helper for ByteSize()
   int RequiredFieldsByteSizeFallback() const;
@@ -215,9 +278,16 @@ class RbmParameters : public ::google::protobuf::Message {
   float learning_rate_;
   ::google::protobuf::int32 gibbs_sampling_steps_;
   bool persistent_gibbs_chain_;
-  bool binary_visibles_;
+  bool sample_visibles_;
+  bool sample_hiddens_;
+  bool diag_error_;
   ::google::protobuf::int32 synchronization_period_;
   ::google::protobuf::internal::ArenaStringPtr output_filename_base_;
+  bool diag_weight_update_hist_;
+  bool diag_hidden_activation_probability_;
+  bool diag_visible_recon_err_;
+  bool diag_epoch_weight_output_;
+  bool diag_train_val_energy_diff_;
   friend void  protobuf_AddDesc_rbmconfig_2eproto();
   friend void protobuf_AssignDesc_rbmconfig_2eproto();
   friend void protobuf_ShutdownFile_rbmconfig_2eproto();
@@ -401,39 +471,63 @@ inline void RbmParameters::set_persistent_gibbs_chain(bool value) {
   // @@protoc_insertion_point(field_set:rbm.RbmParameters.persistent_gibbs_chain)
 }
 
-// required bool binary_visibles = 8;
-inline bool RbmParameters::has_binary_visibles() const {
+// required bool sample_visibles = 8;
+inline bool RbmParameters::has_sample_visibles() const {
   return (_has_bits_[0] & 0x00000080u) != 0;
 }
-inline void RbmParameters::set_has_binary_visibles() {
+inline void RbmParameters::set_has_sample_visibles() {
   _has_bits_[0] |= 0x00000080u;
 }
-inline void RbmParameters::clear_has_binary_visibles() {
+inline void RbmParameters::clear_has_sample_visibles() {
   _has_bits_[0] &= ~0x00000080u;
 }
-inline void RbmParameters::clear_binary_visibles() {
-  binary_visibles_ = false;
-  clear_has_binary_visibles();
+inline void RbmParameters::clear_sample_visibles() {
+  sample_visibles_ = false;
+  clear_has_sample_visibles();
 }
-inline bool RbmParameters::binary_visibles() const {
-  // @@protoc_insertion_point(field_get:rbm.RbmParameters.binary_visibles)
-  return binary_visibles_;
+inline bool RbmParameters::sample_visibles() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.sample_visibles)
+  return sample_visibles_;
 }
-inline void RbmParameters::set_binary_visibles(bool value) {
-  set_has_binary_visibles();
-  binary_visibles_ = value;
-  // @@protoc_insertion_point(field_set:rbm.RbmParameters.binary_visibles)
+inline void RbmParameters::set_sample_visibles(bool value) {
+  set_has_sample_visibles();
+  sample_visibles_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.sample_visibles)
 }
 
-// optional int32 synchronization_period = 9 [default = 512];
-inline bool RbmParameters::has_synchronization_period() const {
+// required bool sample_hiddens = 9;
+inline bool RbmParameters::has_sample_hiddens() const {
   return (_has_bits_[0] & 0x00000100u) != 0;
 }
-inline void RbmParameters::set_has_synchronization_period() {
+inline void RbmParameters::set_has_sample_hiddens() {
   _has_bits_[0] |= 0x00000100u;
 }
-inline void RbmParameters::clear_has_synchronization_period() {
+inline void RbmParameters::clear_has_sample_hiddens() {
   _has_bits_[0] &= ~0x00000100u;
+}
+inline void RbmParameters::clear_sample_hiddens() {
+  sample_hiddens_ = false;
+  clear_has_sample_hiddens();
+}
+inline bool RbmParameters::sample_hiddens() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.sample_hiddens)
+  return sample_hiddens_;
+}
+inline void RbmParameters::set_sample_hiddens(bool value) {
+  set_has_sample_hiddens();
+  sample_hiddens_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.sample_hiddens)
+}
+
+// optional int32 synchronization_period = 10 [default = 512];
+inline bool RbmParameters::has_synchronization_period() const {
+  return (_has_bits_[0] & 0x00000200u) != 0;
+}
+inline void RbmParameters::set_has_synchronization_period() {
+  _has_bits_[0] |= 0x00000200u;
+}
+inline void RbmParameters::clear_has_synchronization_period() {
+  _has_bits_[0] &= ~0x00000200u;
 }
 inline void RbmParameters::clear_synchronization_period() {
   synchronization_period_ = 512;
@@ -449,15 +543,15 @@ inline void RbmParameters::set_synchronization_period(::google::protobuf::int32 
   // @@protoc_insertion_point(field_set:rbm.RbmParameters.synchronization_period)
 }
 
-// required string output_filename_base = 10;
+// required string output_filename_base = 11;
 inline bool RbmParameters::has_output_filename_base() const {
-  return (_has_bits_[0] & 0x00000200u) != 0;
+  return (_has_bits_[0] & 0x00000400u) != 0;
 }
 inline void RbmParameters::set_has_output_filename_base() {
-  _has_bits_[0] |= 0x00000200u;
+  _has_bits_[0] |= 0x00000400u;
 }
 inline void RbmParameters::clear_has_output_filename_base() {
-  _has_bits_[0] &= ~0x00000200u;
+  _has_bits_[0] &= ~0x00000400u;
 }
 inline void RbmParameters::clear_output_filename_base() {
   output_filename_base_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
@@ -500,6 +594,150 @@ inline void RbmParameters::set_allocated_output_filename_base(::std::string* out
   }
   output_filename_base_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), output_filename_base);
   // @@protoc_insertion_point(field_set_allocated:rbm.RbmParameters.output_filename_base)
+}
+
+// optional bool diag_error = 12 [default = false];
+inline bool RbmParameters::has_diag_error() const {
+  return (_has_bits_[0] & 0x00000800u) != 0;
+}
+inline void RbmParameters::set_has_diag_error() {
+  _has_bits_[0] |= 0x00000800u;
+}
+inline void RbmParameters::clear_has_diag_error() {
+  _has_bits_[0] &= ~0x00000800u;
+}
+inline void RbmParameters::clear_diag_error() {
+  diag_error_ = false;
+  clear_has_diag_error();
+}
+inline bool RbmParameters::diag_error() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.diag_error)
+  return diag_error_;
+}
+inline void RbmParameters::set_diag_error(bool value) {
+  set_has_diag_error();
+  diag_error_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.diag_error)
+}
+
+// optional bool diag_weight_update_hist = 13 [default = false];
+inline bool RbmParameters::has_diag_weight_update_hist() const {
+  return (_has_bits_[0] & 0x00001000u) != 0;
+}
+inline void RbmParameters::set_has_diag_weight_update_hist() {
+  _has_bits_[0] |= 0x00001000u;
+}
+inline void RbmParameters::clear_has_diag_weight_update_hist() {
+  _has_bits_[0] &= ~0x00001000u;
+}
+inline void RbmParameters::clear_diag_weight_update_hist() {
+  diag_weight_update_hist_ = false;
+  clear_has_diag_weight_update_hist();
+}
+inline bool RbmParameters::diag_weight_update_hist() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.diag_weight_update_hist)
+  return diag_weight_update_hist_;
+}
+inline void RbmParameters::set_diag_weight_update_hist(bool value) {
+  set_has_diag_weight_update_hist();
+  diag_weight_update_hist_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.diag_weight_update_hist)
+}
+
+// optional bool diag_hidden_activation_probability = 14 [default = false];
+inline bool RbmParameters::has_diag_hidden_activation_probability() const {
+  return (_has_bits_[0] & 0x00002000u) != 0;
+}
+inline void RbmParameters::set_has_diag_hidden_activation_probability() {
+  _has_bits_[0] |= 0x00002000u;
+}
+inline void RbmParameters::clear_has_diag_hidden_activation_probability() {
+  _has_bits_[0] &= ~0x00002000u;
+}
+inline void RbmParameters::clear_diag_hidden_activation_probability() {
+  diag_hidden_activation_probability_ = false;
+  clear_has_diag_hidden_activation_probability();
+}
+inline bool RbmParameters::diag_hidden_activation_probability() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.diag_hidden_activation_probability)
+  return diag_hidden_activation_probability_;
+}
+inline void RbmParameters::set_diag_hidden_activation_probability(bool value) {
+  set_has_diag_hidden_activation_probability();
+  diag_hidden_activation_probability_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.diag_hidden_activation_probability)
+}
+
+// optional bool diag_visible_recon_err = 15 [default = false];
+inline bool RbmParameters::has_diag_visible_recon_err() const {
+  return (_has_bits_[0] & 0x00004000u) != 0;
+}
+inline void RbmParameters::set_has_diag_visible_recon_err() {
+  _has_bits_[0] |= 0x00004000u;
+}
+inline void RbmParameters::clear_has_diag_visible_recon_err() {
+  _has_bits_[0] &= ~0x00004000u;
+}
+inline void RbmParameters::clear_diag_visible_recon_err() {
+  diag_visible_recon_err_ = false;
+  clear_has_diag_visible_recon_err();
+}
+inline bool RbmParameters::diag_visible_recon_err() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.diag_visible_recon_err)
+  return diag_visible_recon_err_;
+}
+inline void RbmParameters::set_diag_visible_recon_err(bool value) {
+  set_has_diag_visible_recon_err();
+  diag_visible_recon_err_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.diag_visible_recon_err)
+}
+
+// optional bool diag_epoch_weight_output = 16 [default = false];
+inline bool RbmParameters::has_diag_epoch_weight_output() const {
+  return (_has_bits_[0] & 0x00008000u) != 0;
+}
+inline void RbmParameters::set_has_diag_epoch_weight_output() {
+  _has_bits_[0] |= 0x00008000u;
+}
+inline void RbmParameters::clear_has_diag_epoch_weight_output() {
+  _has_bits_[0] &= ~0x00008000u;
+}
+inline void RbmParameters::clear_diag_epoch_weight_output() {
+  diag_epoch_weight_output_ = false;
+  clear_has_diag_epoch_weight_output();
+}
+inline bool RbmParameters::diag_epoch_weight_output() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.diag_epoch_weight_output)
+  return diag_epoch_weight_output_;
+}
+inline void RbmParameters::set_diag_epoch_weight_output(bool value) {
+  set_has_diag_epoch_weight_output();
+  diag_epoch_weight_output_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.diag_epoch_weight_output)
+}
+
+// optional bool diag_train_val_energy_diff = 17 [default = true];
+inline bool RbmParameters::has_diag_train_val_energy_diff() const {
+  return (_has_bits_[0] & 0x00010000u) != 0;
+}
+inline void RbmParameters::set_has_diag_train_val_energy_diff() {
+  _has_bits_[0] |= 0x00010000u;
+}
+inline void RbmParameters::clear_has_diag_train_val_energy_diff() {
+  _has_bits_[0] &= ~0x00010000u;
+}
+inline void RbmParameters::clear_diag_train_val_energy_diff() {
+  diag_train_val_energy_diff_ = true;
+  clear_has_diag_train_val_energy_diff();
+}
+inline bool RbmParameters::diag_train_val_energy_diff() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.diag_train_val_energy_diff)
+  return diag_train_val_energy_diff_;
+}
+inline void RbmParameters::set_diag_train_val_energy_diff(bool value) {
+  set_has_diag_train_val_energy_diff();
+  diag_train_val_energy_diff_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.diag_train_val_energy_diff)
 }
 
 #endif  // !PROTOBUF_INLINE_NOT_IN_HEADERS

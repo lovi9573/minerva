@@ -34,7 +34,7 @@ void protobuf_AssignDesc_rbmconfig_2eproto() {
       "rbmconfig.proto");
   GOOGLE_CHECK(file != NULL);
   RbmParameters_descriptor_ = file->message_type(0);
-  static const int RbmParameters_offsets_[10] = {
+  static const int RbmParameters_offsets_[17] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, num_hidden_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, epochs_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, batch_size_),
@@ -42,9 +42,16 @@ void protobuf_AssignDesc_rbmconfig_2eproto() {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, learning_rate_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, gibbs_sampling_steps_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, persistent_gibbs_chain_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, binary_visibles_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, sample_visibles_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, sample_hiddens_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, synchronization_period_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, output_filename_base_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, diag_error_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, diag_weight_update_hist_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, diag_hidden_activation_probability_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, diag_visible_recon_err_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, diag_epoch_weight_output_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, diag_train_val_energy_diff_),
   };
   RbmParameters_reflection_ =
     ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
@@ -87,14 +94,21 @@ void protobuf_AddDesc_rbmconfig_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\017rbmconfig.proto\022\003rbm\"\224\002\n\rRbmParameters"
+    "\n\017rbmconfig.proto\022\003rbm\"\234\004\n\rRbmParameters"
     "\022\022\n\nnum_hidden\030\001 \002(\005\022\016\n\006epochs\030\002 \002(\005\022\022\n\n"
     "batch_size\030\003 \002(\005\022\020\n\010momentum\030\004 \002(\002\022\025\n\rle"
     "arning_rate\030\005 \002(\002\022\037\n\024gibbs_sampling_step"
     "s\030\006 \001(\005:\0011\022%\n\026persistent_gibbs_chain\030\007 \001"
-    "(\010:\005false\022\027\n\017binary_visibles\030\010 \002(\010\022#\n\026sy"
-    "nchronization_period\030\t \001(\005:\003512\022\034\n\024outpu"
-    "t_filename_base\030\n \002(\t", 301);
+    "(\010:\005false\022\027\n\017sample_visibles\030\010 \002(\010\022\026\n\016sa"
+    "mple_hiddens\030\t \002(\010\022#\n\026synchronization_pe"
+    "riod\030\n \001(\005:\003512\022\034\n\024output_filename_base\030"
+    "\013 \002(\t\022\031\n\ndiag_error\030\014 \001(\010:\005false\022&\n\027diag"
+    "_weight_update_hist\030\r \001(\010:\005false\0221\n\"diag"
+    "_hidden_activation_probability\030\016 \001(\010:\005fa"
+    "lse\022%\n\026diag_visible_recon_err\030\017 \001(\010:\005fal"
+    "se\022\'\n\030diag_epoch_weight_output\030\020 \001(\010:\005fa"
+    "lse\022(\n\032diag_train_val_energy_diff\030\021 \001(\010:"
+    "\004true", 565);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "rbmconfig.proto", &protobuf_RegisterTypes);
   RbmParameters::default_instance_ = new RbmParameters();
@@ -129,9 +143,16 @@ const int RbmParameters::kMomentumFieldNumber;
 const int RbmParameters::kLearningRateFieldNumber;
 const int RbmParameters::kGibbsSamplingStepsFieldNumber;
 const int RbmParameters::kPersistentGibbsChainFieldNumber;
-const int RbmParameters::kBinaryVisiblesFieldNumber;
+const int RbmParameters::kSampleVisiblesFieldNumber;
+const int RbmParameters::kSampleHiddensFieldNumber;
 const int RbmParameters::kSynchronizationPeriodFieldNumber;
 const int RbmParameters::kOutputFilenameBaseFieldNumber;
+const int RbmParameters::kDiagErrorFieldNumber;
+const int RbmParameters::kDiagWeightUpdateHistFieldNumber;
+const int RbmParameters::kDiagHiddenActivationProbabilityFieldNumber;
+const int RbmParameters::kDiagVisibleReconErrFieldNumber;
+const int RbmParameters::kDiagEpochWeightOutputFieldNumber;
+const int RbmParameters::kDiagTrainValEnergyDiffFieldNumber;
 #endif  // !_MSC_VER
 
 RbmParameters::RbmParameters()
@@ -161,9 +182,16 @@ void RbmParameters::SharedCtor() {
   learning_rate_ = 0;
   gibbs_sampling_steps_ = 1;
   persistent_gibbs_chain_ = false;
-  binary_visibles_ = false;
+  sample_visibles_ = false;
+  sample_hiddens_ = false;
   synchronization_period_ = 512;
   output_filename_base_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  diag_error_ = false;
+  diag_weight_update_hist_ = false;
+  diag_hidden_activation_probability_ = false;
+  diag_visible_recon_err_ = false;
+  diag_epoch_weight_output_ = false;
+  diag_train_val_energy_diff_ = true;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -214,15 +242,18 @@ void RbmParameters::Clear() {
 
   if (_has_bits_[0 / 32] & 255u) {
     ZR_(num_hidden_, learning_rate_);
-    ZR_(persistent_gibbs_chain_, binary_visibles_);
+    ZR_(persistent_gibbs_chain_, sample_visibles_);
     gibbs_sampling_steps_ = 1;
   }
-  if (_has_bits_[8 / 32] & 768u) {
+  if (_has_bits_[8 / 32] & 65280u) {
+    ZR_(sample_hiddens_, diag_error_);
+    ZR_(diag_weight_update_hist_, diag_epoch_weight_output_);
     synchronization_period_ = 512;
     if (has_output_filename_base()) {
       output_filename_base_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
     }
   }
+  diag_train_val_energy_diff_ = true;
 
 #undef ZR_HELPER_
 #undef ZR_
@@ -239,7 +270,7 @@ bool RbmParameters::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   // @@protoc_insertion_point(parse_start:rbm.RbmParameters)
   for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(16383);
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
@@ -343,28 +374,43 @@ bool RbmParameters::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(64)) goto parse_binary_visibles;
+        if (input->ExpectTag(64)) goto parse_sample_visibles;
         break;
       }
 
-      // required bool binary_visibles = 8;
+      // required bool sample_visibles = 8;
       case 8: {
         if (tag == 64) {
-         parse_binary_visibles:
+         parse_sample_visibles:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
-                 input, &binary_visibles_)));
-          set_has_binary_visibles();
+                 input, &sample_visibles_)));
+          set_has_sample_visibles();
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(72)) goto parse_synchronization_period;
+        if (input->ExpectTag(72)) goto parse_sample_hiddens;
         break;
       }
 
-      // optional int32 synchronization_period = 9 [default = 512];
+      // required bool sample_hiddens = 9;
       case 9: {
         if (tag == 72) {
+         parse_sample_hiddens:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &sample_hiddens_)));
+          set_has_sample_hiddens();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(80)) goto parse_synchronization_period;
+        break;
+      }
+
+      // optional int32 synchronization_period = 10 [default = 512];
+      case 10: {
+        if (tag == 80) {
          parse_synchronization_period:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
@@ -373,13 +419,13 @@ bool RbmParameters::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(82)) goto parse_output_filename_base;
+        if (input->ExpectTag(90)) goto parse_output_filename_base;
         break;
       }
 
-      // required string output_filename_base = 10;
-      case 10: {
-        if (tag == 82) {
+      // required string output_filename_base = 11;
+      case 11: {
+        if (tag == 90) {
          parse_output_filename_base:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_output_filename_base()));
@@ -387,6 +433,96 @@ bool RbmParameters::MergePartialFromCodedStream(
             this->output_filename_base().data(), this->output_filename_base().length(),
             ::google::protobuf::internal::WireFormat::PARSE,
             "rbm.RbmParameters.output_filename_base");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(96)) goto parse_diag_error;
+        break;
+      }
+
+      // optional bool diag_error = 12 [default = false];
+      case 12: {
+        if (tag == 96) {
+         parse_diag_error:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &diag_error_)));
+          set_has_diag_error();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(104)) goto parse_diag_weight_update_hist;
+        break;
+      }
+
+      // optional bool diag_weight_update_hist = 13 [default = false];
+      case 13: {
+        if (tag == 104) {
+         parse_diag_weight_update_hist:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &diag_weight_update_hist_)));
+          set_has_diag_weight_update_hist();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(112)) goto parse_diag_hidden_activation_probability;
+        break;
+      }
+
+      // optional bool diag_hidden_activation_probability = 14 [default = false];
+      case 14: {
+        if (tag == 112) {
+         parse_diag_hidden_activation_probability:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &diag_hidden_activation_probability_)));
+          set_has_diag_hidden_activation_probability();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(120)) goto parse_diag_visible_recon_err;
+        break;
+      }
+
+      // optional bool diag_visible_recon_err = 15 [default = false];
+      case 15: {
+        if (tag == 120) {
+         parse_diag_visible_recon_err:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &diag_visible_recon_err_)));
+          set_has_diag_visible_recon_err();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(128)) goto parse_diag_epoch_weight_output;
+        break;
+      }
+
+      // optional bool diag_epoch_weight_output = 16 [default = false];
+      case 16: {
+        if (tag == 128) {
+         parse_diag_epoch_weight_output:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &diag_epoch_weight_output_)));
+          set_has_diag_epoch_weight_output();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(136)) goto parse_diag_train_val_energy_diff;
+        break;
+      }
+
+      // optional bool diag_train_val_energy_diff = 17 [default = true];
+      case 17: {
+        if (tag == 136) {
+         parse_diag_train_val_energy_diff:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &diag_train_val_energy_diff_)));
+          set_has_diag_train_val_energy_diff();
         } else {
           goto handle_unusual;
         }
@@ -454,24 +590,59 @@ void RbmParameters::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteBool(7, this->persistent_gibbs_chain(), output);
   }
 
-  // required bool binary_visibles = 8;
-  if (has_binary_visibles()) {
-    ::google::protobuf::internal::WireFormatLite::WriteBool(8, this->binary_visibles(), output);
+  // required bool sample_visibles = 8;
+  if (has_sample_visibles()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(8, this->sample_visibles(), output);
   }
 
-  // optional int32 synchronization_period = 9 [default = 512];
+  // required bool sample_hiddens = 9;
+  if (has_sample_hiddens()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(9, this->sample_hiddens(), output);
+  }
+
+  // optional int32 synchronization_period = 10 [default = 512];
   if (has_synchronization_period()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(9, this->synchronization_period(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(10, this->synchronization_period(), output);
   }
 
-  // required string output_filename_base = 10;
+  // required string output_filename_base = 11;
   if (has_output_filename_base()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->output_filename_base().data(), this->output_filename_base().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE,
       "rbm.RbmParameters.output_filename_base");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      10, this->output_filename_base(), output);
+      11, this->output_filename_base(), output);
+  }
+
+  // optional bool diag_error = 12 [default = false];
+  if (has_diag_error()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(12, this->diag_error(), output);
+  }
+
+  // optional bool diag_weight_update_hist = 13 [default = false];
+  if (has_diag_weight_update_hist()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(13, this->diag_weight_update_hist(), output);
+  }
+
+  // optional bool diag_hidden_activation_probability = 14 [default = false];
+  if (has_diag_hidden_activation_probability()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(14, this->diag_hidden_activation_probability(), output);
+  }
+
+  // optional bool diag_visible_recon_err = 15 [default = false];
+  if (has_diag_visible_recon_err()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(15, this->diag_visible_recon_err(), output);
+  }
+
+  // optional bool diag_epoch_weight_output = 16 [default = false];
+  if (has_diag_epoch_weight_output()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(16, this->diag_epoch_weight_output(), output);
+  }
+
+  // optional bool diag_train_val_energy_diff = 17 [default = true];
+  if (has_diag_train_val_energy_diff()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(17, this->diag_train_val_energy_diff(), output);
   }
 
   if (_internal_metadata_.have_unknown_fields()) {
@@ -519,17 +690,22 @@ void RbmParameters::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(7, this->persistent_gibbs_chain(), target);
   }
 
-  // required bool binary_visibles = 8;
-  if (has_binary_visibles()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(8, this->binary_visibles(), target);
+  // required bool sample_visibles = 8;
+  if (has_sample_visibles()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(8, this->sample_visibles(), target);
   }
 
-  // optional int32 synchronization_period = 9 [default = 512];
+  // required bool sample_hiddens = 9;
+  if (has_sample_hiddens()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(9, this->sample_hiddens(), target);
+  }
+
+  // optional int32 synchronization_period = 10 [default = 512];
   if (has_synchronization_period()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(9, this->synchronization_period(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(10, this->synchronization_period(), target);
   }
 
-  // required string output_filename_base = 10;
+  // required string output_filename_base = 11;
   if (has_output_filename_base()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->output_filename_base().data(), this->output_filename_base().length(),
@@ -537,7 +713,37 @@ void RbmParameters::SerializeWithCachedSizes(
       "rbm.RbmParameters.output_filename_base");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        10, this->output_filename_base(), target);
+        11, this->output_filename_base(), target);
+  }
+
+  // optional bool diag_error = 12 [default = false];
+  if (has_diag_error()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(12, this->diag_error(), target);
+  }
+
+  // optional bool diag_weight_update_hist = 13 [default = false];
+  if (has_diag_weight_update_hist()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(13, this->diag_weight_update_hist(), target);
+  }
+
+  // optional bool diag_hidden_activation_probability = 14 [default = false];
+  if (has_diag_hidden_activation_probability()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(14, this->diag_hidden_activation_probability(), target);
+  }
+
+  // optional bool diag_visible_recon_err = 15 [default = false];
+  if (has_diag_visible_recon_err()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(15, this->diag_visible_recon_err(), target);
+  }
+
+  // optional bool diag_epoch_weight_output = 16 [default = false];
+  if (has_diag_epoch_weight_output()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(16, this->diag_epoch_weight_output(), target);
+  }
+
+  // optional bool diag_train_val_energy_diff = 17 [default = true];
+  if (has_diag_train_val_energy_diff()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(17, this->diag_train_val_energy_diff(), target);
   }
 
   if (_internal_metadata_.have_unknown_fields()) {
@@ -582,13 +788,18 @@ int RbmParameters::RequiredFieldsByteSizeFallback() const {
     total_size += 1 + 4;
   }
 
-  if (has_binary_visibles()) {
-    // required bool binary_visibles = 8;
+  if (has_sample_visibles()) {
+    // required bool sample_visibles = 8;
+    total_size += 1 + 1;
+  }
+
+  if (has_sample_hiddens()) {
+    // required bool sample_hiddens = 9;
     total_size += 1 + 1;
   }
 
   if (has_output_filename_base()) {
-    // required string output_filename_base = 10;
+    // required string output_filename_base = 11;
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::StringSize(
         this->output_filename_base());
@@ -599,7 +810,7 @@ int RbmParameters::RequiredFieldsByteSizeFallback() const {
 int RbmParameters::ByteSize() const {
   int total_size = 0;
 
-  if (((_has_bits_[0] & 0x0000029f) ^ 0x0000029f) == 0) {  // All required fields are present.
+  if (((_has_bits_[0] & 0x0000059f) ^ 0x0000059f) == 0) {  // All required fields are present.
     // required int32 num_hidden = 1;
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::Int32Size(
@@ -621,10 +832,13 @@ int RbmParameters::ByteSize() const {
     // required float learning_rate = 5;
     total_size += 1 + 4;
 
-    // required bool binary_visibles = 8;
+    // required bool sample_visibles = 8;
     total_size += 1 + 1;
 
-    // required string output_filename_base = 10;
+    // required bool sample_hiddens = 9;
+    total_size += 1 + 1;
+
+    // required string output_filename_base = 11;
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::StringSize(
         this->output_filename_base());
@@ -646,11 +860,43 @@ int RbmParameters::ByteSize() const {
     }
 
   }
-  // optional int32 synchronization_period = 9 [default = 512];
-  if (has_synchronization_period()) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::Int32Size(
-        this->synchronization_period());
+  if (_has_bits_[9 / 32] & 64000u) {
+    // optional int32 synchronization_period = 10 [default = 512];
+    if (has_synchronization_period()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
+          this->synchronization_period());
+    }
+
+    // optional bool diag_error = 12 [default = false];
+    if (has_diag_error()) {
+      total_size += 1 + 1;
+    }
+
+    // optional bool diag_weight_update_hist = 13 [default = false];
+    if (has_diag_weight_update_hist()) {
+      total_size += 1 + 1;
+    }
+
+    // optional bool diag_hidden_activation_probability = 14 [default = false];
+    if (has_diag_hidden_activation_probability()) {
+      total_size += 1 + 1;
+    }
+
+    // optional bool diag_visible_recon_err = 15 [default = false];
+    if (has_diag_visible_recon_err()) {
+      total_size += 1 + 1;
+    }
+
+    // optional bool diag_epoch_weight_output = 16 [default = false];
+    if (has_diag_epoch_weight_output()) {
+      total_size += 2 + 1;
+    }
+
+  }
+  // optional bool diag_train_val_energy_diff = 17 [default = true];
+  if (has_diag_train_val_energy_diff()) {
+    total_size += 2 + 1;
   }
 
   if (_internal_metadata_.have_unknown_fields()) {
@@ -700,17 +946,40 @@ void RbmParameters::MergeFrom(const RbmParameters& from) {
     if (from.has_persistent_gibbs_chain()) {
       set_persistent_gibbs_chain(from.persistent_gibbs_chain());
     }
-    if (from.has_binary_visibles()) {
-      set_binary_visibles(from.binary_visibles());
+    if (from.has_sample_visibles()) {
+      set_sample_visibles(from.sample_visibles());
     }
   }
   if (from._has_bits_[8 / 32] & (0xffu << (8 % 32))) {
+    if (from.has_sample_hiddens()) {
+      set_sample_hiddens(from.sample_hiddens());
+    }
     if (from.has_synchronization_period()) {
       set_synchronization_period(from.synchronization_period());
     }
     if (from.has_output_filename_base()) {
       set_has_output_filename_base();
       output_filename_base_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.output_filename_base_);
+    }
+    if (from.has_diag_error()) {
+      set_diag_error(from.diag_error());
+    }
+    if (from.has_diag_weight_update_hist()) {
+      set_diag_weight_update_hist(from.diag_weight_update_hist());
+    }
+    if (from.has_diag_hidden_activation_probability()) {
+      set_diag_hidden_activation_probability(from.diag_hidden_activation_probability());
+    }
+    if (from.has_diag_visible_recon_err()) {
+      set_diag_visible_recon_err(from.diag_visible_recon_err());
+    }
+    if (from.has_diag_epoch_weight_output()) {
+      set_diag_epoch_weight_output(from.diag_epoch_weight_output());
+    }
+  }
+  if (from._has_bits_[16 / 32] & (0xffu << (16 % 32))) {
+    if (from.has_diag_train_val_energy_diff()) {
+      set_diag_train_val_energy_diff(from.diag_train_val_energy_diff());
     }
   }
   if (from._internal_metadata_.have_unknown_fields()) {
@@ -731,7 +1000,7 @@ void RbmParameters::CopyFrom(const RbmParameters& from) {
 }
 
 bool RbmParameters::IsInitialized() const {
-  if ((_has_bits_[0] & 0x0000029f) != 0x0000029f) return false;
+  if ((_has_bits_[0] & 0x0000059f) != 0x0000059f) return false;
 
   return true;
 }
@@ -748,9 +1017,16 @@ void RbmParameters::InternalSwap(RbmParameters* other) {
   std::swap(learning_rate_, other->learning_rate_);
   std::swap(gibbs_sampling_steps_, other->gibbs_sampling_steps_);
   std::swap(persistent_gibbs_chain_, other->persistent_gibbs_chain_);
-  std::swap(binary_visibles_, other->binary_visibles_);
+  std::swap(sample_visibles_, other->sample_visibles_);
+  std::swap(sample_hiddens_, other->sample_hiddens_);
   std::swap(synchronization_period_, other->synchronization_period_);
   output_filename_base_.Swap(&other->output_filename_base_);
+  std::swap(diag_error_, other->diag_error_);
+  std::swap(diag_weight_update_hist_, other->diag_weight_update_hist_);
+  std::swap(diag_hidden_activation_probability_, other->diag_hidden_activation_probability_);
+  std::swap(diag_visible_recon_err_, other->diag_visible_recon_err_);
+  std::swap(diag_epoch_weight_output_, other->diag_epoch_weight_output_);
+  std::swap(diag_train_val_energy_diff_, other->diag_train_val_energy_diff_);
   std::swap(_has_bits_[0], other->_has_bits_[0]);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   std::swap(_cached_size_, other->_cached_size_);
@@ -935,39 +1211,63 @@ void RbmParameters::clear_persistent_gibbs_chain() {
   // @@protoc_insertion_point(field_set:rbm.RbmParameters.persistent_gibbs_chain)
 }
 
-// required bool binary_visibles = 8;
-bool RbmParameters::has_binary_visibles() const {
+// required bool sample_visibles = 8;
+bool RbmParameters::has_sample_visibles() const {
   return (_has_bits_[0] & 0x00000080u) != 0;
 }
-void RbmParameters::set_has_binary_visibles() {
+void RbmParameters::set_has_sample_visibles() {
   _has_bits_[0] |= 0x00000080u;
 }
-void RbmParameters::clear_has_binary_visibles() {
+void RbmParameters::clear_has_sample_visibles() {
   _has_bits_[0] &= ~0x00000080u;
 }
-void RbmParameters::clear_binary_visibles() {
-  binary_visibles_ = false;
-  clear_has_binary_visibles();
+void RbmParameters::clear_sample_visibles() {
+  sample_visibles_ = false;
+  clear_has_sample_visibles();
 }
- bool RbmParameters::binary_visibles() const {
-  // @@protoc_insertion_point(field_get:rbm.RbmParameters.binary_visibles)
-  return binary_visibles_;
+ bool RbmParameters::sample_visibles() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.sample_visibles)
+  return sample_visibles_;
 }
- void RbmParameters::set_binary_visibles(bool value) {
-  set_has_binary_visibles();
-  binary_visibles_ = value;
-  // @@protoc_insertion_point(field_set:rbm.RbmParameters.binary_visibles)
+ void RbmParameters::set_sample_visibles(bool value) {
+  set_has_sample_visibles();
+  sample_visibles_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.sample_visibles)
 }
 
-// optional int32 synchronization_period = 9 [default = 512];
-bool RbmParameters::has_synchronization_period() const {
+// required bool sample_hiddens = 9;
+bool RbmParameters::has_sample_hiddens() const {
   return (_has_bits_[0] & 0x00000100u) != 0;
 }
-void RbmParameters::set_has_synchronization_period() {
+void RbmParameters::set_has_sample_hiddens() {
   _has_bits_[0] |= 0x00000100u;
 }
-void RbmParameters::clear_has_synchronization_period() {
+void RbmParameters::clear_has_sample_hiddens() {
   _has_bits_[0] &= ~0x00000100u;
+}
+void RbmParameters::clear_sample_hiddens() {
+  sample_hiddens_ = false;
+  clear_has_sample_hiddens();
+}
+ bool RbmParameters::sample_hiddens() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.sample_hiddens)
+  return sample_hiddens_;
+}
+ void RbmParameters::set_sample_hiddens(bool value) {
+  set_has_sample_hiddens();
+  sample_hiddens_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.sample_hiddens)
+}
+
+// optional int32 synchronization_period = 10 [default = 512];
+bool RbmParameters::has_synchronization_period() const {
+  return (_has_bits_[0] & 0x00000200u) != 0;
+}
+void RbmParameters::set_has_synchronization_period() {
+  _has_bits_[0] |= 0x00000200u;
+}
+void RbmParameters::clear_has_synchronization_period() {
+  _has_bits_[0] &= ~0x00000200u;
 }
 void RbmParameters::clear_synchronization_period() {
   synchronization_period_ = 512;
@@ -983,15 +1283,15 @@ void RbmParameters::clear_synchronization_period() {
   // @@protoc_insertion_point(field_set:rbm.RbmParameters.synchronization_period)
 }
 
-// required string output_filename_base = 10;
+// required string output_filename_base = 11;
 bool RbmParameters::has_output_filename_base() const {
-  return (_has_bits_[0] & 0x00000200u) != 0;
+  return (_has_bits_[0] & 0x00000400u) != 0;
 }
 void RbmParameters::set_has_output_filename_base() {
-  _has_bits_[0] |= 0x00000200u;
+  _has_bits_[0] |= 0x00000400u;
 }
 void RbmParameters::clear_has_output_filename_base() {
-  _has_bits_[0] &= ~0x00000200u;
+  _has_bits_[0] &= ~0x00000400u;
 }
 void RbmParameters::clear_output_filename_base() {
   output_filename_base_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
@@ -1034,6 +1334,150 @@ void RbmParameters::clear_output_filename_base() {
   }
   output_filename_base_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), output_filename_base);
   // @@protoc_insertion_point(field_set_allocated:rbm.RbmParameters.output_filename_base)
+}
+
+// optional bool diag_error = 12 [default = false];
+bool RbmParameters::has_diag_error() const {
+  return (_has_bits_[0] & 0x00000800u) != 0;
+}
+void RbmParameters::set_has_diag_error() {
+  _has_bits_[0] |= 0x00000800u;
+}
+void RbmParameters::clear_has_diag_error() {
+  _has_bits_[0] &= ~0x00000800u;
+}
+void RbmParameters::clear_diag_error() {
+  diag_error_ = false;
+  clear_has_diag_error();
+}
+ bool RbmParameters::diag_error() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.diag_error)
+  return diag_error_;
+}
+ void RbmParameters::set_diag_error(bool value) {
+  set_has_diag_error();
+  diag_error_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.diag_error)
+}
+
+// optional bool diag_weight_update_hist = 13 [default = false];
+bool RbmParameters::has_diag_weight_update_hist() const {
+  return (_has_bits_[0] & 0x00001000u) != 0;
+}
+void RbmParameters::set_has_diag_weight_update_hist() {
+  _has_bits_[0] |= 0x00001000u;
+}
+void RbmParameters::clear_has_diag_weight_update_hist() {
+  _has_bits_[0] &= ~0x00001000u;
+}
+void RbmParameters::clear_diag_weight_update_hist() {
+  diag_weight_update_hist_ = false;
+  clear_has_diag_weight_update_hist();
+}
+ bool RbmParameters::diag_weight_update_hist() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.diag_weight_update_hist)
+  return diag_weight_update_hist_;
+}
+ void RbmParameters::set_diag_weight_update_hist(bool value) {
+  set_has_diag_weight_update_hist();
+  diag_weight_update_hist_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.diag_weight_update_hist)
+}
+
+// optional bool diag_hidden_activation_probability = 14 [default = false];
+bool RbmParameters::has_diag_hidden_activation_probability() const {
+  return (_has_bits_[0] & 0x00002000u) != 0;
+}
+void RbmParameters::set_has_diag_hidden_activation_probability() {
+  _has_bits_[0] |= 0x00002000u;
+}
+void RbmParameters::clear_has_diag_hidden_activation_probability() {
+  _has_bits_[0] &= ~0x00002000u;
+}
+void RbmParameters::clear_diag_hidden_activation_probability() {
+  diag_hidden_activation_probability_ = false;
+  clear_has_diag_hidden_activation_probability();
+}
+ bool RbmParameters::diag_hidden_activation_probability() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.diag_hidden_activation_probability)
+  return diag_hidden_activation_probability_;
+}
+ void RbmParameters::set_diag_hidden_activation_probability(bool value) {
+  set_has_diag_hidden_activation_probability();
+  diag_hidden_activation_probability_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.diag_hidden_activation_probability)
+}
+
+// optional bool diag_visible_recon_err = 15 [default = false];
+bool RbmParameters::has_diag_visible_recon_err() const {
+  return (_has_bits_[0] & 0x00004000u) != 0;
+}
+void RbmParameters::set_has_diag_visible_recon_err() {
+  _has_bits_[0] |= 0x00004000u;
+}
+void RbmParameters::clear_has_diag_visible_recon_err() {
+  _has_bits_[0] &= ~0x00004000u;
+}
+void RbmParameters::clear_diag_visible_recon_err() {
+  diag_visible_recon_err_ = false;
+  clear_has_diag_visible_recon_err();
+}
+ bool RbmParameters::diag_visible_recon_err() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.diag_visible_recon_err)
+  return diag_visible_recon_err_;
+}
+ void RbmParameters::set_diag_visible_recon_err(bool value) {
+  set_has_diag_visible_recon_err();
+  diag_visible_recon_err_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.diag_visible_recon_err)
+}
+
+// optional bool diag_epoch_weight_output = 16 [default = false];
+bool RbmParameters::has_diag_epoch_weight_output() const {
+  return (_has_bits_[0] & 0x00008000u) != 0;
+}
+void RbmParameters::set_has_diag_epoch_weight_output() {
+  _has_bits_[0] |= 0x00008000u;
+}
+void RbmParameters::clear_has_diag_epoch_weight_output() {
+  _has_bits_[0] &= ~0x00008000u;
+}
+void RbmParameters::clear_diag_epoch_weight_output() {
+  diag_epoch_weight_output_ = false;
+  clear_has_diag_epoch_weight_output();
+}
+ bool RbmParameters::diag_epoch_weight_output() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.diag_epoch_weight_output)
+  return diag_epoch_weight_output_;
+}
+ void RbmParameters::set_diag_epoch_weight_output(bool value) {
+  set_has_diag_epoch_weight_output();
+  diag_epoch_weight_output_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.diag_epoch_weight_output)
+}
+
+// optional bool diag_train_val_energy_diff = 17 [default = true];
+bool RbmParameters::has_diag_train_val_energy_diff() const {
+  return (_has_bits_[0] & 0x00010000u) != 0;
+}
+void RbmParameters::set_has_diag_train_val_energy_diff() {
+  _has_bits_[0] |= 0x00010000u;
+}
+void RbmParameters::clear_has_diag_train_val_energy_diff() {
+  _has_bits_[0] &= ~0x00010000u;
+}
+void RbmParameters::clear_diag_train_val_energy_diff() {
+  diag_train_val_energy_diff_ = true;
+  clear_has_diag_train_val_energy_diff();
+}
+ bool RbmParameters::diag_train_val_energy_diff() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.diag_train_val_energy_diff)
+  return diag_train_val_energy_diff_;
+}
+ void RbmParameters::set_diag_train_val_energy_diff(bool value) {
+  set_has_diag_train_val_energy_diff();
+  diag_train_val_energy_diff_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.diag_train_val_energy_diff)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS

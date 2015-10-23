@@ -23,14 +23,17 @@ def closeFactor(number, target):
         
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print "Use: "+sys.argv[0]+" <datafile> "
+    isprob = False
+    if len(sys.argv) == 1 or len(sys.argv) > 3:
+        print "Use: "+sys.argv[0]+" <datafile> [-p] \n\t-p  treat values as probabilities (0,1)"
         sys.exit()
+    if len(sys.argv) == 3 and sys.argv[2] == "-p":
+        isprob=True
     with open(sys.argv[1], "r") as fin:
         header = fin.readline()
         dat = fin.read()
         
-    d_x,d_y,n = map(int,header.split(" "))
+    d_x,d_y,n = map(int,header.strip().split(" "))
     
     
     #Read data into flat array
@@ -62,8 +65,10 @@ if __name__ == "__main__":
                 imgs[px_row+img_row*(d_y+1),img*(d_x+1):(img+1)*(d_x+1)-1] = dat[img_row, img, px_row , :]
                 imgs[:,(img+1)*(d_x+1)-1] = minval
         imgs[px_row+img_row*(d_y+1)+1,:] = minval
-                
-    plt.imshow(imgs,interpolation='none')
+    if isprob:
+        plt.imshow(imgs,interpolation='none',vmin=0,vmax=1)   
+    else:          
+        plt.imshow(imgs,interpolation='none')
     plt.set_cmap('gray')
     plt.show()
     

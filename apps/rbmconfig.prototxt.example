@@ -1,0 +1,17 @@
+num_hidden:64;
+epochs:50;
+batch_size:16;
+momentum:0.5 ;
+learning_rate:0.1;
+gibbs_sampling_steps:1;
+persistent_gibbs_chain:false;
+sample_visibles:false;
+sample_hiddens:false;
+synchronization_period:512;
+output_filename_base:"output";
+diag_error:false;
+diag_weight_update_hist:false;
+diag_hidden_activation_probability:false;
+diag_visible_recon_err:false;
+diag_epoch_weight_output:false;
+diag_train_val_energy_diff:true;
