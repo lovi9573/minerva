@@ -12,6 +12,7 @@
 #include <string>
 #include <fcntl.h>
 #include "mnist_raw.h"
+#include "cifar_raw.h"
 #include "rbmconfig.pb.h"
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
@@ -77,7 +78,7 @@ int main(int argc, char** argv) {
 	//Create training data provider
 	printf("opening training data\n");
 	int n_samples, sample_size;
-	MnistData dp(argv[1],0.9);
+	CifarData dp(argv[1],0.9);
 	n_samples = dp.nTrainSamples();
 	sample_size = dp.SampleSize();
 	int n_batches = n_samples / batch_size;
