@@ -57,7 +57,7 @@ INSTALL_DATAGEN_FN(RandBernoulliClosure, 		basic::RandBernoulli, 		NO_IMPL, cuda
 INSTALL_DATAGEN_FN(FillClosure, 				basic::Fill, 				NO_IMPL, cuda::Fill, 				NO_IMPL);
 INSTALL_COMPUTE_FN(LRNForwardClosure, 			basic::LRNForward, 			NO_IMPL, cuda::LRNForward, NO_IMPL);
 INSTALL_COMPUTE_FN(LRNBackwardClosure, 			basic::LRNBackward, 		NO_IMPL, cuda::LRNBackward, NO_IMPL);
-INSTALL_COMPUTE_FN(ConcatClosure, 				NO_IMPL, 					NO_IMPL, cuda::Concat, 		NO_IMPL);
+INSTALL_COMPUTE_FN(ConcatClosure, 				basic::Concat, 					NO_IMPL, cuda::Concat, 		NO_IMPL);
 INSTALL_COMPUTE_FN(SliceClosure, 				NO_IMPL, 					NO_IMPL, cuda::Slice, 		NO_IMPL);
 INSTALL_COMPUTE_FN(IndexClosure, 				basic::Index, 				NO_IMPL, NO_IMPL, 			NO_IMPL);
 INSTALL_COMPUTE_FN(SelectClosure,	 			NO_IMPL, 					NO_IMPL, cuda::Select, 		NO_IMPL);

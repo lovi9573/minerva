@@ -1061,6 +1061,47 @@ void Index(const DataList& inputs, const DataList& outputs, IndexClosure& closur
 		output_data[i] = input_data[i + idx * output_length];
 }
 
+void Concat(const DataList& inputs, const DataList& outputs, ConcatClosure& closure) {
+  CHECK_GT(inputs.size(), 1) << "(Concat) #inputs is wrong!";
+  CHECK_EQ(outputs.size(), 1) << "(Concat) #outputs is wrong!";
+  CHECK_LE(inputs[0].size_.NumDims() - closure.catdim, 3) << "(Concat) #Currently only support concat on the last two dims!";
+
+  size_t concat_dim = closure.catdim;
+  element_t* top_data = outputs[0].data_;
+  if (concat_dim == inputs[0].size_.NumDims() - 1) {
+    int offset_num = 0;
+    for (size_t i = 0; i < inputs.size(); ++i) {
+      element_t* bottom_data = inputs[i].data_;
+      memcpy( top_data + offset_num, bottom_data, inputs[i].size_.Prod());
+      offset_num += inputs[i].size_.Prod();
+    }
+  }
+  else {
+    int offset_channel = 0;
+    for (size_t i = 0; i < inputs.size(); ++i) {
+      element_t* bottom_data = inputs[i].data_;
+      int bot_num_elem = 1;
+      int top_num_elem = 1;
+      int img_size = 1;
+      int bot_channel = 1;
+      for (size_t idx = 0; idx < inputs[i].size_.NumDims() - 1; idx++){
+        bot_num_elem *= inputs[i].size_[idx];
+        top_num_elem *= outputs[0].size_[idx];
+        if(idx < inputs[i].size_.NumDims() - 2)
+          img_size *= inputs[i].size_[idx];
+        else
+          bot_channel = inputs[i].size_[idx];
+      }
+      int imgnum = inputs[i].size_[inputs[i].size_.NumDims()-1];
+      for (int n = 0; n < imgnum; ++n) {
+    	  memcpy( top_data + n * top_num_elem + offset_channel * img_size, bottom_data + n * bot_num_elem, bot_num_elem);
+      }
+      offset_channel += bot_channel;
+    }
+  }
+}
+
+
 void Histogram(const DataList& in , const DataList& out, HistogramClosure& closure){
 	element_t* in_data = in[0].data_;
 	element_t* out_data = out[0].data_;

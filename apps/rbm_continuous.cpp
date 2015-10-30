@@ -43,8 +43,8 @@ int main(int argc, char** argv){
 	//Load the training data
 	printf("load data\n");
 	int n_samples,sample_size;
-	MnistData dp(argv[1]);
-	n_samples = dp.nSamples();
+	MnistData dp(argv[1],0.9);
+	n_samples = dp.n_train_samples();
 	sample_size = dp.SampleSize();
 	printf("%d samples of size %d\n",n_samples,sample_size);
 

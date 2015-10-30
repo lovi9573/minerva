@@ -11,13 +11,16 @@ All n pixel 0's will be consecutive, followed by all n pixel 1's, etc...
 
 """
 
-def closeFactor(number, target):
+def closeCommonFactor(numbera, numberb, target):
     target = int(target)
     d = 0
-    while True:
-        if number%(target+d) == 0:
+    while target+d < numbera :
+        if  numbera%(target+d) == 0 and (target+d)%numberb == 0:
             return target+d
-        if number%(target-d) == 0:
+        d += 1
+    d = 0
+    while d < target:
+        if numbera%(target-d) == 0 and (target+d)%numberb == 0:
             return target-d
         d += 1
         
@@ -33,8 +36,7 @@ if __name__ == "__main__":
         header = fin.readline()
         dat = fin.read()
         
-    d_x,d_y,n = map(int,header.strip().split(" "))
-    
+    d_x,d_y,c,n = map(int,header.strip().split(" ")) 
     
     #Read data into flat array
     dat = re.sub("\s+",",",dat).strip(",")
@@ -45,9 +47,9 @@ if __name__ == "__main__":
     maxval = np.max(dat)
     print "max: {} min: {}\n".format(maxval,minval)
     
-    n_h_ideal = math.sqrt(n)
-    n_h = closeFactor(n, n_h_ideal)
-    n_v = n/n_h
+    n_h_ideal = math.sqrt(n*c)
+    n_h = closeCommonFactor(n*c, c, n_h_ideal)
+    n_v = n*c/n_h
     print n_h, n_v
     dat = dat.reshape([n_v,n_h,d_y,d_x])
     #plt.imshow(im0.reshape([d_x,d_y]),interpolation='none')

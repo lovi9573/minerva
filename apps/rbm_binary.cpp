@@ -78,8 +78,8 @@ int main(int argc, char** argv) {
 	//Create training data provider
 	printf("opening training data\n");
 	int n_samples, sample_size;
-	CifarData dp(argv[1],0.9);
-	n_samples = dp.nTrainSamples();
+	MnistData dp(argv[1],0.9);
+	n_samples = dp.n_train_samples();
 	sample_size = dp.SampleSize();
 	int n_batches = n_samples / batch_size;
 	printf("\t%d samples of size %d\n", n_samples, sample_size);

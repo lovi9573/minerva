@@ -61,8 +61,8 @@ int main(int argc, char** argv) {
 	bool sample_visibles = params.sample_visibles();
 	bool sample_hiddens = params.sample_hiddens();
 	bool is_chain_init = false;
-	int convolution_stride = 3;
-	int convolution_patch_dim = 5;
+	int convolution_stride = 2;
+	int convolution_patch_dim = 26;
 	int convolution_padding = 0;
 
 	//Initialize minerva
@@ -81,22 +81,22 @@ int main(int argc, char** argv) {
 	//Create training data provider
 	printf("opening training data\n");
 	int n_samples, n_channels, dim_y,dim_x;
-	CifarData dp(argv[1],0.9);
-	n_samples = dp.nTrainSamples();
-	n_channels = dp.nTrainChannels();
+	MnistData dp(argv[1],0.9);
+	n_samples = dp.n_train_samples();
+	n_channels = dp.n_channels();
 	dim_y = dp.dim_y();
 	dim_x = dp.dim_x();
 	int n_batches = n_samples / batch_size;
-	printf("\t%d samples of size %d\n", n_samples, sample_size);
+	printf("\t%d samples of size %dx%dx%d\n", n_samples, dim_x,dim_y,n_channels);
 
 	//Initialize data structures
 	printf("Initialize data structures\n");
 	int hidden_dim_x = (dim_x+2*convolution_padding-convolution_patch_dim)/convolution_stride;
 	int hidden_dim_y = (dim_y+2*convolution_padding-convolution_patch_dim)/convolution_stride;
-	Scale weight_scale( { convolution_patch_dim, convolution_patch_dim, n_channels,_n_hidden });
+	Scale weight_scale( { convolution_patch_dim, convolution_patch_dim, n_channels, n_hidden });
 	Scale sample_scale({dim_x, dim_y, n_channels, batch_size});
-	Scale visible_bias_scale({dim_x, dim_y, n_channels});
-	Scale hidden_bias_scale({hidden_dim_x, hidden_dim_y, n_hidden});
+	Scale visible_bias_scale({1,1,n_channels,1});
+	Scale hidden_bias_scale({n_hidden});
 	Scale hidden_scale({ hidden_dim_x, hidden_dim_y, n_hidden, batch_size});
 	ConvInfo fwd_conv_info(convolution_padding,convolution_padding,convolution_stride,convolution_stride);
 
@@ -106,12 +106,12 @@ int main(int argc, char** argv) {
 	NArray bias_h = NArray::Zeros( hidden_bias_scale);
 
 	NArray d_weights = NArray::Zeros( weight_scale);
-	NArray d_bias_v = NArray::Zeros( { sample_size, 1 });
-	NArray d_bias_h = NArray::Zeros( { n_hidden, 1 });
+	NArray d_bias_v = NArray::Zeros( visible_bias_scale);
+	NArray d_bias_h = NArray::Zeros( hidden_bias_scale);
 
 	NArray d_weights_ave = NArray::Zeros( weight_scale);
-	NArray d_bias_v_ave = NArray::Zeros( { sample_size, 1 });
-	NArray d_bias_h_ave = NArray::Zeros( { n_hidden, 1 });
+	NArray d_bias_v_ave = NArray::Zeros( visible_bias_scale);
+	NArray d_bias_h_ave = NArray::Zeros( hidden_bias_scale);
 	NArray sqrdiff, visible, reconstruction, hidden, sampled_hiddens,
 			chain_visible;
 
@@ -121,8 +121,8 @@ int main(int argc, char** argv) {
 		float mse = 0.0;
 		if (params.diag_error()) {
 			d_weights_ave = NArray::Zeros(weight_scale);
-			d_bias_v_ave = NArray::Zeros( { sample_size, 1 });
-			d_bias_h_ave = NArray::Zeros( { n_hidden, 1 });
+			d_bias_v_ave = NArray::Zeros( visible_bias_scale);
+			d_bias_h_ave = NArray::Zeros( hidden_bias_scale);
 		}
 		//Begin batch
 		for (int i_batch = 0; i_batch < n_batches; i_batch++) {
@@ -141,12 +141,12 @@ int main(int argc, char** argv) {
 
 			//Initialize persistent chain if needed.
 			if (persistent && !is_chain_init) {
-				in_h = weights * visible + bias_h;
-				hidden = 1.0 / (1.0 + Elewise::Exp(-in_h)); // H x B
+				in_h = Convolution::ConvForward(visible, weights, bias_h, fwd_conv_info);
+				hidden = 1.0 / (1.0 + Elewise::Exp(-in_h)); //
 				NArray uniform_randoms = NArray::RandUniform(hidden.Size(),
 						1.0);
-				sampled_hiddens = hidden > uniform_randoms; //H x B
-				in_v = weights.Trans() * sampled_hiddens + bias_v;
+				sampled_hiddens = hidden > uniform_randoms; //
+				in_v = Convolution::ConvBackwardData(sampled_hiddens, visible, weights, fwd_conv_info);
 				chain_visible = 1.0 / (1.0 + Elewise::Exp(-in_v)); //V x B
 				is_chain_init = true;
 			}
@@ -159,23 +159,24 @@ int main(int argc, char** argv) {
 			//Positive Phase
 			in_h = Convolution::ConvForward(visible, weights, bias_h, fwd_conv_info);
 			//in_h = weights * visible + bias_h;
-			hidden = 1.0 / (1.0 + Elewise::Exp(-in_h)); // H x B
+			hidden = 1.0 / (1.0 + Elewise::Exp(-in_h)); //
 
-			NArray d_weights_p = NArray.Zeros(weight_scale);
+			NArray d_weights_p = NArray::Zeros(weight_scale);
 			d_weights_p = Convolution::ConvBackwardFilter(hidden,visible,weights,fwd_conv_info);
 			//NArray d_weights_p = hidden * visible.Trans();
-			NArray d_bias_v_p = visible.Sum(visible.Size().NumDims()-1);
-			NArray d_bias_h_p = hidden.Sum(hidden.Size().NumDims()-1);
+			NArray d_bias_v_p = visible.Sum(visible.Size().NumDims()-1).Sum(0).Sum(1);
+			NArray d_bias_h_p = hidden.Sum(hidden.Size().NumDims()-1).Sum(0).Sum(1);
+
 
 			//Setup for Gibbs sampling.
 			if (persistent) {
 				in_h = Convolution::ConvForward(chain_visible, weights, bias_h, fwd_conv_info);
 				//in_h = weights * chain_visible + bias_h;
-				hidden = 1.0 / (1.0 + Elewise::Exp(-in_h)); // H x B
+				hidden = 1.0 / (1.0 + Elewise::Exp(-in_h)); //
 			} else {
 				NArray uniform_randoms = NArray::RandUniform(hidden.Size(),
 						1.0);
-				sampled_hiddens = hidden > uniform_randoms; //H x B
+				sampled_hiddens = hidden > uniform_randoms; //
 			}
 
 			//Gibbs Sampling
@@ -185,11 +186,13 @@ int main(int argc, char** argv) {
 				if (sample_hiddens) {
 					NArray uniform_randoms = NArray::RandUniform(hidden.Size(),
 							1.0);
-					sampled_hiddens = hidden > uniform_randoms; //H x B
-					in_v = Convolution::ConvForward(sampled_hiddens,weights, bias_v, fwd_conv_info);
+					sampled_hiddens = hidden > uniform_randoms; //
+					in_v = Convolution::ConvBackwardData(sampled_hiddens, visible, weights, fwd_conv_info);
+					in_v = Elewise::Mult(in_v, bias_v);
 					//in_v = weights.Trans() * sampled_hiddens + bias_v;
 				} else {
-					in_v = Convolution::ConvForward(hidden,weights, bias_v, fwd_conv_info);
+					in_v = Convolution::ConvBackwardData(hidden, visible, weights, fwd_conv_info);
+					in_v = Elewise::Mult(in_v, bias_v);
 					//in_v = weights.Trans() * hidden + bias_v;
 				}
 				reconstruction = 1.0 / (1.0 + Elewise::Exp(-in_v)); //V x B
@@ -205,26 +208,27 @@ int main(int argc, char** argv) {
 					in_h = Convolution::ConvForward(reconstruction,weights, bias_h, fwd_conv_info);
 					//in_h = weights * reconstruction + bias_h;
 				}
-				hidden = 1.0 / (1.0 + Elewise::Exp(-in_h));  //H x B
+				hidden = 1.0 / (1.0 + Elewise::Exp(-in_h));  //
 			}
 			if (persistent) {
 				chain_visible = 1.0 * reconstruction;
 			}
 
 			//Negative Phase
-			NArray d_weights_n = NArray.Zeros(weight_scale);
-			d_weights_p = Convolution::ConvBackwardFilter(hidden,reconstruction,weights,fwd_conv_info);
+			NArray d_weights_n = NArray::Zeros(weight_scale);
+			d_weights_n = Convolution::ConvBackwardFilter(hidden,reconstruction,weights,fwd_conv_info);
 			//NArray d_weights_p = hidden * visible.Trans();
-			NArray d_bias_v_n = reconstruction.Sum(visible.Size().NumDims()-1);
-			NArray d_baias_h_n = hidden.Sum(hidden.Size().NumDims()-1);
+			NArray d_bias_v_n = reconstruction.Sum(visible.Size().NumDims()-1).Sum(0).Sum(1);
+			NArray d_bias_h_n = hidden.Sum(hidden.Size().NumDims()-1).Sum(0).Sum(1);
 			/*NArray d_weights_n = hidden * reconstruction.Trans();
 			NArray d_bias_v_n = reconstruction.Sum(1);
 			NArray d_baias_h_n = hidden.Sum(1);
 */
+
 			//Update Weights
 			d_weights += (d_weights_p - d_weights_n);
 			d_bias_v += (d_bias_v_p - d_bias_v_n);
-			d_bias_h += (d_bias_h_p - d_bias_h_n);
+			d_bias_h += (d_bias_h_p - d_bias_h_n).Reshape(hidden_bias_scale);
 
 			weights += d_weights * lr / batch_size;
 			bias_v += d_bias_v * lr / batch_size;
@@ -237,6 +241,7 @@ int main(int argc, char** argv) {
 			if (params.diag_error()) {
 
 				//Compute Error
+
 				NArray diff = reconstruction - visible;
 				sqrdiff = Elewise::Mult(diff, diff);
 				NArray sum0 = sqrdiff.Sum(0);
@@ -249,6 +254,19 @@ int main(int argc, char** argv) {
 			}
 			if (i_batch % sync_period == 0) {
 				mi.WaitForAll();
+				//NArray side_by_side = Concat( { visible, reconstruction }, 3);
+				writeNArray(visible,
+						output_base + "_vis_" + std::to_string(i_epoch)+"_"+std::to_string(i_batch),
+						visible.Size());
+				writeNArray(reconstruction,
+						output_base + "_reconstruction_" + std::to_string(i_epoch)+"_"+std::to_string(i_batch),
+						reconstruction.Size());
+				writeNArray(d_weights_p,
+						output_base + "_d_weights_p_" + std::to_string(i_epoch)+"_"+std::to_string(i_batch),
+						d_weights_p.Size());
+				writeNArray(d_weights_n,
+						output_base + "_d_weights_n_" + std::to_string(i_epoch)+"_"+std::to_string(i_batch),
+						d_weights_n.Size());
 			}
 
 		}// End batches for this epoch
@@ -261,24 +279,24 @@ int main(int argc, char** argv) {
 		}
 		if (params.diag_train_val_energy_diff()){
 			shared_ptr<float> batch_t = dp.GetNextBatch(batch_size);
-			NArray visible_t = NArray::MakeNArray( { sample_size, batch_size }, batch_t); //V x B
+			NArray visible_t = NArray::MakeNArray( sample_scale, batch_t); //V x B
 			shared_ptr<float> batch_val = dp.GetNextBatch(batch_size);
-			NArray visible_val = NArray::MakeNArray( { sample_size, batch_size }, batch_val); //V x B
+			NArray visible_val = NArray::MakeNArray( sample_scale, batch_val); //V x B
 
 			NArray in_h = Convolution::ConvForward(visible_t,weights, bias_h, fwd_conv_info);
 			//NArray in_h = weights * visible_t + bias_h;
-			NArray hidden_t = 1.0 / (1.0 + Elewise::Exp(-in_h)); // H x B
+			NArray hidden_t = 1.0 / (1.0 + Elewise::Exp(-in_h)); //
 			in_h = Convolution::ConvForward(visible_val,weights, bias_h, fwd_conv_info);
 			//in_h = weights * visible_val + bias_h;
-			NArray hidden_val = 1.0 / (1.0 + Elewise::Exp(-in_h)); // H x B
+			NArray hidden_val = 1.0 / (1.0 + Elewise::Exp(-in_h)); //
 
 			//TODO(jesselovitt): Compute Energy of both == Convert to convolution from here down====
-			NArray E_t = hidden_t.Trans()*bias_h + visible_t.Trans()*bias_v + Elewise::Mult((weights * visible_t), hidden_t).Sum(0).Trans();   // B X 1
-			NArray E_val = hidden_val.Trans()*bias_h + visible_val.Trans()*bias_v + Elewise::Mult((weights * visible_val), hidden_val).Sum(0).Trans();   // B X 1
+			//NArray E_t = hidden_t.Trans()*bias_h + visible_t.Trans()*bias_v + Elewise::Mult((weights * visible_t), hidden_t).Sum(0).Trans();   // B X 1
+			//NArray E_val = hidden_val.Trans()*bias_h + visible_val.Trans()*bias_v + Elewise::Mult((weights * visible_val), hidden_val).Sum(0).Trans();   // B X 1
 
 			mi.SetDevice(cpu);
-			float E_diff = (E_t - E_val).Sum()/batch_size;
-			printf("Validation - train Energy difference: %f\n",E_diff);
+			//float E_diff = (E_t - E_val).Sum()/batch_size;
+			printf("Validation - train Energy difference: <To Be Implemented>\n");
 		}
 
 		if (params.diag_weight_update_hist()) {
@@ -300,16 +318,14 @@ int main(int argc, char** argv) {
 
 		if (params.diag_hidden_activation_probability()) {
 			//write the hidden probabilities
-			Scale scale = hidden.Size();
-			Scale sout( { scale[0], scale[1], 1 });
 			writeNArray(hidden,
 					output_base + "_p_h_over_batch_e" + std::to_string(i_epoch),
-					sout);
+					hidden.Size());
 		}
 
 		if (params.diag_visible_recon_err()) {
 			//write an error side by side img
-			if (has_gpu) {
+			/*if (has_gpu) {
 				mi.SetDevice(gpu);
 				NArray vis = Slice(visible, 1, 0, 1);
 				NArray rec = Slice(reconstruction, 1, 0, 1);
@@ -322,27 +338,19 @@ int main(int argc, char** argv) {
 						std::ifstream::out);
 				error_side_by_side.ToStream(errof, ff);
 				errof.close();
-			}
+			}*/
 		}
 
 		if (params.diag_epoch_weight_output()) {
 			//write the current weights
-			Scale wscale = weights.Size();
-			int x = (int) sqrt(wscale[1]);
-			int y = wscale[1] / x;
-			Scale swrite( { x, y, wscale[0] });
-			writeNArray(weights.Trans(),
+			writeNArray(weights,
 					output_base + "_weights_e" + std::to_string(i_epoch),
-					swrite);
+					weights.Size());
 		}
 
 	}//End epochs
 	mi.PrintProfilerResults();
-	Scale scale = weights.Size();
-	int x = (int) sqrt(scale[1]);
-	int y = scale[1] / x;
-	Scale swrite( { x, y, scale[0] });
-	writeNArray(weights.Trans(), output_base + "_weights_final", swrite);
+	writeNArray( weights, output_base + "_weights_final", weights.Size());
 	return 0;
 
 }

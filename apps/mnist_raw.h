@@ -24,8 +24,11 @@ public:
 	shared_ptr<float> GetNextBatch(int batchsize);
 	shared_ptr<float> GetNextValidationBatch(int batchsize);
 	void setSplit(float);
-	int nTrainSamples();
-	int nValSamples();
+	int n_train_samples();
+	int n_val_samples();
+	int n_channels();
+	int dim_x();
+	int dim_y();
 	int SampleSize();
 private:
 	int n_samples;
@@ -52,7 +55,7 @@ MnistData::MnistData(char* data_filename, float split) {
 	split_ = split;
 	valstream.open(data_filename, std::ifstream::binary);
 	valstream.clear();
-	valstream.seekg(16+nTrainSamples()*SampleSize(),std::ifstream::beg);
+	valstream.seekg(16+n_train_samples()*SampleSize(),std::ifstream::beg);
 	printf("file contains data of size %dx%dx%d\n",n_samples,n_rows,n_columns);
 }
 
@@ -82,7 +85,7 @@ shared_ptr<float> MnistData::GetNextBatch(int batchsize) {
 	while (batchbytes > 0) {
 		rd = min(bufsize, batchbytes);
 		datastream.read(buf, rd );
-		if (datastream.tellg() >= 16+nTrainSamples()*SampleSize()){
+		if (datastream.tellg() >= 16+n_train_samples()*SampleSize()){
 			printf("Reached end of training data.  Restarting at beginning\n");
 			datastream.clear();
 			datastream.seekg(16,std::ifstream::beg);
@@ -112,7 +115,7 @@ shared_ptr<float> MnistData::GetNextValidationBatch(int batchsize){
 		if (valstream.eof()){
 			printf("Reached end of validation data.  Restarting at beginning\n");
 			datastream.clear();
-			datastream.seekg(16+nTrainSamples()*SampleSize(),std::ifstream::beg);
+			datastream.seekg(16+n_train_samples()*SampleSize(),std::ifstream::beg);
 			datastream.read(buf, rd * sizeof(char));
 		}
 		for (int i = 0; i < rd; i++) {
@@ -123,17 +126,26 @@ shared_ptr<float> MnistData::GetNextValidationBatch(int batchsize){
 	return data;
 }
 
-int MnistData::nTrainSamples(){
+int MnistData::n_train_samples(){
 	return ((int)n_samples*split_);
 }
 
-int MnistData::nValSamples(){
+int MnistData::n_val_samples(){
 	return ((int)n_samples*(1-split_));
 }
 
-
 int MnistData::SampleSize(){
 	return n_rows*n_columns;
+}
+
+int MnistData::n_channels(){
+	return 1;
+}
+int MnistData::dim_x(){
+	return n_columns;
+}
+int MnistData::dim_y(){
+	return n_rows;
 }
 
 
