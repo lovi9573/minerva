@@ -54,6 +54,10 @@ CifarData::CifarData(char* data_filename, float split) {
 	printf("file contains data of size %dx%dx%dx%d\n",n_samples,n_channels,n_rows,n_columns);
 }
 
+/**
+ * Returns a batch of cifar image data in row major order where color channels are separated.
+ * i.e. since an image is 32x32 pixels, 1024 red data, will be followed by 1024 green data, etc...
+ */
 shared_ptr<float> CifarData::GetNextBatch(int batchsize) {
 	int batchbytes = batchsize *n_channels* n_rows * n_columns;
 	int bufsize = n_channels*n_rows * n_columns;

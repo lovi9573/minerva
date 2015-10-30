@@ -19,11 +19,13 @@ else (BUILD_WITH_PS)
   endif (CUDA_FOUND)
 endif (BUILD_WITH_PS)
 
-#rbm application
+#rbm applications
 link_directories(${LINK_PATHS})
-add_executable(rbm_binary "rbm_binary.cpp" "rbmconfig.pb.cc")
 #find_library(PROTOBUF_LIB protobuf "${HOME}/local/lib/libprotobuf")
+add_executable(rbm_binary "rbm_binary.cpp" "rbmconfig.pb.cc")
 target_link_libraries(rbm_binary minerva protobuf ${CORE_DEPS})
+add_executable(rbm_continuous "rbm_continuous.cpp" "rbmconfig.pb.cc")
+target_link_libraries(rbm_continuous minerva protobuf ${CORE_DEPS})
 
 foreach(app_src ${app_file_list})
   get_filename_component(app_name ${app_src} NAME_WE)
