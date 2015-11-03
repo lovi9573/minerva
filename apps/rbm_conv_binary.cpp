@@ -136,7 +136,7 @@ int main(int argc, char** argv) {
 			NArray in_h, in_v;
 
 			//Get minibatch
-			shared_ptr<float> batch = dp.GetNextBatch(batch_size);
+			shared_ptr<float> batch = dp.get_next_batch(batch_size);
 			visible = NArray::MakeNArray( sample_scale, batch); //V x B
 
 			//Initialize persistent chain if needed.
@@ -278,9 +278,9 @@ int main(int argc, char** argv) {
 			printf("MSE: %f\n", mse);
 		}
 		if (params.diag_train_val_energy_diff()){
-			shared_ptr<float> batch_t = dp.GetNextBatch(batch_size);
+			shared_ptr<float> batch_t = dp.get_next_batch(batch_size);
 			NArray visible_t = NArray::MakeNArray( sample_scale, batch_t); //V x B
-			shared_ptr<float> batch_val = dp.GetNextBatch(batch_size);
+			shared_ptr<float> batch_val = dp.get_next_batch(batch_size);
 			NArray visible_val = NArray::MakeNArray( sample_scale, batch_val); //V x B
 
 			NArray in_h = Convolution::ConvForward(visible_t,weights, bias_h, fwd_conv_info);

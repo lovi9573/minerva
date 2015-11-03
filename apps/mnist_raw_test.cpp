@@ -37,7 +37,7 @@ int main(int argc, char**argv){
 	mi.SetDevice(cpu);
 
 	//Get minibatch
-	shared_ptr<float> batch = dp.GetNextBatch(BATCH_SIZE);
+	shared_ptr<float> batch = dp.get_next_batch(BATCH_SIZE);
 	n_samples = dp.nSamples();
 	sample_size = dp.SampleSize();
 	NArray nbatch = NArray::MakeNArray({sample_size,BATCH_SIZE}, batch);

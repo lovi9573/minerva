@@ -37,5 +37,14 @@ message RbmParameters{
 	optional bool diag_epoch_weight_output = 16 [default=false];
 	// Include Energy difference between training and validation batches
 	optional bool diag_train_val_energy_diff = 17 [default=true];
+	// Training Data file
+	required string train_data_filename = 18;
+	// Use sparsity target
+	optional bool use_sparsity_target = 19 [default=false];
+	// Sparsity target
+	optional float sparsity_target = 20 [default=0.01];
+	// Sparsity decay
+	optional float sparsity_decay = 21[default=0.95];
+
 
 }

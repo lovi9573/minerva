@@ -19,10 +19,9 @@ using namespace std;
 
 class MnistData{
 public:
-	MnistData(char* data_filename,float);
-	int BigtoLittle(int val);
-	shared_ptr<float> GetNextBatch(int batchsize);
-	shared_ptr<float> GetNextValidationBatch(int batchsize);
+	MnistData(const char* data_filename,float);
+	shared_ptr<float> get_next_batch(int batchsize);
+	shared_ptr<float> get_next_validation_batch(int batchsize);
 	void setSplit(float);
 	int n_train_samples();
 	int n_val_samples();
@@ -31,6 +30,7 @@ public:
 	int dim_y();
 	int SampleSize();
 private:
+	int BigtoLittle(int val);
 	int n_samples;
 	int n_rows;
 	int n_columns;
@@ -41,7 +41,7 @@ private:
 };
 
 
-MnistData::MnistData(char* data_filename, float split) {
+MnistData::MnistData(const char* data_filename, float split) {
 	printf("opening \"%s\"\n",data_filename);
 	datastream.open(data_filename, std::ifstream::binary);
 	datastream.clear();
@@ -72,7 +72,7 @@ int MnistData::BigtoLittle(int val) {
 
 
 
-shared_ptr<float> MnistData::GetNextBatch(int batchsize) {
+shared_ptr<float> MnistData::get_next_batch(int batchsize) {
 	int batchbytes = batchsize * n_rows * n_columns;
 	int bufsize = n_rows * n_columns;
 	char buf[bufsize];
@@ -99,7 +99,7 @@ shared_ptr<float> MnistData::GetNextBatch(int batchsize) {
 	return data;
 }
 
-shared_ptr<float> MnistData::GetNextValidationBatch(int batchsize){
+shared_ptr<float> MnistData::get_next_validation_batch(int batchsize){
 	int batchbytes = batchsize * n_rows * n_columns;
 	int bufsize = n_rows * n_columns;
 	char buf[bufsize];
