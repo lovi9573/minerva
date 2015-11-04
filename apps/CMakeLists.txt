@@ -21,7 +21,7 @@ endif (BUILD_WITH_PS)
 
 #rbm applications
 link_directories(${LINK_PATHS})
-#find_library(PROTOBUF_LIB protobuf "${HOME}/local/lib/libprotobuf")
+#find_library(PROTOBUF_LIB protobuf "${HOME}/.local/lib/libprotobuf")
 add_executable(rbm_binary "rbm_binary.cpp" "rbmconfig.pb.cc")
 target_link_libraries(rbm_binary minerva protobuf ${CORE_DEPS})
 add_executable(rbm_conv_binary "rbm_conv_binary.cpp" "rbmconfig.pb.cc")
