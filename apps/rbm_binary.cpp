@@ -164,12 +164,16 @@ int main(int argc, char** argv) {
 			//Gather Sparsity statistics
 			NArray d_weights_s, d_bias_h_s;
 			if (sparsity) {
+				mi.SetDevice(cpu);
 				NArray q_current = hidden.Sum(1) / batch_size;  // H x 1
 				NArray vis_ave = p_visible.Sum(1) / batch_size; // V x 1
 				NArray q_new = (sparsity_decay * q_old + (1 - sparsity_decay) * q_current); //H x 1
 				d_weights_s = (q_new - sparsity_target) * vis_ave.Trans(); // H x V
 				d_bias_h_s = (q_new - sparsity_target);
 				q_old = 1.0 * q_current;
+				if (has_gpu) {
+					mi.SetDevice(gpu);
+				}
 			}
 
 			//Setup for persistent Gibbs sampling.
@@ -336,7 +340,7 @@ int main(int argc, char** argv) {
 	for (int gibbs_step = 0; gibbs_step < 10000; gibbs_step++) {
 
 		//Create a reconstruction. Sample Hiddens if specified.
-		if (0) {
+		if (1) {
 			sampled_hiddens = sample(hidden);
 			reconstruction = propDown(sampled_hiddens,weights,bias_v);
 		} else {
@@ -352,7 +356,7 @@ int main(int argc, char** argv) {
 		}
 
 		//Propogate up to hiddens.  Sample visibles if specified
-		if (0) {
+		if (1) {
 			NArray sampled_visibles = sample(reconstruction);
 			hidden = propUp(sampled_visibles, weights, bias_h);
 		} else {
