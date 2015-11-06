@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import sys
 import re
 import math
-
+from operator import mul,add
 """
 Input file must be a flat vector of image values.
 Assume n images of v pixels.
@@ -27,22 +27,34 @@ def closeCommonFactor(numbera, numberb, target):
 
 if __name__ == "__main__":
     isprob = False
-    if len(sys.argv) == 1 or len(sys.argv) > 3:
-        print "Use: "+sys.argv[0]+" <datafile> [-p] \n\t-p  treat values as probabilities (0,1)"
+    if len(sys.argv) < 3:
+        print "Use: "+sys.argv[0]+" <datafile> <-p/-r> \n\t-p  treat values as probabilities (0,1) \n\t-r use raw values"
         sys.exit()
     if len(sys.argv) == 3 and sys.argv[2] == "-p":
         isprob=True
-    with open(sys.argv[1], "r") as fin:
-        header = fin.readline()
-        dat = fin.read()
-        
-    d_x,d_y,c,n = map(int,header.strip().split(" ")) 
+    dims = None
+    dats = []
+    for fname in sys.argv[2:]:
+        with open(fname, "r") as fin:
+            header = fin.readline()
+            dats.append(fin.read())
+            if not dims:
+                dims = map(int,header.strip().split(" ")) 
+            else:
+                dims[3] += map(int,header.strip().split(" "))[3]
     
-    #Read data into flat array
-    dat = re.sub("\s+",",",dat).strip(",")
-    dat = dat.split(",")
-    dat = map(float,dat)
-    dat = np.asarray(dat,dtype = np.float32)
+    d_x,d_y,c,n = dims 
+    dat = np.ndarray(reduce(mul,dims),dtype=np.float32)
+    i = 0
+    for datum in dats:
+        #Read data into flat array
+        d = re.sub("\s+",",",datum).strip(",")
+        d = d.split(",")
+        d = map(float,d) 
+        d = np.asarray(d,dtype = np.float32)
+        s = d.shape[0]
+        dat[i:i+s] = d
+        i += s
     minval = np.min(dat)
     maxval = np.max(dat)
     print "max: {} min: {}\n".format(maxval,minval)
