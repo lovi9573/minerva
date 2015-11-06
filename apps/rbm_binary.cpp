@@ -114,7 +114,7 @@ int main(int argc, char** argv) {
 	NArray d_weights_ave = NArray::Zeros( { n_hidden, sample_size, });
 	NArray d_bias_v_ave = NArray::Zeros( { sample_size, 1 });
 	NArray d_bias_h_ave = NArray::Zeros( { n_hidden, 1 });
-	NArray sqrdiff, visible, reconstruction, hidden, sampled_hiddens, chain_visible;
+	NArray sqrdiff, p_visible, reconstruction, hidden, sampled_hiddens, chain_visible;
 	NArray q_old = NArray::Zeros( { n_hidden, 1 });
 	NArray zero_bias = NArray::Zeros({n_hidden,1});
 
@@ -140,11 +140,11 @@ int main(int argc, char** argv) {
 
 			//Get minibatch
 			shared_ptr<float> batch = dp.get_next_batch(batch_size);
-			visible = NArray::MakeNArray( { sample_size, batch_size }, batch); //V x B
+			p_visible = NArray::MakeNArray( { sample_size, batch_size }, batch); //V x B
 
 			//Initialize persistent chain if needed.
 			if (persistent && !is_chain_init) {
-				hidden = propUp(visible, weights, bias_h);
+				hidden = propUp(p_visible, weights, bias_h);
 				sampled_hiddens = sample(hidden);
 				chain_visible = propDown(sampled_hiddens,weights, bias_v);
 				is_chain_init = true;
@@ -156,16 +156,16 @@ int main(int argc, char** argv) {
 			d_bias_h *= momentum;
 
 			//Positive Phase
-			hidden = propUp(visible, weights, bias_h);
-			NArray d_weights_p = hidden * visible.Trans();
-			NArray d_bias_v_p = visible.Sum(1);
+			hidden = propUp(p_visible, weights, bias_h);
+			NArray d_weights_p = hidden * p_visible.Trans();
+			NArray d_bias_v_p = p_visible.Sum(1);
 			NArray d_bias_h_p = hidden.Sum(1);
 
 			//Gather Sparsity statistics
 			NArray d_weights_s, d_bias_h_s;
 			if (sparsity) {
 				NArray q_current = hidden.Sum(1) / batch_size;  // H x 1
-				NArray vis_ave = visible.Sum(1) / batch_size; // V x 1
+				NArray vis_ave = p_visible.Sum(1) / batch_size; // V x 1
 				NArray q_new = (sparsity_decay * q_old + (1 - sparsity_decay) * q_current); //H x 1
 				d_weights_s = (q_new - sparsity_target) * vis_ave.Trans(); // H x V
 				d_bias_h_s = (q_new - sparsity_target);
@@ -225,7 +225,7 @@ int main(int argc, char** argv) {
 			d_bias_h_ave += d_bias_h ;
 			if (params.diag_error()) {
 				//Compute Error
-				NArray diff = reconstruction - visible;
+				NArray diff = reconstruction - p_visible;
 				sqrdiff = Elewise::Mult(diff, diff);
 				NArray sum0 = sqrdiff.Sum(0).Sum(0);
 				mi.SetDevice(cpu);
@@ -295,7 +295,7 @@ int main(int argc, char** argv) {
 			//write an error side by side img
 			if (has_gpu) {
 				mi.SetDevice(gpu);
-				NArray vis = Slice(visible, 1, 0, 1);
+				NArray vis = Slice(p_visible, 1, 0, 1);
 				NArray rec = Slice(reconstruction, 1, 0, 1);
 				NArray sdif = Slice(sqrdiff, 1, 0, 1);
 				NArray error_side_by_side = Concat( { vis.Trans(), rec.Trans(), sdif.Trans() }, 0);
