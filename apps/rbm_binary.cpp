@@ -35,6 +35,7 @@ void writeNArray(const NArray& array, std::string filename, Scale dims) {
 	of.close();
 }
 
+
 NArray propUp(NArray& visible, NArray& weights, NArray& bias) {
 	NArray in_h = weights * visible + bias;
 	return (1.0 / (1.0 + Elewise::Exp(-in_h))); // H x B
@@ -106,6 +107,7 @@ int main(int argc, char** argv) {
 	bool sparsity = params.use_sparsity_target();
 	float sparsity_target = params.sparsity_target();
 	float sparsity_decay = params.sparsity_decay();
+	float lr_s = params.sparsity_learning_rate();
 	bool is_chain_init = false;
 
 	//Initialize minerva
@@ -133,8 +135,19 @@ int main(int argc, char** argv) {
 	//Initialize arrays
 	printf("Initialize data structures\n");
 	NArray weights = NArray::Randn( { n_hidden, sample_size }, 0, .01);  //H x V
-	NArray bias_v = NArray::Zeros( { sample_size, 1 });
-	NArray bias_h = NArray::Zeros( { n_hidden, 1 });
+
+
+
+	//Get mean visible
+	shared_ptr<float> train_set_raw = dp.get_next_batch(n_samples);
+	NArray train_set = NArray::MakeNArray( { sample_size, n_samples }, train_set_raw); //V x B
+	NArray bias_v = train_set.Sum(1)/n_samples;
+	NArray bias_h;
+	if (sparsity){
+		bias_h = log(sparsity_target/(1-sparsity_target))*NArray::Ones( {n_hidden, 1 });
+	}else{
+		bias_h = NArray::Zeros( { n_hidden, 1 });
+	}
 
 	NArray d_weights = NArray::Zeros( { n_hidden, sample_size, });
 	NArray d_bias_v = NArray::Zeros( { sample_size, 1 });
@@ -146,11 +159,18 @@ int main(int argc, char** argv) {
 	NArray q_old = NArray::Zeros( { n_hidden, 1 });
 	NArray zero_bias = NArray::Zeros( { n_hidden, 1 });
 	NArray sqrdiff, p_visible, sampled_visible, p_hidden, sampled_hidden;
+	NArray p_hidden_over_set = NArray::Zeros( {n_hidden,1});
+	shared_ptr<float> eval_train_batch_raw = dp.get_next_batch(1000);
+	NArray visible_t = NArray::MakeNArray( {sample_size, 1000}, eval_train_batch_raw);
+	shared_ptr<float> eval_val_batch_raw = dp.get_next_validation_batch(1000);
+	NArray visible_val = NArray::MakeNArray( {sample_size, 1000}, eval_val_batch_raw);
+
 
 	// ================ Begin training ================
 	for (int i_epoch = 0; i_epoch < epochs; i_epoch++) {
 		printf("Epoch %d\n", i_epoch);
 		float mse = 0.0;
+		p_hidden_over_set = NArray::Zeros( {n_hidden,1});
 		if (params.diag_error()) {
 			d_weights_ave = NArray::Zeros( { n_hidden, sample_size, });
 			d_bias_v_ave = NArray::Zeros( { sample_size, 1 });
@@ -185,10 +205,14 @@ int main(int argc, char** argv) {
 			d_bias_h *= momentum;
 
 			//Positive Phase
-			p_hidden = propUp(p_visible, weights, bias_h);
+			p_hidden = propUp(p_visible, weights, bias_h); //H x B
 			NArray d_weights_p = p_hidden * p_visible.Trans();
 			NArray d_bias_h_p = p_hidden.Sum(1);
 			NArray d_bias_v_p = p_visible.Sum(1);
+
+			if(params.diag_hidden_activation_probability()){
+				p_hidden_over_set += d_bias_h_p;
+			}
 
 			//Gather Sparsity statistics
 			NArray d_weights_s, d_bias_h_s;
@@ -229,8 +253,8 @@ int main(int argc, char** argv) {
 			bias_h += d_bias_h;
 			bias_v += d_bias_v;
 			if (sparsity) {
-				weights -= d_weights_s;
-				bias_h -= d_bias_h_s;
+				weights -= d_weights_s*lr*lr_s;
+				bias_h -= d_bias_h_s*lr*lr_s;
 			}
 
 
@@ -251,10 +275,10 @@ int main(int argc, char** argv) {
 			// Synchronize.
 			if (i_batch % sync_period == 0) {
 				mi.WaitForAll();
-				printf("bias_h (+,-,s): \n");
-				(d_bias_h_p* (lr / batch_size)).Histogram(5).ToStream(std::cout, ff);
-				(d_bias_h_n* (lr / batch_size)).Histogram(5).ToStream(std::cout, ff);
-				d_bias_h_s.Histogram(5).ToStream(std::cout, ff);
+				//printf("bias_h (+,-,s): \n");
+				//(d_bias_h_p* (lr / batch_size)).Histogram(5).ToStream(std::cout, ff);
+				//(d_bias_h_n* (lr / batch_size)).Histogram(5).ToStream(std::cout, ff);
+				//d_bias_h_s.Histogram(5).ToStream(std::cout, ff);
 			}
 
 		}  // End batches for this epoch
@@ -266,11 +290,6 @@ int main(int argc, char** argv) {
 			printf("MSE: %f\n", mse);
 		}
 		if (params.diag_train_val_energy_diff()) {
-			shared_ptr<float> batch_t = dp.get_next_batch(batch_size);
-			NArray visible_t = NArray::MakeNArray( { sample_size, batch_size }, batch_t); //V x B
-			shared_ptr<float> batch_val = dp.get_next_validation_batch(batch_size);
-			NArray visible_val = NArray::MakeNArray( { sample_size, batch_size }, batch_val); //V x B
-
 			NArray hidden_t = propUp(visible_t, weights, bias_h);
 			NArray hidden_val = propUp(visible_val, weights, bias_h);
 
@@ -302,8 +321,8 @@ int main(int argc, char** argv) {
 		if (params.diag_hidden_activation_probability()) {
 			//write the hidden probabilities
 			Scale scale = p_hidden.Size();
-			Scale sout( { scale[0], scale[1], 1, 1 });
-			writeNArray(p_hidden, output_base + "_p_h_over_batch_e" + std::to_string(i_epoch), sout);
+			Scale sout( { scale[0], 1, 1, 1 });
+			writeNArray(p_hidden_over_set/n_samples, output_base + "_p_h_over_train_set_e" + std::to_string(i_epoch), sout);
 		}
 
 		if (params.diag_visible_recon_err()) {

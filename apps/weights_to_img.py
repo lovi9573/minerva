@@ -27,21 +27,22 @@ def closeCommonFactor(numbera, numberb, target):
 
 if __name__ == "__main__":
     isprob = False
-    if len(sys.argv) < 3:
-        print "Use: "+sys.argv[0]+" <datafile> <-p/-r> \n\t-p  treat values as probabilities (0,1) \n\t-r use raw values"
+    if ("-p" in sys.argv and len(sys.argv) < 3) or ("-p" not in sys.argv and len(sys.argv) < 2):
+        print "Use: "+sys.argv[0]+" <datafile> [-p] \n\t-p  treat values as probabilities (0,1) "
         sys.exit()
-    if len(sys.argv) == 3 and sys.argv[2] == "-p":
+    if "-p" in sys.argv:
         isprob=True
     dims = None
     dats = []
-    for fname in sys.argv[2:]:
-        with open(fname, "r") as fin:
-            header = fin.readline()
-            dats.append(fin.read())
-            if not dims:
-                dims = map(int,header.strip().split(" ")) 
-            else:
-                dims[3] += map(int,header.strip().split(" "))[3]
+    for fname in sys.argv[1:]:
+	if not fname == "-p":
+            with open(fname, "r") as fin:
+                header = fin.readline()
+            	dats.append(fin.read())
+            	if not dims:
+              	    dims = map(int,header.strip().split(" ")) 
+            	else:
+               	    dims[3] += map(int,header.strip().split(" "))[3]
     
     d_x,d_y,c,n = dims 
     dat = np.ndarray(reduce(mul,dims),dtype=np.float32)
@@ -84,5 +85,6 @@ if __name__ == "__main__":
     else:          
         plt.imshow(imgs,interpolation='none')
     plt.set_cmap('gray')
+    plt.colorbar()
     plt.show()
     

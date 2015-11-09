@@ -34,7 +34,7 @@ void protobuf_AssignDesc_rbmconfig_2eproto() {
       "rbmconfig.proto");
   GOOGLE_CHECK(file != NULL);
   RbmParameters_descriptor_ = file->message_type(0);
-  static const int RbmParameters_offsets_[21] = {
+  static const int RbmParameters_offsets_[22] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, num_hidden_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, epochs_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, batch_size_),
@@ -56,6 +56,7 @@ void protobuf_AssignDesc_rbmconfig_2eproto() {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, use_sparsity_target_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, sparsity_target_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, sparsity_decay_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, sparsity_learning_rate_),
   };
   RbmParameters_reflection_ =
     ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
@@ -98,7 +99,7 @@ void protobuf_AddDesc_rbmconfig_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\017rbmconfig.proto\022\003rbm\"\232\005\n\rRbmParameters"
+    "\n\017rbmconfig.proto\022\003rbm\"\275\005\n\rRbmParameters"
     "\022\022\n\nnum_hidden\030\001 \002(\005\022\016\n\006epochs\030\002 \002(\005\022\022\n\n"
     "batch_size\030\003 \002(\005\022\020\n\010momentum\030\004 \002(\002\022\025\n\rle"
     "arning_rate\030\005 \002(\002\022\037\n\024gibbs_sampling_step"
@@ -115,7 +116,8 @@ void protobuf_AddDesc_rbmconfig_2eproto() {
     "\004true\022\033\n\023train_data_filename\030\022 \002(\t\022\"\n\023us"
     "e_sparsity_target\030\023 \001(\010:\005false\022\035\n\017sparsi"
     "ty_target\030\024 \001(\002:\0040.01\022\034\n\016sparsity_decay\030"
-    "\025 \001(\002:\0040.95", 691);
+    "\025 \001(\002:\0040.95\022!\n\026sparsity_learning_rate\030\026 "
+    "\001(\002:\0011", 726);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "rbmconfig.proto", &protobuf_RegisterTypes);
   RbmParameters::default_instance_ = new RbmParameters();
@@ -142,7 +144,7 @@ static void MergeFromFail(int line) {
 
 // ===================================================================
 
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
 const int RbmParameters::kNumHiddenFieldNumber;
 const int RbmParameters::kEpochsFieldNumber;
 const int RbmParameters::kBatchSizeFieldNumber;
@@ -164,7 +166,8 @@ const int RbmParameters::kTrainDataFilenameFieldNumber;
 const int RbmParameters::kUseSparsityTargetFieldNumber;
 const int RbmParameters::kSparsityTargetFieldNumber;
 const int RbmParameters::kSparsityDecayFieldNumber;
-#endif  // !_MSC_VER
+const int RbmParameters::kSparsityLearningRateFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 RbmParameters::RbmParameters()
   : ::google::protobuf::Message(), _internal_metadata_(NULL) {
@@ -207,6 +210,7 @@ void RbmParameters::SharedCtor() {
   use_sparsity_target_ = false;
   sparsity_target_ = 0.01f;
   sparsity_decay_ = 0.95f;
+  sparsity_learning_rate_ = 1;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -269,7 +273,7 @@ void RbmParameters::Clear() {
       output_filename_base_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
     }
   }
-  if (_has_bits_[16 / 32] & 2031616u) {
+  if (_has_bits_[16 / 32] & 4128768u) {
     diag_train_val_energy_diff_ = true;
     if (has_train_data_filename()) {
       train_data_filename_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
@@ -277,6 +281,7 @@ void RbmParameters::Clear() {
     use_sparsity_target_ = false;
     sparsity_target_ = 0.01f;
     sparsity_decay_ = 0.95f;
+    sparsity_learning_rate_ = 1;
   }
 
 #undef ZR_HELPER_
@@ -612,6 +617,21 @@ bool RbmParameters::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(181)) goto parse_sparsity_learning_rate;
+        break;
+      }
+
+      // optional float sparsity_learning_rate = 22 [default = 1];
+      case 22: {
+        if (tag == 181) {
+         parse_sparsity_learning_rate:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
+                 input, &sparsity_learning_rate_)));
+          set_has_sparsity_learning_rate();
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -756,6 +776,11 @@ void RbmParameters::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteFloat(21, this->sparsity_decay(), output);
   }
 
+  // optional float sparsity_learning_rate = 22 [default = 1];
+  if (has_sparsity_learning_rate()) {
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(22, this->sparsity_learning_rate(), output);
+  }
+
   if (_internal_metadata_.have_unknown_fields()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -881,6 +906,11 @@ void RbmParameters::SerializeWithCachedSizes(
   // optional float sparsity_decay = 21 [default = 0.95];
   if (has_sparsity_decay()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(21, this->sparsity_decay(), target);
+  }
+
+  // optional float sparsity_learning_rate = 22 [default = 1];
+  if (has_sparsity_learning_rate()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(22, this->sparsity_learning_rate(), target);
   }
 
   if (_internal_metadata_.have_unknown_fields()) {
@@ -1043,7 +1073,7 @@ int RbmParameters::ByteSize() const {
     }
 
   }
-  if (_has_bits_[16 / 32] & 1900544u) {
+  if (_has_bits_[16 / 32] & 3997696u) {
     // optional bool diag_train_val_energy_diff = 17 [default = true];
     if (has_diag_train_val_energy_diff()) {
       total_size += 2 + 1;
@@ -1061,6 +1091,11 @@ int RbmParameters::ByteSize() const {
 
     // optional float sparsity_decay = 21 [default = 0.95];
     if (has_sparsity_decay()) {
+      total_size += 2 + 4;
+    }
+
+    // optional float sparsity_learning_rate = 22 [default = 1];
+    if (has_sparsity_learning_rate()) {
       total_size += 2 + 4;
     }
 
@@ -1160,6 +1195,9 @@ void RbmParameters::MergeFrom(const RbmParameters& from) {
     if (from.has_sparsity_decay()) {
       set_sparsity_decay(from.sparsity_decay());
     }
+    if (from.has_sparsity_learning_rate()) {
+      set_sparsity_learning_rate(from.sparsity_learning_rate());
+    }
   }
   if (from._internal_metadata_.have_unknown_fields()) {
     mutable_unknown_fields()->MergeFrom(from.unknown_fields());
@@ -1210,6 +1248,7 @@ void RbmParameters::InternalSwap(RbmParameters* other) {
   std::swap(use_sparsity_target_, other->use_sparsity_target_);
   std::swap(sparsity_target_, other->sparsity_target_);
   std::swap(sparsity_decay_, other->sparsity_decay_);
+  std::swap(sparsity_learning_rate_, other->sparsity_learning_rate_);
   std::swap(_has_bits_[0], other->_has_bits_[0]);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   std::swap(_cached_size_, other->_cached_size_);
@@ -1786,6 +1825,30 @@ void RbmParameters::clear_sparsity_decay() {
   set_has_sparsity_decay();
   sparsity_decay_ = value;
   // @@protoc_insertion_point(field_set:rbm.RbmParameters.sparsity_decay)
+}
+
+// optional float sparsity_learning_rate = 22 [default = 1];
+bool RbmParameters::has_sparsity_learning_rate() const {
+  return (_has_bits_[0] & 0x00200000u) != 0;
+}
+void RbmParameters::set_has_sparsity_learning_rate() {
+  _has_bits_[0] |= 0x00200000u;
+}
+void RbmParameters::clear_has_sparsity_learning_rate() {
+  _has_bits_[0] &= ~0x00200000u;
+}
+void RbmParameters::clear_sparsity_learning_rate() {
+  sparsity_learning_rate_ = 1;
+  clear_has_sparsity_learning_rate();
+}
+ float RbmParameters::sparsity_learning_rate() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.sparsity_learning_rate)
+  return sparsity_learning_rate_;
+}
+ void RbmParameters::set_sparsity_learning_rate(float value) {
+  set_has_sparsity_learning_rate();
+  sparsity_learning_rate_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.sparsity_learning_rate)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS

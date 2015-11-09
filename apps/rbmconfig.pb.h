@@ -261,6 +261,13 @@ class RbmParameters : public ::google::protobuf::Message {
   float sparsity_decay() const;
   void set_sparsity_decay(float value);
 
+  // optional float sparsity_learning_rate = 22 [default = 1];
+  bool has_sparsity_learning_rate() const;
+  void clear_sparsity_learning_rate();
+  static const int kSparsityLearningRateFieldNumber = 22;
+  float sparsity_learning_rate() const;
+  void set_sparsity_learning_rate(float value);
+
   // @@protoc_insertion_point(class_scope:rbm.RbmParameters)
  private:
   inline void set_has_num_hidden();
@@ -305,6 +312,8 @@ class RbmParameters : public ::google::protobuf::Message {
   inline void clear_has_sparsity_target();
   inline void set_has_sparsity_decay();
   inline void clear_has_sparsity_decay();
+  inline void set_has_sparsity_learning_rate();
+  inline void clear_has_sparsity_learning_rate();
 
   // helper for ByteSize()
   int RequiredFieldsByteSizeFallback() const;
@@ -333,6 +342,7 @@ class RbmParameters : public ::google::protobuf::Message {
   ::google::protobuf::internal::ArenaStringPtr train_data_filename_;
   float sparsity_target_;
   float sparsity_decay_;
+  float sparsity_learning_rate_;
   friend void  protobuf_AddDesc_rbmconfig_2eproto();
   friend void protobuf_AssignDesc_rbmconfig_2eproto();
   friend void protobuf_ShutdownFile_rbmconfig_2eproto();
@@ -908,6 +918,30 @@ inline void RbmParameters::set_sparsity_decay(float value) {
   set_has_sparsity_decay();
   sparsity_decay_ = value;
   // @@protoc_insertion_point(field_set:rbm.RbmParameters.sparsity_decay)
+}
+
+// optional float sparsity_learning_rate = 22 [default = 1];
+inline bool RbmParameters::has_sparsity_learning_rate() const {
+  return (_has_bits_[0] & 0x00200000u) != 0;
+}
+inline void RbmParameters::set_has_sparsity_learning_rate() {
+  _has_bits_[0] |= 0x00200000u;
+}
+inline void RbmParameters::clear_has_sparsity_learning_rate() {
+  _has_bits_[0] &= ~0x00200000u;
+}
+inline void RbmParameters::clear_sparsity_learning_rate() {
+  sparsity_learning_rate_ = 1;
+  clear_has_sparsity_learning_rate();
+}
+inline float RbmParameters::sparsity_learning_rate() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.sparsity_learning_rate)
+  return sparsity_learning_rate_;
+}
+inline void RbmParameters::set_sparsity_learning_rate(float value) {
+  set_has_sparsity_learning_rate();
+  sparsity_learning_rate_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.sparsity_learning_rate)
 }
 
 #endif  // !PROTOBUF_INLINE_NOT_IN_HEADERS

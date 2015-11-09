@@ -44,7 +44,8 @@ message RbmParameters{
 	// Sparsity target
 	optional float sparsity_target = 20 [default=0.01];
 	// Sparsity decay
-	optional float sparsity_decay = 21[default=0.95];
-
+	optional float sparsity_decay = 21 [default=0.95];
+	// Sparsity learnging rate
+	optional float sparsity_learning_rate = 22 [default=1.0];
 
 }
