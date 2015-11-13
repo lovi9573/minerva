@@ -23,6 +23,7 @@ def closeCommonFactor(numbera, numberb, target):
         if numbera%(target-d) == 0 and (target+d)%numberb == 0:
             return target-d
         d += 1
+    return max(numbera,numberb)
         
 
 if __name__ == "__main__":
