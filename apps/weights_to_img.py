@@ -26,6 +26,21 @@ def closeCommonFactor(numbera, numberb, target):
     return max(numbera,numberb)
         
 
+def closeFactor(numbera, target):
+    target = int(target)
+    d = 0
+    while target+d < numbera :
+        if  numbera%(target+d) == 0 :
+            return target+d
+        d += 1
+    d = 0
+    while d < target:
+        if numbera%(target-d) == 0 :
+            return target-d
+        d += 1
+    return numbera        
+        
+
 if __name__ == "__main__":
     isprob = False
     if ("-p" in sys.argv and len(sys.argv) < 3) or ("-p" not in sys.argv and len(sys.argv) < 2):
@@ -62,7 +77,13 @@ if __name__ == "__main__":
     print "max: {} min: {}\n".format(maxval,minval)
     
     n_h_ideal = math.sqrt(n*c)
-    n_h = closeCommonFactor(n*c, c, n_h_ideal)
+    if n == 1:
+        n_h = closeFactor(c, n_h_ideal)
+        print "n_h",n_h
+    elif c == 1:
+        n_h = closeFactor(n, n_h_ideal)
+    else:
+        n_h = closeCommonFactor(n*c, c, n_h_ideal)
     n_v = n*c/n_h
     print n_h, n_v
     dat = dat.reshape([n_v,n_h,d_y,d_x])

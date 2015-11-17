@@ -34,7 +34,7 @@ void protobuf_AssignDesc_rbmconfig_2eproto() {
       "rbmconfig.proto");
   GOOGLE_CHECK(file != NULL);
   RbmParameters_descriptor_ = file->message_type(0);
-  static const int RbmParameters_offsets_[22] = {
+  static const int RbmParameters_offsets_[25] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, num_hidden_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, epochs_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, batch_size_),
@@ -57,6 +57,9 @@ void protobuf_AssignDesc_rbmconfig_2eproto() {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, sparsity_target_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, sparsity_decay_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, sparsity_learning_rate_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, convolution_stride_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, convolution_patch_dim_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RbmParameters, convolution_padding_),
   };
   RbmParameters_reflection_ =
     ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
@@ -99,7 +102,7 @@ void protobuf_AddDesc_rbmconfig_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\017rbmconfig.proto\022\003rbm\"\275\005\n\rRbmParameters"
+    "\n\017rbmconfig.proto\022\003rbm\"\236\006\n\rRbmParameters"
     "\022\022\n\nnum_hidden\030\001 \002(\005\022\016\n\006epochs\030\002 \002(\005\022\022\n\n"
     "batch_size\030\003 \002(\005\022\020\n\010momentum\030\004 \002(\002\022\025\n\rle"
     "arning_rate\030\005 \002(\002\022\037\n\024gibbs_sampling_step"
@@ -117,7 +120,9 @@ void protobuf_AddDesc_rbmconfig_2eproto() {
     "e_sparsity_target\030\023 \001(\010:\005false\022\035\n\017sparsi"
     "ty_target\030\024 \001(\002:\0040.01\022\034\n\016sparsity_decay\030"
     "\025 \001(\002:\0040.95\022!\n\026sparsity_learning_rate\030\026 "
-    "\001(\002:\0011", 726);
+    "\001(\002:\0011\022\035\n\022convolution_stride\030\027 \001(\005:\0011\022 \n"
+    "\025convolution_patch_dim\030\030 \001(\005:\0011\022\036\n\023convo"
+    "lution_padding\030\031 \001(\005:\0010", 823);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "rbmconfig.proto", &protobuf_RegisterTypes);
   RbmParameters::default_instance_ = new RbmParameters();
@@ -144,7 +149,7 @@ static void MergeFromFail(int line) {
 
 // ===================================================================
 
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
+#ifndef _MSC_VER
 const int RbmParameters::kNumHiddenFieldNumber;
 const int RbmParameters::kEpochsFieldNumber;
 const int RbmParameters::kBatchSizeFieldNumber;
@@ -167,7 +172,10 @@ const int RbmParameters::kUseSparsityTargetFieldNumber;
 const int RbmParameters::kSparsityTargetFieldNumber;
 const int RbmParameters::kSparsityDecayFieldNumber;
 const int RbmParameters::kSparsityLearningRateFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+const int RbmParameters::kConvolutionStrideFieldNumber;
+const int RbmParameters::kConvolutionPatchDimFieldNumber;
+const int RbmParameters::kConvolutionPaddingFieldNumber;
+#endif  // !_MSC_VER
 
 RbmParameters::RbmParameters()
   : ::google::protobuf::Message(), _internal_metadata_(NULL) {
@@ -211,6 +219,9 @@ void RbmParameters::SharedCtor() {
   sparsity_target_ = 0.01f;
   sparsity_decay_ = 0.95f;
   sparsity_learning_rate_ = 1;
+  convolution_stride_ = 1;
+  convolution_patch_dim_ = 1;
+  convolution_padding_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -273,7 +284,7 @@ void RbmParameters::Clear() {
       output_filename_base_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
     }
   }
-  if (_has_bits_[16 / 32] & 4128768u) {
+  if (_has_bits_[16 / 32] & 16711680u) {
     diag_train_val_energy_diff_ = true;
     if (has_train_data_filename()) {
       train_data_filename_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
@@ -282,7 +293,10 @@ void RbmParameters::Clear() {
     sparsity_target_ = 0.01f;
     sparsity_decay_ = 0.95f;
     sparsity_learning_rate_ = 1;
+    convolution_stride_ = 1;
+    convolution_patch_dim_ = 1;
   }
+  convolution_padding_ = 0;
 
 #undef ZR_HELPER_
 #undef ZR_
@@ -632,6 +646,51 @@ bool RbmParameters::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(184)) goto parse_convolution_stride;
+        break;
+      }
+
+      // optional int32 convolution_stride = 23 [default = 1];
+      case 23: {
+        if (tag == 184) {
+         parse_convolution_stride:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &convolution_stride_)));
+          set_has_convolution_stride();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(192)) goto parse_convolution_patch_dim;
+        break;
+      }
+
+      // optional int32 convolution_patch_dim = 24 [default = 1];
+      case 24: {
+        if (tag == 192) {
+         parse_convolution_patch_dim:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &convolution_patch_dim_)));
+          set_has_convolution_patch_dim();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(200)) goto parse_convolution_padding;
+        break;
+      }
+
+      // optional int32 convolution_padding = 25 [default = 0];
+      case 25: {
+        if (tag == 200) {
+         parse_convolution_padding:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &convolution_padding_)));
+          set_has_convolution_padding();
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -781,6 +840,21 @@ void RbmParameters::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteFloat(22, this->sparsity_learning_rate(), output);
   }
 
+  // optional int32 convolution_stride = 23 [default = 1];
+  if (has_convolution_stride()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(23, this->convolution_stride(), output);
+  }
+
+  // optional int32 convolution_patch_dim = 24 [default = 1];
+  if (has_convolution_patch_dim()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(24, this->convolution_patch_dim(), output);
+  }
+
+  // optional int32 convolution_padding = 25 [default = 0];
+  if (has_convolution_padding()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(25, this->convolution_padding(), output);
+  }
+
   if (_internal_metadata_.have_unknown_fields()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -911,6 +985,21 @@ void RbmParameters::SerializeWithCachedSizes(
   // optional float sparsity_learning_rate = 22 [default = 1];
   if (has_sparsity_learning_rate()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(22, this->sparsity_learning_rate(), target);
+  }
+
+  // optional int32 convolution_stride = 23 [default = 1];
+  if (has_convolution_stride()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(23, this->convolution_stride(), target);
+  }
+
+  // optional int32 convolution_patch_dim = 24 [default = 1];
+  if (has_convolution_patch_dim()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(24, this->convolution_patch_dim(), target);
+  }
+
+  // optional int32 convolution_padding = 25 [default = 0];
+  if (has_convolution_padding()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(25, this->convolution_padding(), target);
   }
 
   if (_internal_metadata_.have_unknown_fields()) {
@@ -1073,7 +1162,7 @@ int RbmParameters::ByteSize() const {
     }
 
   }
-  if (_has_bits_[16 / 32] & 3997696u) {
+  if (_has_bits_[16 / 32] & 16580608u) {
     // optional bool diag_train_val_energy_diff = 17 [default = true];
     if (has_diag_train_val_energy_diff()) {
       total_size += 2 + 1;
@@ -1099,7 +1188,28 @@ int RbmParameters::ByteSize() const {
       total_size += 2 + 4;
     }
 
+    // optional int32 convolution_stride = 23 [default = 1];
+    if (has_convolution_stride()) {
+      total_size += 2 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
+          this->convolution_stride());
+    }
+
+    // optional int32 convolution_patch_dim = 24 [default = 1];
+    if (has_convolution_patch_dim()) {
+      total_size += 2 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
+          this->convolution_patch_dim());
+    }
+
   }
+  // optional int32 convolution_padding = 25 [default = 0];
+  if (has_convolution_padding()) {
+    total_size += 2 +
+      ::google::protobuf::internal::WireFormatLite::Int32Size(
+        this->convolution_padding());
+  }
+
   if (_internal_metadata_.have_unknown_fields()) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
@@ -1198,6 +1308,17 @@ void RbmParameters::MergeFrom(const RbmParameters& from) {
     if (from.has_sparsity_learning_rate()) {
       set_sparsity_learning_rate(from.sparsity_learning_rate());
     }
+    if (from.has_convolution_stride()) {
+      set_convolution_stride(from.convolution_stride());
+    }
+    if (from.has_convolution_patch_dim()) {
+      set_convolution_patch_dim(from.convolution_patch_dim());
+    }
+  }
+  if (from._has_bits_[24 / 32] & (0xffu << (24 % 32))) {
+    if (from.has_convolution_padding()) {
+      set_convolution_padding(from.convolution_padding());
+    }
   }
   if (from._internal_metadata_.have_unknown_fields()) {
     mutable_unknown_fields()->MergeFrom(from.unknown_fields());
@@ -1249,6 +1370,9 @@ void RbmParameters::InternalSwap(RbmParameters* other) {
   std::swap(sparsity_target_, other->sparsity_target_);
   std::swap(sparsity_decay_, other->sparsity_decay_);
   std::swap(sparsity_learning_rate_, other->sparsity_learning_rate_);
+  std::swap(convolution_stride_, other->convolution_stride_);
+  std::swap(convolution_patch_dim_, other->convolution_patch_dim_);
+  std::swap(convolution_padding_, other->convolution_padding_);
   std::swap(_has_bits_[0], other->_has_bits_[0]);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   std::swap(_cached_size_, other->_cached_size_);
@@ -1849,6 +1973,78 @@ void RbmParameters::clear_sparsity_learning_rate() {
   set_has_sparsity_learning_rate();
   sparsity_learning_rate_ = value;
   // @@protoc_insertion_point(field_set:rbm.RbmParameters.sparsity_learning_rate)
+}
+
+// optional int32 convolution_stride = 23 [default = 1];
+bool RbmParameters::has_convolution_stride() const {
+  return (_has_bits_[0] & 0x00400000u) != 0;
+}
+void RbmParameters::set_has_convolution_stride() {
+  _has_bits_[0] |= 0x00400000u;
+}
+void RbmParameters::clear_has_convolution_stride() {
+  _has_bits_[0] &= ~0x00400000u;
+}
+void RbmParameters::clear_convolution_stride() {
+  convolution_stride_ = 1;
+  clear_has_convolution_stride();
+}
+ ::google::protobuf::int32 RbmParameters::convolution_stride() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.convolution_stride)
+  return convolution_stride_;
+}
+ void RbmParameters::set_convolution_stride(::google::protobuf::int32 value) {
+  set_has_convolution_stride();
+  convolution_stride_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.convolution_stride)
+}
+
+// optional int32 convolution_patch_dim = 24 [default = 1];
+bool RbmParameters::has_convolution_patch_dim() const {
+  return (_has_bits_[0] & 0x00800000u) != 0;
+}
+void RbmParameters::set_has_convolution_patch_dim() {
+  _has_bits_[0] |= 0x00800000u;
+}
+void RbmParameters::clear_has_convolution_patch_dim() {
+  _has_bits_[0] &= ~0x00800000u;
+}
+void RbmParameters::clear_convolution_patch_dim() {
+  convolution_patch_dim_ = 1;
+  clear_has_convolution_patch_dim();
+}
+ ::google::protobuf::int32 RbmParameters::convolution_patch_dim() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.convolution_patch_dim)
+  return convolution_patch_dim_;
+}
+ void RbmParameters::set_convolution_patch_dim(::google::protobuf::int32 value) {
+  set_has_convolution_patch_dim();
+  convolution_patch_dim_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.convolution_patch_dim)
+}
+
+// optional int32 convolution_padding = 25 [default = 0];
+bool RbmParameters::has_convolution_padding() const {
+  return (_has_bits_[0] & 0x01000000u) != 0;
+}
+void RbmParameters::set_has_convolution_padding() {
+  _has_bits_[0] |= 0x01000000u;
+}
+void RbmParameters::clear_has_convolution_padding() {
+  _has_bits_[0] &= ~0x01000000u;
+}
+void RbmParameters::clear_convolution_padding() {
+  convolution_padding_ = 0;
+  clear_has_convolution_padding();
+}
+ ::google::protobuf::int32 RbmParameters::convolution_padding() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.convolution_padding)
+  return convolution_padding_;
+}
+ void RbmParameters::set_convolution_padding(::google::protobuf::int32 value) {
+  set_has_convolution_padding();
+  convolution_padding_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.convolution_padding)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS

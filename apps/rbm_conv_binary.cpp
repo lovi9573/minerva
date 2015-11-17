@@ -41,10 +41,12 @@ NArray propUp(NArray& visible, NArray& weights, NArray& bias, ConvInfo conv_info
 	return (1.0 / (1.0 + Elewise::Exp(-in_h))); // H x B
 }
 
-NArray propDown(NArray& hidden, NArray& weights, NArray& visible, NArray& bias, ConvInfo conv_info) {
+
+NArray propDown(NArray& hidden, NArray& weights, NArray& visible, NArray& bias, NArray& center_mask, ConvInfo conv_info) {
 	NArray in_v = Convolution::ConvBackwardData(hidden, visible, weights, conv_info);
 	in_v = in_v + bias;
-	return (1.0 / (1.0 + Elewise::Exp(-in_v))); //V x B
+	NArray recon = (1.0 / (1.0 + Elewise::Exp(-in_v))); //V x B
+	return  (Elewise::Mult(recon, center_mask) + Elewise::Mult(visible,1-center_mask));
 }
 
 NArray sample(NArray& ar) {
@@ -52,7 +54,7 @@ NArray sample(NArray& ar) {
 	return ar < uniform_randoms; //H x B
 }
 
-NArray gibbsChain(NArray visible, NArray weights, NArray bias_v, NArray bias_h, ConvInfo conv_info, int steps, bool sample_hiddens, bool sample_visibles) {
+NArray gibbsChain(NArray visible, NArray weights, NArray bias_v, NArray bias_h, NArray& center_mask, ConvInfo conv_info, int steps, bool sample_hiddens, bool sample_visibles) {
 
 	NArray hidden, vis;
 	vis = visible;
@@ -69,9 +71,9 @@ NArray gibbsChain(NArray visible, NArray weights, NArray bias_v, NArray bias_h, 
 		//Create a reconstruction. Sample Hiddens if specified.
 		if (sample_hiddens) {
 			hidden = sample(hidden);
-			vis = propDown(hidden, weights,vis, bias_v, conv_info);
+			vis = propDown(hidden, weights,vis, bias_v,center_mask, conv_info);
 		} else {
-			vis = propDown(hidden, weights, vis, bias_v, conv_info);
+			vis = propDown(hidden, weights, vis, bias_v,center_mask, conv_info);
 		}
 	}
 	if (sample_visibles) {
@@ -92,8 +94,6 @@ int main(int argc, char** argv) {
 	int fin = open(argv[1], O_RDONLY);
 	google::protobuf::io::FileInputStream param_fin(fin);
 	google::protobuf::TextFormat::Parse(&param_fin, &params);
-	FileFormat ff;
-	ff.binary = false;
 	int n_hidden = params.num_hidden();
 	int epochs = params.epochs();
 	int batch_size = params.batch_size();
@@ -110,9 +110,9 @@ int main(int argc, char** argv) {
 	float sparsity_decay = params.sparsity_decay();
 	float lr_s = params.sparsity_learning_rate();
 	bool is_chain_init = false;
-	int convolution_stride = 1;
-	int convolution_patch_dim = 28;
-	int convolution_padding = 0;
+	int convolution_stride = params.convolution_stride();
+	int convolution_patch_dim = params.convolution_patch_dim();
+	int convolution_padding = params.convolution_padding();
 
 	//Initialize minerva
 	printf("minerva init\n");
@@ -152,7 +152,7 @@ int main(int argc, char** argv) {
 	Scale hidden_prob_scale({ hidden_dim_x, hidden_dim_y, n_hidden, 1});
 	ConvInfo fwd_conv_info(convolution_padding,convolution_padding,convolution_stride,convolution_stride);
 
-	//Initialize arrays
+
 	NArray weights = NArray::Randn(weight_scale, 0, .01);  //H x V
 
 	//Get mean visible
@@ -178,6 +178,28 @@ int main(int argc, char** argv) {
 	shared_ptr<float> eval_val_batch_raw = dp.get_next_validation_batch(1000);
 	NArray visible_val = NArray::MakeNArray( {dim_x, dim_y, n_channels, 1000}, eval_val_batch_raw);
 
+
+	shared_ptr<float> center_mask_raw(new float[sample_scale.Prod()],
+			[](float* ptr) {
+				delete[] ptr;
+			});
+	float* cmptr = center_mask_raw.get();
+	for(int b = 0;  b < batch_size; b++){
+		for(int c=0; c < n_channels; c++){
+			for(int y=0; y < dim_y; y++){
+				for(int x=0; x < dim_x; x++){
+					if(x < convolution_patch_dim-1 || x > dim_x - convolution_patch_dim+1 || y < convolution_patch_dim-1 || y > dim_y - convolution_patch_dim+1){
+						cmptr[b*n_channels*dim_y*dim_x+c*dim_y*dim_x+y*dim_x+x] = 0;
+					}
+					else{
+						cmptr[b*n_channels*dim_y*dim_x+c*dim_y*dim_x+y*dim_x+x] = 1;
+					}
+				}
+			}
+		}
+	}
+	NArray center_mask = NArray::MakeNArray(sample_scale,center_mask_raw );
+	writeNArray(center_mask, output_base + "_center_mask", center_mask.Size());
 
 	// ================ Begin training ================
 	for (int i_epoch = 0; i_epoch < epochs; i_epoch++) {
@@ -208,7 +230,7 @@ int main(int argc, char** argv) {
 			if (persistent && !is_chain_init) {
 				p_hidden = propUp(p_visible, weights, bias_h,fwd_conv_info);
 				sampled_hidden = sample(p_hidden);
-				sampled_visible = propDown(sampled_hidden, weights,p_visible, bias_v,fwd_conv_info);
+				sampled_visible = propDown(sampled_hidden, weights,p_visible, bias_v,center_mask,fwd_conv_info);
 				is_chain_init = true;
 			}
 
@@ -216,11 +238,12 @@ int main(int argc, char** argv) {
 			d_weights *= momentum;
 			d_bias_v *= momentum;
 			d_bias_h *= momentum;
+
 			//Positive Phase
 			p_hidden = propUp(p_visible, weights, bias_h,fwd_conv_info); //H x B
-			NArray d_weights_p = Convolution::ConvBackwardFilter(p_hidden,p_visible,weights,fwd_conv_info);
-			NArray d_bias_h_p = p_hidden.Sum(p_hidden.Size().NumDims()-1).Sum(0).Sum(1);
-			NArray d_bias_v_p = p_visible.Sum(p_visible.Size().NumDims()-1).Sum(0).Sum(1);
+			NArray d_weights_p = Convolution::ConvBackwardFilter(p_hidden,p_visible,weights,fwd_conv_info) / batch_size;
+			NArray d_bias_h_p = p_hidden.Sum(p_hidden.Size().NumDims()-1).Sum(0).Sum(1)/ (batch_size * hidden_dim_x *hidden_dim_y );
+			NArray d_bias_v_p = p_visible.Sum(p_visible.Size().NumDims()-1).Sum(0).Sum(1)/ (batch_size * dim_x *dim_y );
 //std::cout << p_hidden_over_set.Size() << "\n" << p_hidden.Size();
 			if(params.diag_hidden_activation_probability()){
 				p_hidden_over_set += p_hidden.Sum(3);
@@ -230,11 +253,10 @@ int main(int argc, char** argv) {
 			NArray d_weights_s, d_bias_h_s;
 			if (sparsity) {
 				mi.SetDevice(cpu);
-				NArray q_current = d_bias_h_p / batch_size;  // H x 1
-				NArray vis_ave = d_bias_v_p / batch_size; // V x 1
+				NArray q_current = 1.0*d_bias_h_p ;  // H x 1
 				NArray q_new = sparsity_decay * q_old + (1 - sparsity_decay) * q_current; //H x 1
-				//d_weights_s = (q_new - sparsity_target) * vis_ave.Trans(); // H x V
-				//d_bias_h_s = (q_new - sparsity_target);
+				d_weights_s = Convolution::ConvBackwardFilter(Elewise::Mult(NArray::Ones(hidden_scale),(q_new - sparsity_target)),p_visible,weights,fwd_conv_info);
+				d_bias_h_s = (q_new - sparsity_target);
 				q_old = 1.0 * q_current;
 				if (has_gpu) {
 					mi.SetDevice(gpu);
@@ -243,29 +265,30 @@ int main(int argc, char** argv) {
 
 			//perform Gibbs sampling.
 			if (persistent) {
-				sampled_visible = gibbsChain(sampled_visible, weights, bias_v, bias_h,fwd_conv_info, gibbs_sampling_steps, sample_hiddens, sample_visibles);
+				sampled_visible = gibbsChain(sampled_visible, weights, bias_v, bias_h,center_mask, fwd_conv_info, gibbs_sampling_steps, sample_hiddens, sample_visibles);
 				p_hidden = propUp(sampled_visible, weights, bias_h,fwd_conv_info);
 
 			} else {
-				sampled_visible = gibbsChain(p_visible, weights, bias_v, bias_h,fwd_conv_info, gibbs_sampling_steps, sample_hiddens, sample_visibles);
+				sampled_visible = gibbsChain(p_visible, weights, bias_v, bias_h,center_mask,fwd_conv_info, gibbs_sampling_steps, sample_hiddens, sample_visibles);
 				p_hidden = propUp(sampled_visible, weights, bias_h,fwd_conv_info);
 			}
 			//Negative Phase
-			NArray d_weights_n =  Convolution::ConvBackwardFilter(p_hidden,sampled_visible,weights,fwd_conv_info);
+			NArray d_weights_n =  Convolution::ConvBackwardFilter(p_hidden,sampled_visible,weights,fwd_conv_info)/ batch_size;
 			//NArray d_bias_h_n = (propUp(sampled_visible, weights, zero_bias,fwd_conv_info)).Sum(1);
-			NArray d_bias_h_n = p_hidden.Sum(p_hidden.Size().NumDims()-1).Sum(0).Sum(1);
-			NArray d_bias_v_n = sampled_visible.Sum(sampled_visible.Size().NumDims()-1).Sum(0).Sum(1);
+			NArray d_bias_h_n = p_hidden.Sum(p_hidden.Size().NumDims()-1).Sum(0).Sum(1)/ (batch_size * hidden_dim_x *hidden_dim_y );
+			NArray d_bias_v_n = sampled_visible.Sum(sampled_visible.Size().NumDims()-1).Sum(0).Sum(1)/ (batch_size * dim_x *dim_y );;
+
 			//Update Weights
-			d_weights += (d_weights_p - d_weights_n) * (lr / batch_size);
-			d_bias_v += (d_bias_v_p - d_bias_v_n) * (lr / batch_size);
-			d_bias_h += ((d_bias_h_p - d_bias_h_n) * (lr / batch_size)).Reshape(hidden_bias_scale);
-			weights += d_weights;
-			//bias_h += d_bias_h;
-			//bias_v += d_bias_v;
+			d_weights += (d_weights_p - d_weights_n)*lr;
+			d_bias_v += (d_bias_v_p - d_bias_v_n) * lr ;
+			d_bias_h += ((d_bias_h_p - d_bias_h_n) * lr).Reshape(hidden_bias_scale);
 			if (sparsity) {
-				weights -= d_weights_s*lr*lr_s;
-				bias_h -= d_bias_h_s*lr*lr_s;
+				d_weights -= d_weights_s*lr*lr_s;
+				d_bias_h -= d_bias_h_s.Reshape(hidden_bias_scale)*lr*lr_s;
 			}
+			weights += d_weights;
+			bias_h += d_bias_h;
+			bias_v += d_bias_v;
 
 			//Collect update statistics
 			d_weights_ave += d_weights;
@@ -280,14 +303,21 @@ int main(int argc, char** argv) {
 				float error = sum0.Sum() / sqrdiff.Size().Prod();
 				mse += error;
 			}
-
 			// Synchronize.
 			if (i_batch % sync_period == 0) {
 				mi.WaitForAll();
-				//printf("bias_h (+,-,s): \n");
-				//(d_bias_h_p* (lr / batch_size)).Histogram(5).ToStream(std::cout, ff);
-				//(d_bias_h_n* (lr / batch_size)).Histogram(5).ToStream(std::cout, ff);
-				//d_bias_h_s.Histogram(5).ToStream(std::cout, ff);
+				writeNArray(d_weights_p, output_base + "_d_weights_p_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), d_weights_p.Size());
+				writeNArray(d_weights_n, output_base + "_d_weights_n_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), d_weights_n.Size());
+				if (sparsity) {
+					writeNArray(d_weights_s, output_base + "_d_weights_s_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), d_weights_s.Size());
+				}
+				writeNArray(d_weights, output_base + "_d_weights_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), d_weights.Size());
+				writeNArray(p_visible, output_base + "_vis_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), p_visible.Size());
+				writeNArray(sampled_visible, output_base + "_recon_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), sampled_visible.Size());
+				writeNArray(weights, output_base + "_weights_e"+ std::to_string(i_epoch)+"_b" + std::to_string(i_batch), weights.Size());
+				writeNArray(bias_h, output_base + "_bias_h_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), hidden_bias_2_hidden);
+				writeNArray(bias_v, output_base + "_bias_v_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), bias_v.Size());
+				writeNArray(p_hidden.Sum(3)/batch_size, output_base + "_p_h_over_batch_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), p_hidden.Sum(3).Size());
 			}
 
 		}  // End batches for this epoch
@@ -316,15 +346,9 @@ int main(int argc, char** argv) {
 			d_weights_ave /= n_batches;
 			d_bias_v_ave /= n_batches;
 			d_bias_h_ave /= n_batches;
-			NArray weight_hist = d_weights_ave.Histogram(10);
-			NArray bias_v_hist = d_bias_v_ave.Histogram(10);
-			NArray bias_h_hist = d_bias_h_ave.Histogram(10);
-			std::cout << "Weight Deltas:\n";
-			weight_hist.ToStream(std::cout, ff);
-			std::cout << "Visible Bias Deltas:\n";
-			bias_v_hist.ToStream(std::cout, ff);
-			std::cout << "Hidden Bias Deltas:\n";
-			bias_h_hist.ToStream(std::cout, ff);
+			writeNArray(d_weights_ave, output_base + "_d_weights_e" + std::to_string(i_epoch), d_weights_ave.Size());
+			writeNArray(d_bias_v_ave, output_base + "_d_bias_v_e" + std::to_string(i_epoch), d_bias_v_ave.Size());
+			writeNArray(d_bias_h_ave, output_base + "_d_bias_h_e" + std::to_string(i_epoch), d_bias_h_ave.Size());
 		}
 
 		if (params.diag_hidden_activation_probability()) {
@@ -354,7 +378,7 @@ int main(int argc, char** argv) {
 
 	//Generate samples
 	for (int i = 0; i < 5; i++) {
-		sampled_visible = gibbsChain(sampled_visible, weights, bias_v, bias_h,fwd_conv_info, 500, true, true);
+		sampled_visible = gibbsChain(sampled_visible, weights, bias_v, bias_h,center_mask,fwd_conv_info, 500, true, true);
 		printf("Generated samples %d written.\n", i);
 		writeNArray(sample(sampled_visible), output_base + "_gen_" + std::to_string(i), sampled_visible.Size());
 	}

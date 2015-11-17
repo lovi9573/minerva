@@ -50,5 +50,9 @@ message RbmParameters{
 	// Sparsity learnging rate
 	// This is a multiplicative modifier of the overall learning rate
 	optional float sparsity_learning_rate = 22 [default=1.0];
+	// Convolutional options
+	optional int32 convolution_stride = 23 [default=1];
+	optional int32 convolution_patch_dim = 24 [default=1];
+	optional int32 convolution_padding = 25 [default=0];
 
 }

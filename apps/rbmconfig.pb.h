@@ -268,6 +268,27 @@ class RbmParameters : public ::google::protobuf::Message {
   float sparsity_learning_rate() const;
   void set_sparsity_learning_rate(float value);
 
+  // optional int32 convolution_stride = 23 [default = 1];
+  bool has_convolution_stride() const;
+  void clear_convolution_stride();
+  static const int kConvolutionStrideFieldNumber = 23;
+  ::google::protobuf::int32 convolution_stride() const;
+  void set_convolution_stride(::google::protobuf::int32 value);
+
+  // optional int32 convolution_patch_dim = 24 [default = 1];
+  bool has_convolution_patch_dim() const;
+  void clear_convolution_patch_dim();
+  static const int kConvolutionPatchDimFieldNumber = 24;
+  ::google::protobuf::int32 convolution_patch_dim() const;
+  void set_convolution_patch_dim(::google::protobuf::int32 value);
+
+  // optional int32 convolution_padding = 25 [default = 0];
+  bool has_convolution_padding() const;
+  void clear_convolution_padding();
+  static const int kConvolutionPaddingFieldNumber = 25;
+  ::google::protobuf::int32 convolution_padding() const;
+  void set_convolution_padding(::google::protobuf::int32 value);
+
   // @@protoc_insertion_point(class_scope:rbm.RbmParameters)
  private:
   inline void set_has_num_hidden();
@@ -314,6 +335,12 @@ class RbmParameters : public ::google::protobuf::Message {
   inline void clear_has_sparsity_decay();
   inline void set_has_sparsity_learning_rate();
   inline void clear_has_sparsity_learning_rate();
+  inline void set_has_convolution_stride();
+  inline void clear_has_convolution_stride();
+  inline void set_has_convolution_patch_dim();
+  inline void clear_has_convolution_patch_dim();
+  inline void set_has_convolution_padding();
+  inline void clear_has_convolution_padding();
 
   // helper for ByteSize()
   int RequiredFieldsByteSizeFallback() const;
@@ -343,6 +370,9 @@ class RbmParameters : public ::google::protobuf::Message {
   float sparsity_target_;
   float sparsity_decay_;
   float sparsity_learning_rate_;
+  ::google::protobuf::int32 convolution_stride_;
+  ::google::protobuf::int32 convolution_patch_dim_;
+  ::google::protobuf::int32 convolution_padding_;
   friend void  protobuf_AddDesc_rbmconfig_2eproto();
   friend void protobuf_AssignDesc_rbmconfig_2eproto();
   friend void protobuf_ShutdownFile_rbmconfig_2eproto();
@@ -942,6 +972,78 @@ inline void RbmParameters::set_sparsity_learning_rate(float value) {
   set_has_sparsity_learning_rate();
   sparsity_learning_rate_ = value;
   // @@protoc_insertion_point(field_set:rbm.RbmParameters.sparsity_learning_rate)
+}
+
+// optional int32 convolution_stride = 23 [default = 1];
+inline bool RbmParameters::has_convolution_stride() const {
+  return (_has_bits_[0] & 0x00400000u) != 0;
+}
+inline void RbmParameters::set_has_convolution_stride() {
+  _has_bits_[0] |= 0x00400000u;
+}
+inline void RbmParameters::clear_has_convolution_stride() {
+  _has_bits_[0] &= ~0x00400000u;
+}
+inline void RbmParameters::clear_convolution_stride() {
+  convolution_stride_ = 1;
+  clear_has_convolution_stride();
+}
+inline ::google::protobuf::int32 RbmParameters::convolution_stride() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.convolution_stride)
+  return convolution_stride_;
+}
+inline void RbmParameters::set_convolution_stride(::google::protobuf::int32 value) {
+  set_has_convolution_stride();
+  convolution_stride_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.convolution_stride)
+}
+
+// optional int32 convolution_patch_dim = 24 [default = 1];
+inline bool RbmParameters::has_convolution_patch_dim() const {
+  return (_has_bits_[0] & 0x00800000u) != 0;
+}
+inline void RbmParameters::set_has_convolution_patch_dim() {
+  _has_bits_[0] |= 0x00800000u;
+}
+inline void RbmParameters::clear_has_convolution_patch_dim() {
+  _has_bits_[0] &= ~0x00800000u;
+}
+inline void RbmParameters::clear_convolution_patch_dim() {
+  convolution_patch_dim_ = 1;
+  clear_has_convolution_patch_dim();
+}
+inline ::google::protobuf::int32 RbmParameters::convolution_patch_dim() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.convolution_patch_dim)
+  return convolution_patch_dim_;
+}
+inline void RbmParameters::set_convolution_patch_dim(::google::protobuf::int32 value) {
+  set_has_convolution_patch_dim();
+  convolution_patch_dim_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.convolution_patch_dim)
+}
+
+// optional int32 convolution_padding = 25 [default = 0];
+inline bool RbmParameters::has_convolution_padding() const {
+  return (_has_bits_[0] & 0x01000000u) != 0;
+}
+inline void RbmParameters::set_has_convolution_padding() {
+  _has_bits_[0] |= 0x01000000u;
+}
+inline void RbmParameters::clear_has_convolution_padding() {
+  _has_bits_[0] &= ~0x01000000u;
+}
+inline void RbmParameters::clear_convolution_padding() {
+  convolution_padding_ = 0;
+  clear_has_convolution_padding();
+}
+inline ::google::protobuf::int32 RbmParameters::convolution_padding() const {
+  // @@protoc_insertion_point(field_get:rbm.RbmParameters.convolution_padding)
+  return convolution_padding_;
+}
+inline void RbmParameters::set_convolution_padding(::google::protobuf::int32 value) {
+  set_has_convolution_padding();
+  convolution_padding_ = value;
+  // @@protoc_insertion_point(field_set:rbm.RbmParameters.convolution_padding)
 }
 
 #endif  // !PROTOBUF_INLINE_NOT_IN_HEADERS
