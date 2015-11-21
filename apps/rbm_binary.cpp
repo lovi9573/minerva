@@ -126,9 +126,10 @@ int main(int argc, char** argv) {
 	//Create training data provider
 	printf("opening training data\n");
 	int n_samples, sample_size;
-	MnistData dp(params.train_data_filename().c_str(), 0.9);
+	MnistData mdp(params.train_data_filename().c_str(), 0.9);
+	DataProvider& dp = mdp;
 	n_samples = dp.n_train_samples();
-	sample_size = dp.SampleSize();
+	sample_size = dp.sample_size();
 	int n_batches = n_samples / batch_size;
 	printf("\t%d samples of size %d\n", n_samples, sample_size);
 
@@ -139,7 +140,7 @@ int main(int argc, char** argv) {
 
 
 	//Get mean visible
-	shared_ptr<float> train_set_raw = dp.get_next_batch(n_samples);
+	shared_ptr<float> train_set_raw = dp.next_batch(n_samples);
 	NArray train_set = NArray::MakeNArray( { sample_size, n_samples }, train_set_raw); //V x B
 	NArray bias_v = train_set.Sum(1)/n_samples;
 	NArray bias_h;
@@ -160,9 +161,9 @@ int main(int argc, char** argv) {
 	NArray zero_bias = NArray::Zeros( { n_hidden, 1 });
 	NArray sqrdiff, p_visible, sampled_visible, p_hidden, sampled_hidden;
 	NArray p_hidden_over_set = NArray::Zeros( {n_hidden,1});
-	shared_ptr<float> eval_train_batch_raw = dp.get_next_batch(1000);
+	shared_ptr<float> eval_train_batch_raw = dp.next_batch(1000);
 	NArray visible_t = NArray::MakeNArray( {sample_size, 1000}, eval_train_batch_raw);
-	shared_ptr<float> eval_val_batch_raw = dp.get_next_validation_batch(1000);
+	shared_ptr<float> eval_val_batch_raw = dp.next_val_batch(1000);
 	NArray visible_val = NArray::MakeNArray( {sample_size, 1000}, eval_val_batch_raw);
 
 
@@ -188,7 +189,7 @@ int main(int argc, char** argv) {
 			NArray in_h, in_v;
 
 			//Get minibatch
-			shared_ptr<float> batch = dp.get_next_batch(batch_size);
+			shared_ptr<float> batch = dp.next_batch(batch_size);
 			p_visible = NArray::MakeNArray( { sample_size, batch_size }, batch); //V x B
 
 			//Initialize persistent chain if needed.

@@ -8,7 +8,7 @@
 #ifndef APPS_MNIST_RAW_H_
 #define APPS_MNIST_RAW_H_
 
-#include "mnist_raw.h"
+#include "data_provider.h"
 #include <cstdio>
 #include <iomanip>
 #include <fstream>
@@ -17,18 +17,17 @@
 
 using namespace std;
 
-class MnistData{
+class MnistData: public DataProvider{
 public:
 	MnistData(const char* data_filename,float);
-	shared_ptr<float> get_next_batch(int batchsize);
-	shared_ptr<float> get_next_validation_batch(int batchsize);
-	void setSplit(float);
-	int n_train_samples();
-	int n_val_samples();
-	int n_channels();
-	int dim_x();
-	int dim_y();
-	int SampleSize();
+	shared_ptr<float> next_batch(int batchsize) override;
+	shared_ptr<float> next_val_batch(int batchsize) override;
+	int n_train_samples() override;
+	int n_val_samples() override;
+	int n_channels() override;
+	int dim_x() override;
+	int dim_y() override;
+	int sample_size() override;
 private:
 	int BigtoLittle(int val);
 	int n_samples;
@@ -55,7 +54,7 @@ MnistData::MnistData(const char* data_filename, float split) {
 	split_ = split;
 	valstream.open(data_filename, std::ifstream::binary);
 	valstream.clear();
-	valstream.seekg(16+n_train_samples()*SampleSize(),std::ifstream::beg);
+	valstream.seekg(16+n_train_samples()*sample_size(),std::ifstream::beg);
 	printf("file contains data of size %dx%dx%d\n",n_samples,n_rows,n_columns);
 }
 
@@ -72,7 +71,7 @@ int MnistData::BigtoLittle(int val) {
 
 
 
-shared_ptr<float> MnistData::get_next_batch(int batchsize) {
+shared_ptr<float> MnistData::next_batch(int batchsize) {
 	int batchbytes = batchsize * n_rows * n_columns;
 	int bufsize = n_rows * n_columns;
 	char buf[bufsize];
@@ -85,7 +84,7 @@ shared_ptr<float> MnistData::get_next_batch(int batchsize) {
 	while (batchbytes > 0) {
 		rd = min(bufsize, batchbytes);
 		datastream.read(buf, rd );
-		if (datastream.tellg() >= 16+n_train_samples()*SampleSize()){
+		if (datastream.tellg() >= 16+n_train_samples()*sample_size()){
 			printf("Reached end of training data.  Restarting at beginning\n");
 			datastream.clear();
 			datastream.seekg(16,std::ifstream::beg);
@@ -99,7 +98,7 @@ shared_ptr<float> MnistData::get_next_batch(int batchsize) {
 	return data;
 }
 
-shared_ptr<float> MnistData::get_next_validation_batch(int batchsize){
+shared_ptr<float> MnistData::next_val_batch(int batchsize){
 	int batchbytes = batchsize * n_rows * n_columns;
 	int bufsize = n_rows * n_columns;
 	char buf[bufsize];
@@ -115,7 +114,7 @@ shared_ptr<float> MnistData::get_next_validation_batch(int batchsize){
 		if (valstream.eof()){
 			printf("Reached end of validation data.  Restarting at beginning\n");
 			datastream.clear();
-			datastream.seekg(16+n_train_samples()*SampleSize(),std::ifstream::beg);
+			datastream.seekg(16+n_train_samples()*sample_size(),std::ifstream::beg);
 			datastream.read(buf, rd * sizeof(char));
 		}
 		for (int i = 0; i < rd; i++) {
@@ -134,7 +133,7 @@ int MnistData::n_val_samples(){
 	return ((int)n_samples*(1-split_));
 }
 
-int MnistData::SampleSize(){
+int MnistData::sample_size(){
 	return n_rows*n_columns;
 }
 
@@ -147,6 +146,7 @@ int MnistData::dim_x(){
 int MnistData::dim_y(){
 	return n_rows;
 }
+
 
 
 #endif /* APPS_MNIST_RAW_H_ */

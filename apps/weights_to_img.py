@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 import sys
 import re
 import math
@@ -103,10 +104,15 @@ if __name__ == "__main__":
                 imgs[:,(img+1)*(d_x+1)-1] = minval
         imgs[px_row+img_row*(d_y+1)+1,:] = minval
     if isprob:
-        plt.imshow(imgs,interpolation='none',vmin=0,vmax=1)   
+        plt.imshow(imgs,interpolation='none',vmin=0,vmax=1)  
+    elif c == -1: #TODO(jesselovitt): fix to show 3 color images correctly
+        imgs = imgs.reshape([n_v*(d_y+1)/3,n_h*(d_x+1),3]) 
+        img = mpimg.fromarray(dat.flatten())
+        plt.imshow(img)
+        plt.show()
     else:          
         plt.imshow(imgs,interpolation='none')
-    plt.set_cmap('gray')
-    plt.colorbar()
-    plt.show()
+        plt.set_cmap('gray')
+        plt.colorbar()
+        plt.show()
     

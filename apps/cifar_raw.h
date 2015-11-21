@@ -17,18 +17,17 @@
 
 using namespace std;
 
-class CifarData{
+class CifarData: public DataProvider{
 public:
-	CifarData(char* data_filename,float);
-	shared_ptr<float> GetNextBatch(int batchsize);
-	shared_ptr<float> GetNextValidationBatch(int batchsize);
-	void set_split(float);
-	int n_train_samples();
-	int n_channels();
-	int dim_y();
-	int dim_x();
-	int n_val_samples();
-	int sample_size();
+	CifarData(const char* data_filename,float);
+	shared_ptr<float> next_batch(int batchsize) override;
+	shared_ptr<float> next_val_batch(int batchsize) override;
+	int n_train_samples() override;
+	int n_channels() override;
+	int dim_y() override;
+	int dim_x() override;
+	int n_val_samples() override;
+	int sample_size() override;
 private:
 	int n_samples;
 	int n_rows;
@@ -41,7 +40,7 @@ private:
 };
 
 
-CifarData::CifarData(char* data_filename, float split) {
+CifarData::CifarData(const char* data_filename, float split) {
 	printf("opening \"%s\"\n",data_filename);
 	datastream.open(data_filename, std::ifstream::binary);
 	datastream.clear();
@@ -61,7 +60,7 @@ CifarData::CifarData(char* data_filename, float split) {
  * Returns a batch of cifar image data in row major order where color channels are separated.
  * i.e. since an image is 32x32 pixels, 1024 red data, will be followed by 1024 green data, etc...
  */
-shared_ptr<float> CifarData::GetNextBatch(int batchsize) {
+shared_ptr<float> CifarData::next_batch(int batchsize) {
 	int batchbytes = batchsize *(n_channels_* n_rows * n_columns + 1);
 	int bufsize = n_channels_*n_rows * n_columns+1;
 	char buf[bufsize];
@@ -88,7 +87,7 @@ shared_ptr<float> CifarData::GetNextBatch(int batchsize) {
 	return data;
 }
 
-shared_ptr<float> CifarData::GetNextValidationBatch(int batchsize){
+shared_ptr<float> CifarData::next_val_batch(int batchsize){
 	int batchbytes = batchsize *(n_channels_* n_rows * n_columns + 1);
 	int bufsize = n_channels_*n_rows * n_columns+1;
 	char buf[bufsize];
