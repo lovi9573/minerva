@@ -202,7 +202,6 @@ int main(int argc, char** argv) {
 		}
 	}
 	NArray center_mask = NArray::MakeNArray(sample_scale,center_mask_raw );
-	writeNArray(center_mask, output_base + "_center_mask", center_mask.Size());
 
 	// ================ Begin training ================
 	for (int i_epoch = 0; i_epoch < epochs; i_epoch++) {
@@ -305,21 +304,21 @@ int main(int argc, char** argv) {
 			// Synchronize.
 			if (i_batch % sync_period == 0) {
 				mi.WaitForAll();
-				writeNArray(d_weights_p*lr, output_base + "_d_weights_p_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), d_weights_p.Size());
-				writeNArray(d_weights_n*lr, output_base + "_d_weights_n_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), d_weights_n.Size());
-				if (sparsity) {
-					writeNArray(d_weights_s*lr*lr_s, output_base + "_d_weights_s_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), d_weights_s.Size());
-					writeNArray(d_bias_h_s*lr*lr_s, output_base + "_d_bias_h_s_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), hidden_bias_2_hidden);
-				}
-				writeNArray(d_weights, output_base + "_d_weights_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), d_weights.Size());
-				writeNArray(bias_h, output_base + "_bias_h_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), hidden_bias_2_hidden);
-				writeNArray(d_bias_h_p, output_base + "_d_bias_h_p_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), hidden_bias_2_hidden);
-				writeNArray(d_bias_h_n, output_base + "_d_bias_h_n_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), hidden_bias_2_hidden);
-				writeNArray(bias_v, output_base + "_bias_v_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), bias_v.Size());
-				writeNArray(weights, output_base + "_weights_e"+ std::to_string(i_epoch)+"_b" + std::to_string(i_batch), weights.Size());
-				writeNArray(p_visible, output_base + "_vis_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), p_visible.Size());
-				writeNArray(sampled_visible, output_base + "_recon_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), sampled_visible.Size());
-				writeNArray(p_hidden.Sum(3)/batch_size, output_base + "_p_h_over_batch_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), p_hidden.Sum(3).Size());
+//				writeNArray(d_weights_p*lr, output_base + "_d_weights_p_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), d_weights_p.Size());
+//				writeNArray(d_weights_n*lr, output_base + "_d_weights_n_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), d_weights_n.Size());
+//				if (sparsity) {
+//					writeNArray(d_weights_s*lr*lr_s, output_base + "_d_weights_s_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), d_weights_s.Size());
+//					writeNArray(d_bias_h_s*lr*lr_s, output_base + "_d_bias_h_s_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), hidden_bias_2_hidden);
+//				}
+//				writeNArray(d_weights, output_base + "_d_weights_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), d_weights.Size());
+//				writeNArray(bias_h, output_base + "_bias_h_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), hidden_bias_2_hidden);
+//				writeNArray(d_bias_h_p, output_base + "_d_bias_h_p_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), hidden_bias_2_hidden);
+//				writeNArray(d_bias_h_n, output_base + "_d_bias_h_n_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), hidden_bias_2_hidden);
+//				writeNArray(bias_v, output_base + "_bias_v_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), bias_v.Size());
+//				writeNArray(weights, output_base + "_weights_e"+ std::to_string(i_epoch)+"_b" + std::to_string(i_batch), weights.Size());
+//				writeNArray(p_visible, output_base + "_vis_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), p_visible.Size());
+//				writeNArray(sampled_visible, output_base + "_recon_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), sampled_visible.Size());
+//				writeNArray(p_hidden.Sum(3)/batch_size, output_base + "_p_h_over_batch_e" + std::to_string(i_epoch)+"_b" + std::to_string(i_batch), p_hidden.Sum(3).Size());
 			}
 
 		}  // End batches for this epoch
@@ -377,6 +376,8 @@ int main(int argc, char** argv) {
 	}   //End epochs
 	mi.PrintProfilerResults();
 	writeNArray(weights, output_base + "_weights_final", weights.Size());
+	writeNArray(bias_v, output_base + "_bias_v_final", bias_v.Size());
+	writeNArray(bias_h, output_base + "_bias_h_final" , hidden_bias_2_hidden);
 
 	//Generate samples
 	for (int i = 0; i < 5; i++) {
