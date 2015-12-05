@@ -96,7 +96,7 @@ CPersLoadregions::PersLoadregions()
 		}
 		break;
 		/*
-		 * Filter application cached, Call the kernel
+		 * Wait on joining the row loaders
 		 */
 		case LOADREGIONS_WAIT: {
 			RecvReturnPause_load_filter_application_row(LOADREGIONS_CALL_KERNEL);
@@ -106,9 +106,20 @@ CPersLoadregions::PersLoadregions()
 		 * Filter application cached, Call the kernel
 		 */
 		case LOADREGIONS_CALL_KERNEL: {
-			BUSY_RETRY(SendCallBusy_load_filters());
-			printf("Call load filters w/ task %d\n",PR_task);
-			SendCall_load_filters(LOADREGIONS_TEST_X_S, PR_task );
+			printf("Call kernel");
+			if(PR_task == CONV_BACKWARD_DATA){
+				printf("\tcall module to update data using filter \n");
+				BUSY_RETRY(SendCallBusy_conv_back_data());
+				SendCall_conv_back_data(LOADREGIONS_TEST_X_S,PR_x_s, PR_y_s);
+				//printf("increment F:%d X:%d Y:%d I:%d\n",PR_applicationIdx_F,PR_applicationIdx_X,PR_applicationIdx_Y,PR_applicationIdx_I);
+				//HtContinue(LOADREGIONS_TEST_X_S);
+			}else{
+				//printf("Compute        count:%d F:%d X:%d Y:%d I:%d %lu to %lu\n",PR_count.to_int(),PR_applicationIdx_F,PR_applicationIdx_X,PR_applicationIdx_Y,PR_applicationIdx_I,P_Addresses[1],P_Addresses[0] );
+				printf("\tfork module to update filter \n");
+				BUSY_RETRY(SendCallBusy_conv_back_filter());
+				SendCall_conv_back_filter(LOADREGIONS_TEST_X_S, PR_x_s, PR_y_s );
+				//HtContinue(LOADREGIONS_TEST_X_S);
+			}
 			P_x_s += SR_s_x;
 			P_y_f = 0;
 			P_i_c = 0;

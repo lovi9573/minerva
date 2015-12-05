@@ -12,9 +12,11 @@
 #define BUSY_RETRY(b) { if (b) { HtRetry(); break; } }
 #define UINT16_MASK 0xFFFF
 
-
-void
-CPersReadtoglobal::PersReadtoglobal()
+/*********************************
+ * read n bytes into global cache
+ * global cache to write to is selectable with which_mem
+ *********************************/
+void CPersReadtoglobal::PersReadtoglobal()
 {
 	if (PR_htValid) {
 		switch (PR_htInst) {

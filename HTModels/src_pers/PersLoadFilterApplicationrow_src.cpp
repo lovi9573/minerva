@@ -90,7 +90,7 @@ CPersLoadfilterapplicationrow::PersLoadfilterapplicationrow()
 									GLOBAL_SAMPLE_MEM,
 									SR_bottom_addr+PR_bottom_addr_offset,
 									PR_read_size,
-									PR_x_f+PR_y_f*SR_d_f,
+									PR_x_s + PR_x_f + PR_y_s*SR_d_s + PR_y_f*SR_d_f,
 									PR_c_s);
 			P_x_f += P_read_size;
 			P_x_s += P_read_size;

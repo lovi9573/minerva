@@ -27,9 +27,15 @@ void conv_backward_data_ht(void* top_diff, size_t top_alloc,
 							void* bottom_diff, int bottom_width, int bottom_height, int bottom_channels, int bottom_samples, size_t bottom_alloc,
 							int frac_w );
 
-void ConvBackwardBias_ht(void* top_diff, size_t top_alloc, size_t top_column_stride, size_t top_channel_stride, size_t top_image_stride,
+void conv_backward_bias_ht(void* top_diff, size_t top_alloc, size_t top_column_stride, size_t top_channel_stride, size_t top_image_stride,
 		void* bottom_diff, size_t bottom_alloc, int channels,
 		int frac_w);
+
+//void conv_backward_filter_ht(top_diff,top_size,
+//		 bottom, bottom_size, bottom_column_stride, bottom_channel_stride, bottom_image_stride,
+//		 filter_diff, filter_size, filter_column_stride, filter_channel_stride, filter_element_stride,
+//		 frac_width,
+//		 FIXED_POINT_FRACTION_WIDTH)
 
 
 #endif /* HTMODELS_HTMODELS_H_ */

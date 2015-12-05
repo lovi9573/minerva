@@ -26,16 +26,16 @@ CPersCtl::PersCtl()
 			}
 			*/
 			if(PR_task == CONV_BACKWARD_DATA ){
-				BUSY_RETRY(SendCallBusy_conv_load_filter_applications());
-				SendCall_conv_load_filter_applications(CTL_RTN, PR_rank, PR_rankStride, true, PR_task);
+				BUSY_RETRY(SendCallBusy_load_filters());
+				SendCall_load_filters(CTL_RTN, PR_rank, PR_rankStride,  PR_task);
 			}
 			else if(PR_task == CONV_BACKWARD_BIAS && PR_rank == 0 ){
 				BUSY_RETRY(SendCallBusy_conv_back_bias());
 				SendCall_conv_back_bias(CTL_RTN);
 			}
 			else if(PR_task == CONV_BACKWARD_FILTER ){
-				BUSY_RETRY(SendCallBusy_conv_load_filter_applications());
-				SendCall_conv_load_filter_applications(CTL_RTN, PR_rank, PR_rankStride, false, PR_task);
+				BUSY_RETRY(SendCallBusy_load_filters());
+				SendCall_load_filters(CTL_RTN, PR_rank, PR_rankStride,  PR_task);
 			}
 			else{
 				HtContinue(CTL_RTN);
