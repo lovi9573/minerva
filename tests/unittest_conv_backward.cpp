@@ -91,7 +91,7 @@ TEST(ConvBackwardData, GpuWithoutPaddingSmallDepth2) {
   element_t weight_raw[] = {11,12,13,14,15,16,17,18};
   element_t correct_raw[] = {14.000000,41.000000,26.000000,54.000000,130.000000,74.000000,36.000000,81.000000,44.000000,18.000000,53.000000,34.000000,70.000000,170.000000,98.000000,48.000000,109.000000,60.000000};
   auto& ms = MinervaSystem::Instance();
-  Scale input_size{2, 2, 1, 1};
+  Scale input_size{2, 2, 2, 1};
   Scale weight_size{2, 2, 2, 1};
   Scale correct_size{3, 3, 2, 1};
   shared_ptr<element_t> input_ptr(new element_t[input_size.Prod()], [](element_t* ptr) { delete[] ptr; });

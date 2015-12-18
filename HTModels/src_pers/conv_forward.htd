@@ -658,9 +658,6 @@ convfwd.AddShared()
 	;
 
 
-convfwd.AddGlobal()
-		.AddVar(type=uint16_t, name=fractionW)
-		;
 
 convfwd.AddEntry(func=conv_fwd, instr=CONVFWD_ENTRY)
 	.AddParam(type=uint32_t, name=rank)
