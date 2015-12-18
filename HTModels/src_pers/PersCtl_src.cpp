@@ -19,12 +19,11 @@ CPersCtl::PersCtl()
 		switch (PR_htInst) {
 		case CTL_ENTRY: {
 			printf("Task: %d\n",PR_task);
-			/*
+
 			if(PR_task == CONV_FORWARD ){
 				BUSY_RETRY(SendCallBusy_conv_fwd());
 				SendCall_conv_fwd(CTL_RTN, PR_rank, PR_rankStride);
 			}
-			*/
 			if(PR_task == CONV_BACKWARD_DATA ){
 				BUSY_RETRY(SendCallBusy_load_filters());
 				SendCall_load_filters(CTL_RTN, PR_rank, PR_rankStride,  PR_task);

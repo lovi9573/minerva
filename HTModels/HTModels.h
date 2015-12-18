@@ -27,15 +27,15 @@ void conv_backward_data_ht(void* top_diff, size_t top_alloc,
 							void* bottom_diff, int bottom_width, int bottom_height, int bottom_channels, int bottom_samples, size_t bottom_alloc,
 							int frac_w );
 
-void conv_backward_bias_ht(void* top_diff, size_t top_alloc, size_t top_column_stride, size_t top_channel_stride, size_t top_image_stride,
-		void* bottom_diff, size_t bottom_alloc, int channels,
-		int frac_w);
+void conv_backward_bias_ht(void* top_diff, size_t top_elements, size_t top_dim_x, size_t top_dim_y,
+						   size_t top_n_channels, size_t top_n_samples,
+						void* bottom_diff, size_t bottom_alloc,
+						int frac_w);
 
-//void conv_backward_filter_ht(top_diff,top_size,
-//		 bottom, bottom_size, bottom_column_stride, bottom_channel_stride, bottom_image_stride,
-//		 filter_diff, filter_size, filter_column_stride, filter_channel_stride, filter_element_stride,
-//		 frac_width,
-//		 FIXED_POINT_FRACTION_WIDTH)
+void conv_backward_filter_ht(void* top_diff, size_t top_size, size_t top_dim_x, size_t top_dim_y, size_t top_dim_c, size_t top_dim_n,
+							 void* filter_diff, size_t filter_size, size_t filter_dim_x, size_t filter_column_stride, size_t pad_x, size_t pad_y,
+							 void* bottom, size_t bottom_size, size_t bottom_dim_x, size_t bottom_dim_y, size_t bottom_dim_c,
+							 int frac_width);
 
 
 #endif /* HTMODELS_HTMODELS_H_ */

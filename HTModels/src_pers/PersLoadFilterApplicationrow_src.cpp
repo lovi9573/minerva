@@ -85,9 +85,8 @@ CPersLoadfilterapplicationrow::PersLoadfilterapplicationrow()
 		 */
 		case CONVLOADFILTERAPPLICATIONROW_READ: {
 			printf("\t\tRead %d elements from %d\n", PR_read_size, PR_bottom_addr_offset.to_int());
-			BUSY_RETRY(SendCallBusy_read_to_global());
-			SendCall_read_to_global(CONVLOADFILTERAPPLICATIONROW_TEST_X_S,
-									GLOBAL_SAMPLE_MEM,
+			BUSY_RETRY(SendCallBusy_read_to_global_bottom());
+			SendCall_read_to_global_bottom(CONVLOADFILTERAPPLICATIONROW_TEST_X_S,
 									SR_bottom_addr+PR_bottom_addr_offset,
 									PR_read_size,
 									PR_x_s + PR_x_f + PR_y_s*SR_d_s + PR_y_f*SR_d_f,

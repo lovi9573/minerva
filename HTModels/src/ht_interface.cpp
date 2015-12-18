@@ -36,8 +36,8 @@ void conv_forward(void *input_q88_data, size_t num_img, size_t img_dim, size_t i
 		printf("HT MemAlloc failed.\n");
 		exit(1);
 	}
-	pHtHif->MemCpy(ht_input_img_data, input_q88_data, img_alloc_ht);
-	pHtHif->MemCpy(ht_input_filter_data, filters_q88_data, filter_alloc_ht);
+	pHtHif->MemCpy(ht_input_img_data, input_q88_data, img_alloc);
+	pHtHif->MemCpy(ht_input_filter_data, filters_q88_data, filter_alloc);
 
 	// avoid bank aliasing for performance
 	if (unitCnt > 16 && !(unitCnt & 1)) unitCnt -= 1;
@@ -152,8 +152,9 @@ void conv_backward_data_ht(void* top_diff, size_t top_alloc,
 }
 
 
-void conv_backward_bias_ht(void* top_diff, size_t top_elements, size_t top_column_stride, size_t top_channel_stride, size_t top_image_stride,
-						void* bottom_diff, size_t bottom_alloc, int channels,
+void conv_backward_bias_ht(void* top_diff, size_t top_elements, size_t top_dim_x, size_t top_dim_y,
+						   size_t top_n_channels, size_t top_n_samples,
+						void* bottom_diff, size_t bottom_alloc,
 						int frac_w){
 	printf("Entry to HT interface\n");
 	// Get interfaces
@@ -196,8 +197,8 @@ void conv_backward_bias_ht(void* top_diff, size_t top_elements, size_t top_colum
 	// Initialize modules with messages
 	pHtHif->SendAllHostMsg(TOP_ADDR, (uint64_t)ht_top_diff_data);
 	pHtHif->SendAllHostMsg(BIAS_ADDR, (uint64_t)ht_bottom_diff_data);
-	pHtHif->SendAllHostMsg(CHANNELS, (uint64_t)channels);
-	pHtHif->SendAllHostMsg(CHANNEL_STRIDE, (uint64_t)top_channel_stride);
+	pHtHif->SendAllHostMsg(CHANNELS, (uint64_t)top_n_channels);
+	pHtHif->SendAllHostMsg(CHANNEL_STRIDE, (uint64_t)(top_dim_y*top_dim_x));
 	pHtHif->SendAllHostMsg(SIZE, (uint64_t)top_elements);
 
 	// Send calls to units
@@ -213,20 +214,25 @@ void conv_backward_bias_ht(void* top_diff, size_t top_elements, size_t top_colum
 
 	//Copy results out.
 	pHtHif->MemCpy(bottom_diff, ht_bottom_diff_data, bottom_alloc+20);
-/*    for(int i =0; i < (int)bottom_alloc+20; i++){
-    	printf(" %d ",((uint16_t*)bottom_diff)[i]);
-    }*/
-
-
 }
-/*
-	conv_backward_filter_ht(top_diff,top_size,
-				 bottom, bottom_size, bottom_column_stride, bottom_channel_stride, bottom_image_stride,
-				 filter_diff, filter_size, filter_column_stride, filter_channel_stride, filter_element_stride,
-				 frac_width,
-				 FIXED_POINT_FRACTION_WIDTH){
 
+
+
+void conv_backward_filter_ht(void* top_diff, size_t top_size, size_t top_dim_x, size_t top_dim_y, size_t top_dim_c, size_t top_dim_n,
+							 void* filter_diff, size_t filter_size, size_t filter_dim_x, size_t filter_column_stride, size_t pad_x, size_t pad_y,
+							 void* bottom, size_t bottom_size, size_t bottom_dim_x, size_t bottom_dim_y, size_t bottom_dim_c,
+							 int frac_width){
+	printf("Entry to HT interface\n");
+	// Get interfaces
+	CHtHif *pHtHif = new CHtHif();
+	int unitCnt = pHtHif->GetUnitCnt();
+	printf("#AUs = %d\n", unitCnt);
+
+	printf("Allocating HT units\n");
+	CHtAuUnit ** pAuUnits = new CHtAuUnit * [unitCnt];
+	for (int unit = 0; unit < unitCnt; unit++){
+		pAuUnits[unit] = new CHtAuUnit(pHtHif);
 	}
-*/
+}
 
 

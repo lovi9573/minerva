@@ -51,7 +51,7 @@ ctl.AddEntry(func=htmain, instr=CTL_ENTRY, host=true)
 ctl.AddReturn(func=htmain)
 	;
 
-//ctl.AddCall(func=conv_fwd);
+ctl.AddCall(func=conv_fwd);
 ctl.AddCall(func=conv_back_bias);
 ctl.AddCall(func=load_filters);
 
@@ -197,7 +197,7 @@ loadfilters.AddGlobal()
 //loadfilters.AddWriteMem()
 //		;
 
-loadfilters.AddCall(func=read_to_global);
+loadfilters.AddCall(func=read_to_global_filter);
 loadfilters.AddCall(func=conv_load_filter_applications);
 
 loadfilters.AddEntry(func=load_filters, instr=LOADFILTERS_ENTRY)
@@ -214,18 +214,18 @@ loadfilters.AddReturn(func=load_filters)
  * read n bytes into global cache
  * global cache to write to is selectable with which_mem
  *********************************/
-dsnInfo.AddModule(name=readtoglobal, htIdW=0);
+dsnInfo.AddModule(name=readtoglobalbottom, htIdW=0);
 
 
-readtoglobal.AddInstr(name=READTOGLOBAL_ENTRY);
-readtoglobal.AddInstr(name=READTOGLOBAL_READ);
-readtoglobal.AddInstr(name=READTOGLOBAL_STORE);
-readtoglobal.AddInstr(name=READTOGLOBAL_READ_IDX_TEST);
-readtoglobal.AddInstr(name=READTOGLOBAL_FILTER_RAW_IDX_TEST);
-readtoglobal.AddInstr(name=READTOGLOBAL_RTN);
+readtoglobalbottom.AddInstr(name=READTOGLOBALBOTTOM_ENTRY);
+readtoglobalbottom.AddInstr(name=READTOGLOBALBOTTOM_READ);
+readtoglobalbottom.AddInstr(name=READTOGLOBALBOTTOM_STORE);
+readtoglobalbottom.AddInstr(name=READTOGLOBALBOTTOM_READ_IDX_TEST);
+readtoglobalbottom.AddInstr(name=READTOGLOBALBOTTOM_FILTER_RAW_IDX_TEST);
+readtoglobalbottom.AddInstr(name=READTOGLOBALBOTTOM_RTN);
 
 
-readtoglobal.AddPrivate()
+readtoglobalbottom.AddPrivate()
 	.AddVar(type=MemAddr_t, name=data_addr)
 	.AddVar(type=MemAddr_t, name=data_addr_offset)
 	.AddVar(type=uint64_t, name=data_raw)
@@ -233,7 +233,6 @@ readtoglobal.AddPrivate()
 	.AddVar(type=uint16_t, name=global_idx)
 	.AddVar(type=uint16_t, name=elements)
 	.AddVar(type=uint16_t, name=i_c)
-	.AddVar(type=uint8_t, name=which_mem)
 	.AddVar(type=ht_uint11, name=gb_addr1)
 	.AddVar(type=ht_uint9, name=gb_addr2)
 	.AddVar(type=ht_uint7, name=gf_addr1)
@@ -243,26 +242,74 @@ readtoglobal.AddPrivate()
 
 	//Bottom data format is (y,x) flattened in first addr and c in 2nd address
 	//Filter Data format is (y,x) flattened in first addr and c in 2nd address
-readtoglobal.AddGlobal()
+readtoglobalbottom.AddGlobal()
 	.AddVar(type=uint16_t, name=bottom_data, addr1=gb_addr1, addr2=gb_addr2, blockRam=true, instrWrite=true)
-	.AddVar(type=uint16_t, name=filter_data, addr1=gf_addr1, addr2=gf_addr2, blockRam=true, instrWrite=true)
 	;
 
-readtoglobal.AddReadMem()
+readtoglobalbottom.AddReadMem()
 	.AddDst(var=data_raw, name=data_raw)
 	;
 
 
-readtoglobal.AddEntry(func=read_to_global, instr=READTOGLOBAL_ENTRY)
-		.AddParam(type=uint8_t, name=which_mem)
+readtoglobalbottom.AddEntry(func=read_to_global_bottom, instr=READTOGLOBALBOTTOM_ENTRY)
 		.AddParam(type=MemAddr_t, name=data_addr)
 		.AddParam(type=uint16_t, name=elements)
 		.AddParam(type=uint16_t, name=global_idx)
 		.AddParam(type=uint16_t, name=i_c)
 	;
 
-readtoglobal.AddReturn(func=read_to_global);
+readtoglobalbottom.AddReturn(func=read_to_global_bottom);
 
+
+/*********************************
+ * read n bytes into global cache
+ * global cache to write to is selectable with which_mem
+ *********************************/
+dsnInfo.AddModule(name=readtoglobalfilter, htIdW=0);
+
+
+readtoglobalfilter.AddInstr(name=READTOGLOBALFILTER_ENTRY);
+readtoglobalfilter.AddInstr(name=READTOGLOBALFILTER_READ);
+readtoglobalfilter.AddInstr(name=READTOGLOBALFILTER_STORE);
+readtoglobalfilter.AddInstr(name=READTOGLOBALFILTER_READ_IDX_TEST);
+readtoglobalfilter.AddInstr(name=READTOGLOBALFILTER_FILTER_RAW_IDX_TEST);
+readtoglobalfilter.AddInstr(name=READTOGLOBALFILTER_RTN);
+
+
+readtoglobalfilter.AddPrivate()
+	.AddVar(type=MemAddr_t, name=data_addr)
+	.AddVar(type=MemAddr_t, name=data_addr_offset)
+	.AddVar(type=uint64_t, name=data_raw)
+	.AddVar(type=uint8_t, name=data_raw_idx)
+	.AddVar(type=uint16_t, name=global_idx)
+	.AddVar(type=uint16_t, name=elements)
+	.AddVar(type=uint16_t, name=i_c)
+	.AddVar(type=ht_uint11, name=gb_addr1)
+	.AddVar(type=ht_uint9, name=gb_addr2)
+	.AddVar(type=ht_uint7, name=gf_addr1)
+	.AddVar(type=ht_uint9, name=gf_addr2)
+	;
+
+
+	//Bottom data format is (y,x) flattened in first addr and c in 2nd address
+	//Filter Data format is (y,x) flattened in first addr and c in 2nd address
+readtoglobalfilter.AddGlobal()
+	.AddVar(type=uint16_t, name=filter_data, addr1=gf_addr1, addr2=gf_addr2, blockRam=true, instrWrite=true)
+	;
+
+readtoglobalfilter.AddReadMem()
+	.AddDst(var=data_raw, name=data_raw)
+	;
+
+
+readtoglobalfilter.AddEntry(func=read_to_global_filter, instr=READTOGLOBALFILTER_ENTRY)
+		.AddParam(type=MemAddr_t, name=data_addr)
+		.AddParam(type=uint16_t, name=elements)
+		.AddParam(type=uint16_t, name=global_idx)
+		.AddParam(type=uint16_t, name=i_c)
+	;
+
+readtoglobalfilter.AddReturn(func=read_to_global_filter);
 
 
 /*********************************
@@ -405,11 +452,11 @@ loadfilterapplicationrow.AddShared()
 	;
 
 // dimensions: (x*y, c)
-//loadfilterapplicationrow.AddGlobal()
-//	.AddVar(type=uint16_t, name=bottom_data, addr1=g_addr1, addr2=g_addr2, blockRam=true, instrWrite=true)
-//	;
+loadfilterapplicationrow.AddGlobal()
+	.AddVar(type=uint16_t, name=bottom_data, addr1=g_addr1, addr2=g_addr2, blockRam=true, instrWrite=true)
+	;
 
-loadfilterapplicationrow.AddCall(func=read_to_global);
+loadfilterapplicationrow.AddCall(func=read_to_global_bottom);
 
 loadfilterapplicationrow.AddEntry(func=load_filter_application_row, instr=CONVLOADFILTERAPPLICATIONROW_ENTRY)
 	.AddParam(type=uint16_t, name=i_s)
@@ -424,76 +471,8 @@ loadfilterapplicationrow.AddReturn(func=load_filter_application_row);
 
 
 
-/*****************************************************************
-* Loads vector elements from op array, rectifies , stores results
-*****************************************************************/
-/*
-//#define APPLYFILTER_HTID_W 9
-#define APPLYFILTER_HTID_W 1
-
-dsnInfo.AddModule(name=applyfilter, htIdW=APPLYFILTER_HTID_W);
-
-applyfilter.AddInstr(name=CONV_INIT);
-applyfilter.AddInstr(name=CONV_LOOP_TOP);
-applyfilter.AddInstr(name=CONV_LD_IMG_SAMPLE);
-applyfilter.AddInstr(name=CONV_LD_FILTER_SAMPLE);
-applyfilter.AddInstr(name=CONV_APPLY);
-applyfilter.AddInstr(name=CONV_LOOP_BRANCH);
-applyfilter.AddInstr(name=CONV_LD_OUT);
-applyfilter.AddInstr(name=CONV_PACK);
-applyfilter.AddInstr(name=CONV_WRITE);
-applyfilter.AddInstr(name=CONV_RTN);
 
 
-applyfilter.AddHostMsg(dir=in, name=IMG_DIM)
-	.AddDst(var=img_dim)
-	;
-applyfilter.AddHostMsg(dir=in, name=IMG_CHANNELS)
-	.AddDst(var=img_channels)
-	;
-applyfilter.AddHostMsg(dir=in, name=FILTER_DIM)
-	.AddDst(var=filter_dim)
-	;
-applyfilter.AddHostMsg(dir=in, name=FRACTION_WIDTH)
-	.AddDst(var=fractionW)
-	;
-
-applyfilter.AddPrivate()
-	.AddVar(type=int16_t, name=accum)
-	.AddVar(type=int16_t, name=img_val)
-	.AddVar(type=int16_t, name=filter_val)
-	.AddVar(type=uint16_t, name=cIdx)
-	.AddVar(type=uint16_t, name=xIdx)
-	.AddVar(type=uint16_t, name=yIdx)
-	.AddVar(type=ht_uint3, name=out_index)
-	.AddVar(type=MemAddr_t, name=imgAddr)
-	.AddVar(type=MemAddr_t, name=filterAddr)
-	;
-
-applyfilter.AddShared()
-	.AddVar(type=uint16_t, name=img_dim)
-	.AddVar(type=uint16_t, name=img_channels)
-	.AddVar(type=uint16_t, name=filter_dim)
-	.AddVar(type=uint16_t, name=fractionW)
-	;
-
-
-applyfilter.AddEntry(func=applyfilter, instr=CONV_INIT)
-	.AddParam(type=ht_uint3, name=out_index)
-	.AddParam(type=MemAddr_t, name=imgAddr)
-	.AddParam(type=MemAddr_t, name=filterAddr)
-	;
-
-applyfilter.AddReturn(func=applyfilter)
-	.AddParam(type=ht_uint3, name=out_index)
-	.AddParam(type=int16_t, name=accum)
-	;
-
-applyfilter.AddReadMem()
-	.AddDst(var=filter_val, name=filter_val )
-	.AddDst(var=img_val, name=img_val)
-	;
-*/
 
 
 /*********************************
@@ -503,20 +482,20 @@ applyfilter.AddReadMem()
 dsnInfo.AddModule(name=convbackdata, htIdW=0);
 
 convbackdata.AddInstr(name=CONVBACKDATA_ENTRY);
-convbackdata.AddInstr(name=CONVBACKDATA_INIT_BIAS_READ);
-convbackdata.AddInstr(name=CONVBACKDATA_INIT_BIAS_READ_STORE);
-convbackdata.AddInstr(name=CONVBACKDATA_TOP_TEST);
-convbackdata.AddInstr(name=CONVBACKDATA_TOP_READ);
-convbackdata.AddInstr(name=CONVBACKDATA_TOP_READ_STORE);\
-convbackdata.AddInstr(name=CONVBACKDATA_BIAS_TEST);
-convbackdata.AddInstr(name=CONVBACKDATA_BIAS_WRITE_PREP);
-convbackdata.AddInstr(name=CONVBACKDATA_BIAS_WRITE);
-convbackdata.AddInstr(name=CONVBACKDATA_BIAS_READ);
-convbackdata.AddInstr(name=CONVBACKDATA_BIAS_READ_STORE);
-convbackdata.AddInstr(name=CONVBACKDATA_TOP_ELEMENT_TEST);
-convbackdata.AddInstr(name=CONVBACKDATA_BIAS_ELEMENT_TEST);
-convbackdata.AddInstr(name=CONVBACKDATA_APPLY);
-convbackdata.AddInstr(name=CONVBACKDATA_INCREMENT);
+//convbackdata.AddInstr(name=CONVBACKDATA_INIT_BIAS_READ);
+//convbackdata.AddInstr(name=CONVBACKDATA_INIT_BIAS_READ_STORE);
+//convbackdata.AddInstr(name=CONVBACKDATA_TOP_TEST);
+//convbackdata.AddInstr(name=CONVBACKDATA_TOP_READ);
+//convbackdata.AddInstr(name=CONVBACKDATA_TOP_READ_STORE);\
+//convbackdata.AddInstr(name=CONVBACKDATA_BIAS_TEST);
+////convbackdata.AddInstr(name=CONVBACKDATA_BIAS_WRITE_PREP);
+//convbackdata.AddInstr(name=CONVBACKDATA_BIAS_WRITE);
+//convbackdata.AddInstr(name=CONVBACKDATA_BIAS_READ);
+//convbackdata.AddInstr(name=CONVBACKDATA_BIAS_READ_STORE);
+//convbackdata.AddInstr(name=CONVBACKDATA_TOP_ELEMENT_TEST);
+//convbackdata.AddInstr(name=CONVBACKDATA_BIAS_ELEMENT_TEST);
+//convbackdata.AddInstr(name=CONVBACKDATA_APPLY);
+//convbackdata.AddInstr(name=CONVBACKDATA_INCREMENT);
 convbackdata.AddInstr(name=CONVBACKDATA_RTN);
 
 convbackdata.AddHostMsg(dir=in, name=TOP_ADDR)
@@ -584,6 +563,7 @@ convbackdata.AddReturn(func=conv_back_data)
 dsnInfo.AddModule(name=convbackfilter, htIdW=0);
 
 convbackfilter.AddInstr(name=CONVBACKFILTER_ENTRY);
+convbackfilter.AddInstr(name=CONVBACKFILTER_RTN);
 
 convbackfilter.AddPrivate()
 	.AddVar(type=uint32_t, name=i)
@@ -597,10 +577,11 @@ convbackfilter.AddEntry(func=conv_back_filter, instr=CONVBACKFILTER_ENTRY)
 
 convbackfilter.AddReturn(func=conv_back_filter);
 
-/***********************************
- * Convolution Forward control
- ************************************/
-/*
+
+//***********************************
+// * Convolution Forward control
+// ************************************
+
 dsnInfo.AddModule(name=convfwd, htIdW=0);
 
 convfwd.AddInstr(name=CONVFWD_ENTRY);
@@ -743,9 +724,76 @@ cluster.AddCall(func=applyfilter, fork=true)
 
 cluster.AddWriteMem()
 		;
-*/
+
+//*****************************************************************
+//* Loads vector elements from op array, rectifies , stores results
+//*****************************************************************
+
+//#define APPLYFILTER_HTID_W 9
+#define APPLYFILTER_HTID_W 1
+
+dsnInfo.AddModule(name=applyfilter, htIdW=APPLYFILTER_HTID_W);
+
+applyfilter.AddInstr(name=CONV_INIT);
+applyfilter.AddInstr(name=CONV_LOOP_TOP);
+applyfilter.AddInstr(name=CONV_LD_IMG_SAMPLE);
+applyfilter.AddInstr(name=CONV_LD_FILTER_SAMPLE);
+applyfilter.AddInstr(name=CONV_APPLY);
+applyfilter.AddInstr(name=CONV_LOOP_BRANCH);
+applyfilter.AddInstr(name=CONV_LD_OUT);
+applyfilter.AddInstr(name=CONV_PACK);
+applyfilter.AddInstr(name=CONV_WRITE);
+applyfilter.AddInstr(name=CONV_RTN);
 
 
+applyfilter.AddHostMsg(dir=in, name=IMG_DIM)
+	.AddDst(var=img_dim)
+	;
+applyfilter.AddHostMsg(dir=in, name=IMG_CHANNELS)
+	.AddDst(var=img_channels)
+	;
+applyfilter.AddHostMsg(dir=in, name=FILTER_DIM)
+	.AddDst(var=filter_dim)
+	;
+applyfilter.AddHostMsg(dir=in, name=FRACTION_WIDTH)
+	.AddDst(var=fractionW)
+	;
+
+applyfilter.AddPrivate()
+	.AddVar(type=int16_t, name=accum)
+	.AddVar(type=int16_t, name=img_val)
+	.AddVar(type=int16_t, name=filter_val)
+	.AddVar(type=uint16_t, name=cIdx)
+	.AddVar(type=uint16_t, name=xIdx)
+	.AddVar(type=uint16_t, name=yIdx)
+	.AddVar(type=ht_uint3, name=out_index)
+	.AddVar(type=MemAddr_t, name=imgAddr)
+	.AddVar(type=MemAddr_t, name=filterAddr)
+	;
+
+applyfilter.AddShared()
+	.AddVar(type=uint16_t, name=img_dim)
+	.AddVar(type=uint16_t, name=img_channels)
+	.AddVar(type=uint16_t, name=filter_dim)
+	.AddVar(type=uint16_t, name=fractionW)
+	;
+
+
+applyfilter.AddEntry(func=applyfilter, instr=CONV_INIT)
+	.AddParam(type=ht_uint3, name=out_index)
+	.AddParam(type=MemAddr_t, name=imgAddr)
+	.AddParam(type=MemAddr_t, name=filterAddr)
+	;
+
+applyfilter.AddReturn(func=applyfilter)
+	.AddParam(type=ht_uint3, name=out_index)
+	.AddParam(type=int16_t, name=accum)
+	;
+
+applyfilter.AddReadMem()
+	.AddDst(var=filter_val, name=filter_val )
+	.AddDst(var=img_val, name=img_val)
+	;
 
 
 	//, rdType=int32_t)

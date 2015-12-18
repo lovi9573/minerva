@@ -38,10 +38,9 @@ void CPersLoadfilters::PersLoadfilters()
 		 * Load filter(s) into global cache
 		 */
 		case LOADFILTERS_READ: {
-			BUSY_RETRY(SendCallBusy_read_to_global());
+			BUSY_RETRY(SendCallBusy_read_to_global_filter());
 			printf("\tReading filter to global mem\n");
-			SendCall_read_to_global(LOADFILTERS_DISPATCH,
-									GLOBAL_FILTER_MEM,
+			SendCall_read_to_global_filter(LOADFILTERS_DISPATCH,
 									SR_filter_addr + PR_i_f*PR_DS_f + PR_filter_addr_offset,
 									PR_DS_f,
 									0,
@@ -70,7 +69,7 @@ void CPersLoadfilters::PersLoadfilters()
 			BUSY_RETRY(SendCallBusy_conv_load_filter_applications());
 			SendCall_conv_load_filter_applications(LOADFILTERS_ITER_TEST,PR_rank, PR_rankStride, false, PR_task);
 			//printf("increment F:%d X:%d Y:%d I:%d\n",PR_applicationIdx_F,PR_applicationIdx_X,PR_applicationIdx_Y,PR_applicationIdx_I);
-			HtContinue(LOADFILTERS_ITER_TEST);
+			//HtContinue(LOADFILTERS_ITER_TEST);
 		}
 		break;
 		/*
